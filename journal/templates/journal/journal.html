@@ -1,0 +1,142 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Journal de Santé</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        form input, form select, form textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        form button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #0056b3;
+        }
+        .entry {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .entry:last-child {
+            border-bottom: none;
+        }
+        .entry h3 {
+            margin: 0;
+        }
+        .entry p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Journal de Santé</h1>
+
+    {% if errors %}
+        <ul style="color:red;">
+            {% for field, msgs in errors.items %}
+                {% for msg in msgs %}
+                    <li>{{ field }}: {{ msg }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" action="{% url 'journal_page' %}">
+        {% csrf_token %}
+        <label>Catégorie:</label>
+        <select name="category" required>
+            <option value="symptome">Symptôme</option>
+            <option value="traitement">Traitement</option>
+            <option value="activite">Activité</option>
+            <option value="sommeil">Sommeil</option>
+            <option value="alimentation">Alimentation</option>
+            <option value="vitaux">Vitaux</option>
+        </select>
+
+        <label>Contenu:</label>
+        <textarea name="content" rows="3" required></textarea>
+
+        <label>Intensité (0-10):</label>
+        <input type="number" name="intensity" min="0" max="10">
+    <!-- Nouvelle saisie pour durée -->
+<label>Durée (hh:mm):</label>
+<input type="text" name="duration" placeholder="ex: 01:30">
+
+
+        <label>Localisation corporelle:</label>
+        <input type="text" name="location">
+
+        <label>Tags (séparés par des virgules):</label>
+        <input type="text" name="tags">
+
+        <button type="submit">Ajouter au journal</button>
+    </form>
+
+    <hr>
+
+    <h2>Historique des entrées</h2>
+    {% for entry in entries %}
+        <div class="entry">
+            <h3>{{ entry.get_category_display }} - {{ entry.created_at|date:"d/m/Y H:i" }}</h3>
+            <p><strong>Contenu:</strong> {{ entry.content }}</p>
+            {% if entry.intensity %}<p><strong>Intensité:</strong> {{ entry.intensity }}</p>{% endif %}
+            {% if entry.duration %}<p><strong>Durée:</strong> {{ entry.duration }}</p>{% endif %}
+            {% if entry.location %}<p><strong>Localisation:</strong> {{ entry.location }}</p>{% endif %}
+            {% if entry.tags %}<p><strong>Tags:</strong> {{ entry.tags }}</p>{% endif %}
+        </div>
+    {% empty %}
+        <p>Aucune entrée pour le moment.</p>
+    {% endfor %}
+
+  {% if conclusion_lines %}
+<div style="margin-top:20px;">
+    <h2 style="color:#007BFF; border-bottom:2px solid #007BFF; padding-bottom:5px;">Conclusion Générée par l'IA</h2>
+    {% for line in conclusion_lines %}
+        {% if '⚠️' in line or '🥵' in line %}
+            <div style="background-color:#f8d7da; color:#721c24; padding:12px; border-radius:8px; margin:8px 0; font-weight:bold;">
+                {{ line }}
+            </div>
+        {% elif '💊' in line or '🥗' in line or '💪' in line or '😴' in line %}
+            <div style="background-color:#d1ecf1; color:#0c5460; padding:12px; border-radius:8px; margin:8px 0; font-weight:bold;">
+                {{ line }}
+            </div>
+        {% else %}
+            <div style="background-color:#fefefe; color:#333; padding:10px; border-radius:8px; margin:8px 0; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+                {{ line }}
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+</div>
+</body>
+</html>

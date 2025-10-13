@@ -1,0 +1,90 @@
+<!-- users/templates/users/register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .errors {
+            color: red;
+            margin-bottom: 15px;
+        }
+        .errors li {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Créer un compte</h1>
+
+        {% if errors %}
+            <ul class="errors">
+            {% for field, msgs in errors.items %}
+                {% for msg in msgs %}
+                    <li>{{ field }}: {{ msg }}</li>
+                {% endfor %}
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'register_page' %}">
+            {% csrf_token %}
+
+            <label>Nom d'utilisateur:</label>
+            <input type="text" name="username" placeholder="Votre nom d'utilisateur" required autocomplete="username">
+
+            <label>Email:</label>
+            <input type="email" name="email" placeholder="Votre email" required autocomplete="email">
+
+            <label>Mot de passe:</label>
+            <input type="password" name="password" placeholder="Votre mot de passe" required autocomplete="new-password">
+
+            <button type="submit">S'inscrire</button>
+        </form>
+    </div>
+</body>
+</html>
