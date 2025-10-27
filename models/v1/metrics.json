@@ -1,0 +1,54 @@
+{
+  "train_metrics": {
+    "accuracy": 0.9375,
+    "positive_samples": 3,
+    "total_samples": 16,
+    "feature_importance": {
+      "steps_7d_mean": 0.09827007204127693,
+      "steps_7d_std": 0.030147480365527436,
+      "steps_14d_mean": 0.07693734029203025,
+      "steps_trend_direction": 0.014868794618653154,
+      "steps_consistency": 0.11308215745733143,
+      "sleep_7d_mean": 0.20045443228540963,
+      "sleep_7d_std": 0.03756026833592159,
+      "sleep_14d_mean": 0.23813580866916972,
+      "sleep_trend_direction": 0.0,
+      "sleep_consistency": 0.15013960553063949,
+      "systolic_7d_mean": 0.0,
+      "diastolic_7d_mean": 0.0,
+      "bp_category": 0.040404040404040394,
+      "age": 0.0,
+      "bmi": 0.0,
+      "activity_sleep_correlation": 0.0
+    }
+  },
+  "validation_metrics": {
+    "accuracy": 1.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "false_negatives": 0
+  },
+  "model_type": "RandomForestClassifier",
+  "feature_count": 16,
+  "features": [
+    "steps_7d_mean",
+    "steps_7d_std",
+    "steps_14d_mean",
+    "steps_trend_direction",
+    "steps_consistency",
+    "sleep_7d_mean",
+    "sleep_7d_std",
+    "sleep_14d_mean",
+    "sleep_trend_direction",
+    "sleep_consistency",
+    "systolic_7d_mean",
+    "diastolic_7d_mean",
+    "bp_category",
+    "age",
+    "bmi",
+    "activity_sleep_correlation"
+  ]
+}

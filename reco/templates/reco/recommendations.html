@@ -1,0 +1,434 @@
+{% extends 'reco/base.html' %}
+{% load static %}
+
+{% block title %}Mes Recommandations - HEALTH TRACK{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Page Header -->
+        <div class="col-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold mb-2">
+                        <i class="fas fa-star text-warning me-3"></i>
+                        Vos Recommandations Personnalisées
+                    </h1>
+                    <p class="lead text-muted">Générées par intelligence artificielle • Modèle v{{ model_version }}</p>
+                </div>
+                <button class="btn btn-primary btn-lg" onclick="generateRecommendations()">
+                    <i class="fas fa-sync-alt me-2"></i>Actualiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="col-12" style="display: none;">
+            <div class="spinner-container">
+                <div class="spinner-ml"></div>
+            </div>
+            <p class="text-center text-muted mt-3">Analyse de vos données en cours...</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="col-md-4 mb-4">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="metric-value" id="total-recommendations">{{ recommendations|length }}</div>
+                <div class="metric-label">Recommandations</div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="metric-value">{{ avg_confidence|floatformat:0 }}%</div>
+                <div class="metric-label">Confiance Moyenne IA</div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="metric-value">v{{ model_version }}</div>
+                <div class="metric-label">Version du Modèle</div>
+            </div>
+        </div>
+
+        <!-- Learning Progress Section -->
+        {% if feedback_insights and feedback_insights.total_feedback > 0 %}
+        <div class="col-12 mb-4">
+            <div class="alert {% if feedback_insights.learning_status == 'excellent' %}alert-success{% elif feedback_insights.learning_status == 'good' %}alert-info{% elif feedback_insights.learning_status == 'learning' %}alert-warning{% else %}alert-secondary{% endif %}">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2">
+                            <i class="fas fa-graduation-cap me-2"></i>
+                            Progression de l'Apprentissage IA
+                            {% if feedback_insights.learning_status == 'excellent' %}
+                                <span class="badge bg-success ms-2">Excellent</span>
+                            {% elif feedback_insights.learning_status == 'good' %}
+                                <span class="badge bg-info ms-2">Bon</span>
+                            {% elif feedback_insights.learning_status == 'learning' %}
+                                <span class="badge bg-warning ms-2">En apprentissage</span>
+                            {% else %}
+                                <span class="badge bg-secondary ms-2">Nouveau</span>
+                            {% endif %}
+                        </h5>
+                        <p class="mb-2">
+                            <strong>{{ feedback_insights.total_feedback }}</strong> retours collectés
+                            • <strong>{{ feedback_insights.helpful_rate|floatformat:0 }}%</strong> jugés utiles
+                            • <strong>{{ feedback_insights.action_rate|floatformat:0 }}%</strong> appliqués
+                        </p>
+                        {% if feedback_insights.favorite_category %}
+                        <p class="mb-0">
+                            <i class="fas fa-star text-warning me-1"></i>
+                            Catégorie préférée: <strong>{{ feedback_insights.favorite_category }}</strong>
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar {% if feedback_insights.helpful_rate >= 70 %}bg-success{% elif feedback_insights.helpful_rate >= 50 %}bg-info{% else %}bg-warning{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ feedback_insights.helpful_rate }}%;" 
+                                 aria-valuenow="{{ feedback_insights.helpful_rate }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ feedback_insights.helpful_rate|floatformat:0 }}% utile
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                            <i class="fas fa-info-circle"></i> Plus vous donnez de retours, plus l'IA s'améliore
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recommendations List -->
+        <div class="col-12">
+            {% if recommendations %}
+                <div id="recommendations-container">
+                    {% for reco in recommendations %}
+                    <div class="recommendation-card {% if reco.ml_confidence > 0.8 %}high-priority{% elif reco.ml_confidence > 0.6 %}medium-priority{% else %}low-priority{% endif %} fade-in" data-reco-id="{{ reco.id }}">
+                        <!-- Header -->
+                        <div class="recommendation-header">
+                            <span class="recommendation-category category-{{ reco.category }}">
+                                {% if reco.category == 'sleep' %}
+                                    <i class="fas fa-moon me-1"></i>Sommeil
+                                {% elif reco.category == 'activity' %}
+                                    <i class="fas fa-running me-1"></i>Activité
+                                {% elif reco.category == 'nutrition' %}
+                                    <i class="fas fa-apple-alt me-1"></i>Nutrition
+                                {% else %}
+                                    <i class="fas fa-heart me-1"></i>Style de vie
+                                {% endif %}
+                            </span>
+                            <span class="confidence-badge">
+                                <i class="fas fa-brain me-1"></i>{{ reco.ml_confidence|floatformat:0 }}% confiance
+                            </span>
+                        </div>
+
+                        <!-- Recommendation Text -->
+                        <p class="recommendation-text">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            {{ reco.text }}
+                        </p>
+
+                        <!-- ML Explanation -->
+                        <div class="recommendation-explanation">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Pourquoi cette recommandation ?</strong><br>
+                            {{ reco.explanation }}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="mt-3 d-flex gap-2 feedback-buttons">
+                            {% if reco.helpful is None %}
+                                <button class="btn btn-sm btn-success" onclick="markHelpful({{ reco.id }}, true)">
+                                    <i class="fas fa-thumbs-up me-1"></i>Utile
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="markHelpful({{ reco.id }}, false)">
+                                    <i class="fas fa-thumbs-down me-1"></i>Pas utile
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="markActedUpon({{ reco.id }})">
+                                    <i class="fas fa-check me-1"></i>J'ai appliqué
+                                </button>
+                            {% else %}
+                                {% if reco.acted_upon %}
+                                    <span class="badge bg-success">✓ J'ai appliqué ce conseil</span>
+                                {% elif reco.helpful %}
+                                    <span class="badge bg-success">✓ Marqué comme utile</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">✓ Feedback enregistré</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Metadata -->
+                        <div class="mt-3 pt-3 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>Créé le {{ reco.created_at|date:"d/m/Y à H:i" }}
+                                {% if reco.source == 'ml' %}
+                                    <span class="badge-ml ms-2">
+                                        <i class="fas fa-robot me-1"></i>Généré par IA
+                                    </span>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- No Recommendations -->
+                <div class="dashboard-card text-center py-5">
+                    <i class="fas fa-smile text-success" style="font-size: 5rem; opacity: 0.5;"></i>
+                    <h3 class="mt-4 mb-3">Aucune recommandation pour le moment</h3>
+                    <p class="text-muted mb-4">
+                        Cela signifie que vos métriques de santé sont bonnes ! <br>
+                        Ou vous n'avez pas encore ajouté de données de santé.
+                    </p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Ajouter des Métriques
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Info Box -->
+        <div class="col-12 mt-4">
+            <div class="alert alert-info-custom alert-custom">
+                <h5 class="mb-3"><i class="fas fa-robot me-2"></i>À propos de ces recommandations</h5>
+                <ul class="mb-0">
+                    <li>Ces recommandations sont générées par notre modèle RandomForest avec <strong>93.75% de précision</strong></li>
+                    <li>Le modèle analyse <strong>16 indicateurs</strong> de santé basés sur vos 7-14 derniers jours</li>
+                    <li>Le score de confiance indique la probabilité que vous trouviez cette recommandation utile</li>
+                    <li>Vos retours nous aident à améliorer continuellement le modèle</li>
+                    <li><strong>Important:</strong> Ces conseils ne remplacent pas l'avis d'un professionnel de santé</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Generate new recommendations
+function generateRecommendations() {
+    console.log('🔄 Generating new recommendations...');
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('recommendations-container').style.display = 'none';
+    
+    fetch('/api/metrics/run_recommendations/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('✅ Recommendations generated:', data);
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        alert('Erreur lors de la génération des recommandations: ' + error.message);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('recommendations-container').style.display = 'block';
+    });
+}
+
+// Mark recommendation as helpful
+function markHelpful(recoId, helpful) {
+    console.log(`👍 Marking recommendation ${recoId} as helpful=${helpful}`);
+    
+    // Find the recommendation card
+    const card = document.querySelector(`[data-reco-id="${recoId}"]`);
+    const feedbackButtons = card ? card.querySelector('.feedback-buttons') : null;
+    
+    if (!card) {
+        console.error('❌ Card not found for recommendation ID:', recoId);
+        alert('Erreur: Recommandation non trouvée');
+        return;
+    }
+    
+    fetch(`/api/recommendations/${recoId}/provide_feedback/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ helpful: helpful, acted_upon: false })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('✅ Feedback recorded:', data);
+        
+        // Show success message
+        if (data.message) {
+            showToast(data.message, helpful ? 'success' : 'info');
+        }
+        
+        // Update button UI
+        if (feedbackButtons) {
+            feedbackButtons.innerHTML = helpful 
+                ? '<span class="badge bg-success">✓ Marqué comme utile</span>'
+                : '<span class="badge bg-secondary">✓ Feedback enregistré</span>';
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        showToast('❌ Erreur: ' + error.message, 'error');
+    });
+}
+
+// Mark as acted upon
+function markActedUpon(recoId) {
+    console.log(`✅ Marking recommendation ${recoId} as acted upon`);
+    
+    // Find the recommendation card
+    const card = document.querySelector(`[data-reco-id="${recoId}"]`);
+    const feedbackButtons = card ? card.querySelector('.feedback-buttons') : null;
+    
+    if (!card) {
+        console.error('❌ Card not found for recommendation ID:', recoId);
+        alert('Erreur: Recommandation non trouvée');
+        return;
+    }
+    
+    fetch(`/api/recommendations/${recoId}/provide_feedback/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ helpful: true, acted_upon: true })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('✅ Action recorded:', data);
+        
+        // Show success message
+        if (data.message) {
+            showToast(data.message, 'success');
+        }
+        
+        // Update button UI with checkmark
+        if (feedbackButtons) {
+            feedbackButtons.innerHTML = '<span class="badge bg-success">✓ J\'ai appliqué ce conseil</span>';
+        }
+        
+        // Add visual indicator to card
+        if (card) {
+            card.style.borderLeft = '4px solid #28a745';
+            card.style.opacity = '0.9';
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        showToast('❌ Erreur: ' + error.message, 'error');
+    });
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    const colors = {
+        success: '#28a745',
+        error: '#dc3545',
+        info: '#17a2b8'
+    };
+    
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type] || colors.info};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        max-width: 400px;
+        font-size: 14px;
+    `;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

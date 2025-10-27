@@ -1,0 +1,247 @@
+{% extends 'reco/base.html' %}
+{% load static %}
+
+{% block title %}Ajouter Métriques - HEALTH TRACK{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold">
+                    <i class="fas fa-heartbeat text-danger me-3"></i>
+                    Mes Métriques de Santé
+                </h1>
+                <p class="lead text-muted">
+                    Suivez votre santé au quotidien pour des recommandations personnalisées
+                </p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="dashboard-card">
+                <form method="post" id="metricsForm">
+                    {% csrf_token %}
+                    
+                    <!-- Date Selection -->
+                    <div class="mb-4">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar-alt me-2"></i>Date
+                        </label>
+                        <input 
+                            type="date" 
+                            class="form-control form-control-lg" 
+                            id="date" 
+                            name="date" 
+                            value="{{ today|date:'Y-m-d' }}"
+                            max="{{ today|date:'Y-m-d' }}"
+                            required
+                        >
+                        <small class="text-muted">Sélectionnez la date de vos mesures</small>
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="mb-4">
+                        <label for="steps" class="form-label">
+                            <i class="fas fa-walking me-2 text-primary"></i>Nombre de Pas
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="steps" 
+                                name="steps" 
+                                placeholder="Ex: 8000"
+                                min="0"
+                                max="50000"
+                                {% if today_metrics and today_metrics.steps %}value="{{ today_metrics.steps }}"{% endif %}
+                            >
+                            <span class="input-group-text">pas</span>
+                        </div>
+                        <small class="text-muted">Objectif recommandé : 8000-10000 pas/jour</small>
+                    </div>
+
+                    <!-- Sleep Hours -->
+                    <div class="mb-4">
+                        <label for="sleep_hours" class="form-label">
+                            <i class="fas fa-moon me-2 text-info"></i>Heures de Sommeil
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="sleep_hours" 
+                                name="sleep_hours" 
+                                placeholder="Ex: 7.5"
+                                min="0"
+                                max="24"
+                                step="0.5"
+                                {% if today_metrics and today_metrics.sleep_hours %}value="{{ today_metrics.sleep_hours }}"{% endif %}
+                            >
+                            <span class="input-group-text">heures</span>
+                        </div>
+                        <small class="text-muted">Recommandé : 7-9 heures pour un adulte</small>
+                    </div>
+
+                    <!-- Blood Pressure -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-heartbeat me-2 text-danger"></i>Tension Artérielle
+                        </label>
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">Systolique</span>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="systolic_bp" 
+                                        name="systolic_bp" 
+                                        placeholder="120"
+                                        min="60"
+                                        max="250"
+                                        {% if today_metrics and today_metrics.systolic_bp %}value="{{ today_metrics.systolic_bp }}"{% endif %}
+                                    >
+                                    <span class="input-group-text">mmHg</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">Diastolique</span>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="diastolic_bp" 
+                                        name="diastolic_bp" 
+                                        placeholder="80"
+                                        min="40"
+                                        max="150"
+                                        {% if today_metrics and today_metrics.diastolic_bp %}value="{{ today_metrics.diastolic_bp }}"{% endif %}
+                                    >
+                                    <span class="input-group-text">mmHg</span>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted">Normal : &lt; 120/80 mmHg</small>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Conseil :</strong> Entrez au moins 2-3 métriques pour obtenir des recommandations personnalisées. Vous pouvez compléter les autres champs plus tard.
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i>Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Stats -->
+            {% if today_metrics %}
+            <div class="alert alert-success mt-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-check-circle me-2"></i>Métriques existantes pour aujourd'hui
+                </h5>
+                <div class="row">
+                    {% if today_metrics.steps %}
+                    <div class="col-6 col-md-3 mb-2">
+                        <strong>Pas:</strong> {{ today_metrics.steps|floatformat:0 }}
+                    </div>
+                    {% endif %}
+                    {% if today_metrics.sleep_hours %}
+                    <div class="col-6 col-md-3 mb-2">
+                        <strong>Sommeil:</strong> {{ today_metrics.sleep_hours }}h
+                    </div>
+                    {% endif %}
+                    {% if today_metrics.systolic_bp and today_metrics.diastolic_bp %}
+                    <div class="col-6 col-md-6 mb-2">
+                        <strong>Tension:</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg
+                    </div>
+                    {% endif %}
+                </div>
+                <small class="text-muted">Modifier les champs ci-dessus et cliquer sur "Enregistrer" pour mettre à jour</small>
+            </div>
+            {% endif %}
+
+            <!-- Tips -->
+            <div class="row mt-5">
+                <div class="col-md-4 mb-3">
+                    <div class="text-center p-4 bg-light rounded">
+                        <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                        <h5>Utilisez un tracker</h5>
+                        <p class="small text-muted">Montre connectée, smartphone ou bracelet fitness pour compter vos pas</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="text-center p-4 bg-light rounded">
+                        <i class="fas fa-clock fa-3x text-info mb-3"></i>
+                        <h5>Routine quotidienne</h5>
+                        <p class="small text-muted">Entrez vos métriques chaque soir avant de vous coucher</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="text-center p-4 bg-light rounded">
+                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                        <h5>Suivez vos progrès</h5>
+                        <p class="small text-muted">Visualisez l'évolution de vos métriques sur le tableau de bord</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus, .input-group-text {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        font-weight: 500;
+    }
+    
+    .bg-light {
+        transition: transform 0.3s ease;
+    }
+    
+    .bg-light:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+// Form validation
+document.getElementById('metricsForm').addEventListener('submit', function(e) {
+    const steps = document.getElementById('steps').value;
+    const sleep = document.getElementById('sleep_hours').value;
+    const systolic = document.getElementById('systolic_bp').value;
+    const diastolic = document.getElementById('diastolic_bp').value;
+    
+    // Check if at least one field is filled
+    if (!steps && !sleep && !systolic && !diastolic) {
+        e.preventDefault();
+        alert('Veuillez remplir au moins une métrique avant d\'enregistrer.');
+        return false;
+    }
+    
+    // Validate BP: if one is filled, both should be
+    if ((systolic && !diastolic) || (!systolic && diastolic)) {
+        e.preventDefault();
+        alert('Veuillez remplir les deux valeurs de tension artérielle (systolique ET diastolique).');
+        return false;
+    }
+    
+    return true;
+});
+</script>
+{% endblock %}

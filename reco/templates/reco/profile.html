@@ -1,0 +1,250 @@
+{% extends 'reco/base.html' %}
+
+{% block title %}Mon Profil - HEALTH TRACK{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <!-- Profile Header -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0;">
+                    <div class="profile-avatar mb-3">
+                        <i class="fas fa-user-circle fa-5x"></i>
+                    </div>
+                    <h2 class="mb-1">{{ user.username }}</h2>
+                    <p class="mb-0"><i class="fas fa-envelope"></i> {{ user.email }}</p>
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #667eea;">
+                    <h4 class="mb-0"><i class="fas fa-user-edit"></i> Modifier mon profil</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        
+                        <!-- User Info Section -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-id-card"></i> Informations personnelles</h5>
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">Prénom</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" 
+                                           value="{{ user.first_name }}" placeholder="Votre prénom">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Nom</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" 
+                                           value="{{ user.last_name }}" placeholder="Votre nom">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ user.email }}" placeholder="votre.email@exemple.com">
+                            </div>
+                        </div>
+
+                        <!-- Health Profile Section -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-heartbeat"></i> Profil de santé</h5>
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="age" class="form-label">Âge</label>
+                                    <input type="number" class="form-control" id="age" name="age" 
+                                           value="{{ profile.age|default:'' }}" min="1" max="120" placeholder="25">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="gender" class="form-label">Sexe</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Sélectionner...</option>
+                                        <option value="M" {% if profile.sex == 'M' %}selected{% endif %}>Homme</option>
+                                        <option value="F" {% if profile.sex == 'F' %}selected{% endif %}>Femme</option>
+                                        <option value="O" {% if profile.sex == 'O' %}selected{% endif %}>Autre</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="height" class="form-label">Taille (cm)</label>
+                                    <input type="number" class="form-control" id="height" name="height" 
+                                           value="{{ profile.height_cm|default:'' }}" min="50" max="250" step="0.1" placeholder="170">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="weight" class="form-label">Poids (kg)</label>
+                                    <input type="number" class="form-control" id="weight" name="weight" 
+                                           value="{{ profile.weight_kg|default:'' }}" min="20" max="300" step="0.1" placeholder="70">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="activity_level" class="form-label">Niveau d'activité</label>
+                                <select class="form-select" id="activity_level" name="activity_level">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="sedentary" {% if profile.activity_level == 'sedentary' %}selected{% endif %}>Sédentaire</option>
+                                    <option value="light" {% if profile.activity_level == 'light' %}selected{% endif %}>Légèrement actif</option>
+                                    <option value="moderate" {% if profile.activity_level == 'moderate' %}selected{% endif %}>Modérément actif</option>
+                                    <option value="very_active" {% if profile.activity_level == 'very_active' %}selected{% endif %}>Très actif</option>
+                                    <option value="extra_active" {% if profile.activity_level == 'extra_active' %}selected{% endif %}>Extrêmement actif</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Aide l'IA à personnaliser vos recommandations
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Health Goals Section -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-bullseye"></i> Objectifs de santé</h5>
+                            <hr>
+                            
+                            <div class="mb-3">
+                                <label for="health_goals" class="form-label">Mes objectifs</label>
+                                <select class="form-select" id="health_goals" name="health_goals">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="weight_loss" {% if profile.health_goals == 'weight_loss' %}selected{% endif %}>Perte de poids</option>
+                                    <option value="muscle_gain" {% if profile.health_goals == 'muscle_gain' %}selected{% endif %}>Prise de masse musculaire</option>
+                                    <option value="fitness" {% if profile.health_goals == 'fitness' %}selected{% endif %}>Amélioration de la forme physique</option>
+                                    <option value="health" {% if profile.health_goals == 'health' %}selected{% endif %}>Santé générale</option>
+                                    <option value="sleep" {% if profile.health_goals == 'sleep' %}selected{% endif %}>Amélioration du sommeil</option>
+                                    <option value="stress" {% if profile.health_goals == 'stress' %}selected{% endif %}>Réduction du stress</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-robot"></i> L'IA utilisera ces informations pour mieux cibler les recommandations
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="medical_conditions" class="form-label">Conditions médicales (optionnel)</label>
+                                <textarea class="form-control" id="medical_conditions" name="medical_conditions" rows="2" 
+                                          placeholder="Ex: Diabète, hypertension...">{{ profile.medical_conditions|default:'' }}</textarea>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-shield-alt"></i> Ces informations restent privées et sécurisées
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Preferences Section -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-sliders-h"></i> Préférences</h5>
+                            <hr>
+                            
+                            <div class="mb-3">
+                                <label for="preferences" class="form-label">Préférences personnelles</label>
+                                <textarea class="form-control" id="preferences" name="preferences" rows="2" 
+                                          placeholder="Ex: Préfère les exercices à domicile, végétarien...">{{ profile.preferences|default:'' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Profile Stats Card -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #50C878;">
+                    <h4 class="mb-0"><i class="fas fa-chart-line"></i> Statistiques du compte</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-item">
+                                <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
+                                <h3 class="mb-0">{{ metrics_count }}</h3>
+                                <p class="text-muted mb-0">Métriques enregistrées</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-item">
+                                <i class="fas fa-lightbulb fa-2x text-warning mb-2"></i>
+                                <h3 class="mb-0">{{ recommendations_count }}</h3>
+                                <p class="text-muted mb-0">Recommandations reçues</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-item">
+                                <i class="fas fa-user-clock fa-2x text-success mb-2"></i>
+                                <h3 class="mb-0">{{ user.date_joined|date:"d/m/Y" }}</h3>
+                                <p class="text-muted mb-0">Membre depuis</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BMI Calculator (if height and weight provided) -->
+            {% if profile.height and profile.weight %}
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #4A90E2;">
+                    <h4 class="mb-0"><i class="fas fa-calculator"></i> Indice de Masse Corporelle (IMC)</h4>
+                </div>
+                <div class="card-body text-center">
+                    {% with bmi=profile.weight|floatformat:1|add:0 height_m=profile.height|floatformat:2|add:0 %}
+                    {% with bmi_calc=profile.weight|add:0 height_m_calc=profile.height|add:0 %}
+                    {% with bmi_value=bmi_calc|floatformat:1 %}
+                    <h2 class="text-primary mb-3">
+                        {% widthratio profile.weight 1 10000 as numerator %}
+                        {% widthratio profile.height profile.height 1 as denominator %}
+                        {% widthratio numerator denominator 1 as bmi_final %}
+                        {{ bmi_final|floatformat:1 }} kg/m²
+                    </h2>
+                    <p class="text-muted">
+                        <i class="fas fa-info-circle"></i> Calculé automatiquement à partir de votre taille et poids
+                    </p>
+                    {% endwith %}
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-item {
+    padding: 1rem;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.stats-item:hover {
+    transform: translateY(-5px);
+    background-color: #f8f9fa;
+}
+
+.profile-avatar {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
+{% endblock %}

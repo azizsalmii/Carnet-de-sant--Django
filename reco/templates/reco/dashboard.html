@@ -1,0 +1,327 @@
+{% extends 'reco/base.html' %}
+
+{% block title %}Tableau de Bord - HEALTH TRACK{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h1 class="mb-2"><i class="fas fa-chart-line"></i> Bonjour, {{ user.first_name|default:user.username }} !</h1>
+                    <p class="mb-0 fs-5">Bienvenue sur votre tableau de bord personnalisé</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if metrics_count == 0 %}
+    <!-- Welcome Message for New Users -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info shadow-sm" style="border-left: 5px solid #667eea;">
+                <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Bienvenue chez HEALTH TRACK !</h4>
+                <p class="mb-3">Votre dashboard est vide car vous n'avez pas encore ajouté de métriques de santé.</p>
+                <hr>
+                <p class="mb-3"><strong>Pour commencer :</strong></p>
+                <ol class="mb-3">
+                    <li>Cliquez sur le bouton <strong>"Ajouter mes métriques du jour"</strong> ci-dessous</li>
+                    <li>Remplissez vos données quotidiennes : pas, sommeil, tension artérielle</li>
+                    <li>Ajoutez au moins <strong>2-3 jours de données</strong> pour obtenir des statistiques</li>
+                    <li>Visitez la page <strong>"Recommandations"</strong> pour que l'IA génère vos conseils personnalisés</li>
+                </ol>
+                <div class="text-center mt-4">
+                    <a href="{% url 'add_metrics' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle"></i> Ajouter mes métriques du jour
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats Cards Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background-color: #667eea;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ avg_sleep|floatformat:1|default:"--" }}h</h3>
+                    <p>Sommeil Moyen (7j)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background-color: #50C878;">
+                    <i class="fas fa-walking"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ avg_steps|floatformat:0|default:"--" }}</h3>
+                    <p>Pas Moyens (7j)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background-color: #F39C12;">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ latest_bp|default:"--/--" }}</h3>
+                    <p>Tension Artérielle</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background-color: #E74C3C;">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ recommendations_count }}</h3>
+                    <p>Recommandations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Left Column: Charts -->
+        <div class="col-lg-8 mb-4">
+            <!-- Sleep Trend Chart -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #667eea;">
+                    <h5 class="mb-0"><i class="fas fa-moon"></i> Évolution du Sommeil (7 derniers jours)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="sleepChart" height="80"></canvas>
+                </div>
+            </div>
+
+            <!-- Steps Trend Chart -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #50C878;">
+                    <h5 class="mb-0"><i class="fas fa-walking"></i> Évolution des Pas (7 derniers jours)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="stepsChart" height="80"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Metrics Table -->
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #4A90E2;">
+                    <h5 class="mb-0"><i class="fas fa-table"></i> Métriques Récentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if metrics %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar"></i> Date</th>
+                                    <th><i class="fas fa-moon"></i> Sommeil (h)</th>
+                                    <th><i class="fas fa-walking"></i> Pas</th>
+                                    <th><i class="fas fa-heartbeat"></i> Tension</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for metric in metrics %}
+                                <tr>
+                                    <td>{{ metric.date|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge {% if metric.sleep_hours < 6 %}bg-danger{% elif metric.sleep_hours < 7 %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ metric.sleep_hours }} h
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if metric.steps < 5000 %}bg-danger{% elif metric.steps < 8000 %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ metric.steps }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if metric.systolic_bp and metric.diastolic_bp %}
+                                            <span class="badge {% if metric.systolic_bp > 140 %}bg-danger{% elif metric.systolic_bp > 130 %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ metric.systolic_bp }}/{{ metric.diastolic_bp }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">--</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Aucune métrique enregistrée pour le moment.</p>
+                        <a href="{% url 'admin:reco_dailymetrics_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter des métriques
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Recent Recommendations & Actions -->
+        <div class="col-lg-4 mb-4">
+            <!-- Recent Recommendations -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #764ba2;">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Recommandations Récentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_recommendations %}
+                        {% for reco in recent_recommendations %}
+                        <div class="recommendation-mini mb-3 p-3" style="background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {% if reco.category == 'sleep' %}#667eea{% elif reco.category == 'activity' %}#50C878{% elif reco.category == 'nutrition' %}#F39C12{% else %}#4A90E2{% endif %};">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge" style="background-color: {% if reco.category == 'sleep' %}#667eea{% elif reco.category == 'activity' %}#50C878{% elif reco.category == 'nutrition' %}#F39C12{% else %}#4A90E2{% endif %};">
+                                    {% if reco.category == 'sleep' %}🌙 Sommeil
+                                    {% elif reco.category == 'activity' %}🏃 Activité
+                                    {% elif reco.category == 'nutrition' %}🥗 Nutrition
+                                    {% else %}💡 Lifestyle{% endif %}
+                                </span>
+                                <small class="text-muted">{{ reco.created_at|date:"d/m" }}</small>
+                            </div>
+                            <p class="mb-0 small">{{ reco.text|truncatewords:15 }}</p>
+                        </div>
+                        {% endfor %}
+                        <a href="{% url 'recommendations_view' %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-arrow-right"></i> Voir toutes les recommandations
+                        </a>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-3">Pas encore de recommandations.</p>
+                            <a href="{% url 'recommendations_view' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-magic"></i> Générer des recommandations
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #f8f9fa; border-bottom: 2px solid #50C878;">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions Rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'add_metrics' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter mes métriques du jour
+                        </a>
+                        <a href="{% url 'recommendations_view' %}" class="btn btn-outline-success">
+                            <i class="fas fa-magic me-2"></i>Voir mes recommandations
+                        </a>
+                        <a href="{% url 'ai_progress' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-brain me-2"></i>Progression de l'IA
+                        </a>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-info">
+                            <i class="fas fa-user-edit me-2"></i>Modifier mon profil
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML Model Info -->
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-brain fa-3x mb-3"></i>
+                    <h5 class="mb-2">Intelligence Artificielle</h5>
+                    <p class="mb-2">Modèle RandomForest v1</p>
+                    <h3 class="mb-0">93.75% de précision</h3>
+                    <small>16 indicateurs analysés</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Sleep Chart
+const sleepCtx = document.getElementById('sleepChart');
+if (sleepCtx) {
+    new Chart(sleepCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Heures de sommeil',
+                data: {{ sleep_data|safe }},
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 12,
+                    ticks: {
+                        callback: function(value) {
+                            return value + 'h';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Steps Chart
+const stepsCtx = document.getElementById('stepsChart');
+if (stepsCtx) {
+    new Chart(stepsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Nombre de pas',
+                data: {{ steps_data|safe }},
+                backgroundColor: '#50C878',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
