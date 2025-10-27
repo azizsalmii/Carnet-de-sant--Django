@@ -1,0 +1,65 @@
+{% extends 'detection/base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Analysis Results</h2>
+    
+    {% if error %}
+        <div style="color: red; padding: 1rem; background: #ffebee; border-radius: 4px;">
+            <strong>Error:</strong> {{ error }}
+        </div>
+        <a href="{% url 'new_analysis' %}" class="btn">Try Again</a>
+    {% elif results %}
+        <div class="stats-grid">
+            <div class="card" style="text-align: center; background: #e8f5e8;">
+                <h3>Users Analyzed</h3>
+                <p style="font-size: 2rem; margin: 0;">{{ results.total_users }}</p>
+            </div>
+            
+            <div class="card" style="text-align: center; background: #fff3e0;">
+                <h3>Anomalies Detected</h3>
+                <p style="font-size: 2rem; margin: 0;">{{ results.anomalies_detected }}</p>
+            </div>
+            
+            <div class="card" style="text-align: center; background: #e3f2fd;">
+                <h3>Average Health Score</h3>
+                <p style="font-size: 2rem; margin: 0;">{{ results.avg_health_score }}/100</p>
+            </div>
+            
+            <div class="card" style="text-align: center; background: #ffebee;">
+                <h3>Alerts Generated</h3>
+                <p style="font-size: 2rem; margin: 0;">{{ results.total_alerts }}</p>
+            </div>
+        </div>
+
+        <h3>Health Distribution</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            {% for category, count in results.health_distribution.items %}
+            <div class="card" style="text-align: center;">
+                <strong>{{ category }}</strong>
+                <p>{{ count }} users</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h3>Sample Alerts</h3>
+        {% for alert in results.sample_alerts %}
+        <div class="card alert-{{ alert.severity }}">
+            <strong>User {{ alert.user_id }} - {{ alert.severity|upper }}</strong>
+            <p>{{ alert.message }}</p>
+            <small>Category: {{ alert.category }} | Score: {{ alert.health_score }}</small>
+        </div>
+        {% endfor %}
+
+        <div style="margin-top: 2rem;">
+            <a href="{% url 'new_analysis' %}" class="btn">New Analysis</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+
+    {% else %}
+        <p>No analysis has been performed yet.</p>
+        <a href="{% url 'new_analysis' %}" class="btn">Start New Analysis</a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}

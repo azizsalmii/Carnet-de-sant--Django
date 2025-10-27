@@ -1,0 +1,153 @@
+/* ✅ Background colors */
+.bg-good { background-color: #e8f5e8; }
+.bg-medium { background-color: #fff3e0; }
+.bg-bad { background-color: #ffebee; }
+.bg-warning { background-color: #fff3e0; }
+.bg-info { background-color: #e3f2fd; }
+
+/* ✅ General card styling */
+.card {
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+/* ✅ Grids */
+.stats-grid, .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+/* ✅ Typography */
+.score {
+    font-size: 3rem;
+    margin: 0;
+    font-weight: bold;
+}
+
+.category, .status, .metric-value {
+    font-size: 1.2rem;
+    margin: 0.3rem 0;
+}
+
+/* ✅ Alerts */
+.alert-critical { background-color: #ffcccc; }
+.alert-warning { background-color: #fff3cd; }
+.alert-info { background-color: #d1ecf1; }
+
+/* ✅ Error box */
+.error-box {
+    color: red;
+    padding: 1rem;
+    background: #ffebee;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+/* ✅ Buttons */
+.action-buttons {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.btn {
+    display: inline-block;
+    margin: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    text-decoration: none;
+    border-radius: 4px;
+    color: #fff;
+    background-color: #007bff;
+    transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+.health-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-section {
+    background: #f9fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.form-section h3 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.section-description {
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.form-group input, .form-group select {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.form-group small {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.3rem;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.info-card {
+    background: #f1f8ff;
+}
+
+.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    background-color: #007bff;
+    color: #fff;
+    transition: background-color 0.2s;
+    font-weight: 600;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #495057;
+}

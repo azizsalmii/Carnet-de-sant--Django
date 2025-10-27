@@ -1,0 +1,134 @@
+{% extends 'detection/base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>New Health Analysis</h2>
+    <p>Configure and run a comprehensive health analysis.</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+            <h3>Analysis Configuration</h3>
+            <form method="POST" action="{% url 'detect_anomalies' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="users_count">Number of Users to Analyze:</label>
+                    <input type="number" id="users_count" name="users_count" value="1000" min="100" max="10000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="analysis_type">Analysis Type:</label>
+                    <select id="analysis_type" name="analysis_type">
+                        <option value="comprehensive">Comprehensive Analysis</option>
+                        <option value="quick">Quick Analysis</option>
+                        <option value="detailed">Detailed Analysis</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="anomaly_threshold">Anomaly Detection Sensitivity:</label>
+                    <select id="anomaly_threshold" name="anomaly_threshold">
+                        <option value="low">Low (Fewer alerts)</option>
+                        <option value="medium" selected>Medium (Balanced)</option>
+                        <option value="high">High (More alerts)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="generate_alerts" checked> Generate Health Alerts
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="save_results" checked> Save Results to Database
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn">Start Analysis</button>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+        
+        <div>
+            <h3>Analysis Preview</h3>
+            <div class="card">
+                <h4>What will be analyzed:</h4>
+                <ul>
+                    <li>Sleep patterns and quality</li>
+                    <li>Physical activity levels</li>
+                    <li>Cardiac health indicators</li>
+                    <li>Stress levels and lifestyle factors</li>
+                    <li>BMI and nutritional indicators</li>
+                    <li>Overall health score calculation</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h4>Expected Output:</h4>
+                <ul>
+                    <li>Health scores for all users</li>
+                    <li>Anomaly detection results</li>
+                    <li>Risk level classification</li>
+                    <li>Personalized health alerts</li>
+                    <li>Statistical insights</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h4>AI Models Used:</h4>
+                <ul>
+                    <li>Isolation Forest Algorithm</li>
+                    <li>One-Class SVM</li>
+                    <li>Ensemble Learning</li>
+                    <li>Health Score Calculation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Sample Data Structure</h3>
+    <p>The system analyzes the following health parameters:</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="card">
+            <h4>Sleep Metrics</h4>
+            <ul>
+                <li>Sleep Duration</li>
+                <li>Sleep Quality</li>
+                <li>Sleep Efficiency</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <h4>Activity Metrics</h4>
+            <ul>
+                <li>Daily Steps</li>
+                <li>Activity Minutes</li>
+                <li>Sedentary Hours</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <h4>Vital Signs</h4>
+            <ul>
+                <li>Resting Heart Rate</li>
+                <li>Blood Pressure</li>
+                <li>Oxygen Saturation</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <h4>Lifestyle Factors</h4>
+            <ul>
+                <li>Stress Level</li>
+                <li>BMI</li>
+                <li>Water Intake</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
