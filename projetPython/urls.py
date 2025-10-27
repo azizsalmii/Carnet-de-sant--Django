@@ -11,6 +11,9 @@ urlpatterns = [
     path('', include('ai_models.urls')),   # <- important
     path('accounts/', include('users.urls')),  # <--- AJOUT
 
+
+ path('', include('detection.urls')),
+
 ]
 
 if settings.DEBUG:

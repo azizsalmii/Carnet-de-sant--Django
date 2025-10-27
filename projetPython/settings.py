@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'users',
     'journal',
     'ai_models'
+        'detection',
 
 ]
 
@@ -85,7 +86,7 @@ ROOT_URLCONF = 'projetPython.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / "templates"],
+        'DIRS': [BASE_DIR / 'detection' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -97,6 +98,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'projetPython.wsgi.application'
 
@@ -149,7 +151,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'detection' / 'static',
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
