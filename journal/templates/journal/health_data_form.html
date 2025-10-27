@@ -1,0 +1,128 @@
+{% extends 'journal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                    {{ form.date }}
+                                    {% if form.date.errors %}
+                                    <div class="text-danger">{{ form.date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">😴 Sommeil</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.sleep_duration.id_for_label }}" class="form-label">Durée (heures)</label>
+                                            {{ form.sleep_duration }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.sleep_quality.id_for_label }}" class="form-label">Qualité (1-5)</label>
+                                            {{ form.sleep_quality }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">🚶 Activité Physique</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.steps_count.id_for_label }}" class="form-label">Nombre de pas</label>
+                                            {{ form.steps_count }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.exercise_duration.id_for_label }}" class="form-label">Exercice (minutes)</label>
+                                            {{ form.exercise_duration }}
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="{{ form.activity_type.id_for_label }}" class="form-label">Type d'activité</label>
+                                            {{ form.activity_type }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">😣 Symptômes</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.symptoms.id_for_label }}" class="form-label">Description des symptômes</label>
+                                    {{ form.symptoms }}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.pain_level.id_for_label }}" class="form-label">Niveau de douleur (0-10)</label>
+                                    {{ form.pain_level }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">💊 Traitements</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.medications.id_for_label }}" class="form-label">Médicaments</label>
+                                    {{ form.medications }}
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ form.medication_adherence }}
+                                    <label for="{{ form.medication_adherence.id_for_label }}" class="form-check-label">
+                                        Traitement pris aujourd'hui
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'health_data_list' %}" class="btn btn-secondary me-md-2">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

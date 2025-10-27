@@ -1,0 +1,97 @@
+{% extends 'journal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📊 Mes Données de Santé</h1>
+        <div>
+            <a href="{% url 'health_data_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Ajouter des données
+            </a>
+            <a href="{% url 'generate_report' %}" class="btn btn-success">
+                <i class="fas fa-chart-bar"></i> Générer un rapport
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if health_data %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Sommeil</th>
+                    <th>Activité</th>
+                    <th>Douleur</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in health_data %}
+                <tr>
+                    <td>{{ data.date|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if data.sleep_duration %}
+                            {{ data.sleep_duration }}h 
+                            {% if data.sleep_quality %}
+                                ({{ data.sleep_quality }}/5)
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if data.steps_count %}
+                            {{ data.steps_count }} pas
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if data.pain_level %}
+                            <span class="badge bg-{% if data.pain_level < 4 %}success{% elif data.pain_level < 7 %}warning{% else %}danger{% endif %}">
+                                {{ data.pain_level }}/10
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'health_data_update' data.pk %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'health_data_delete' data.pk %}" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-clipboard-list fa-4x text-muted"></i>
+        </div>
+        <h3 class="text-muted">Aucune donnée de santé enregistrée</h3>
+        <p class="text-muted">Commencez par ajouter vos premières données de santé.</p>
+        <a href="{% url 'health_data_create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Ajouter ma première donnée
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

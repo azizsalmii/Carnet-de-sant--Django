@@ -1,0 +1,105 @@
+{% extends 'journal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-file-medical"></i> Mes Rapports Santé
+        </h1>
+        <a href="{% url 'generate_report' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nouveau rapport
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if reports %}
+    <div class="row">
+        {% for report in reports %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ report.month|date:"F Y" }}</h6>
+                    {% if report.is_finalized %}
+                        <span class="badge bg-success">Finalisé</span>
+                    {% else %}
+                        <span class="badge bg-warning">Brouillon</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if report.health_score %}
+                        <div class="health-score" style="font-size: 2.5em; color: 
+                            {% if report.health_score >= 70 %}#28a745
+                            {% elif report.health_score >= 50 %}#ffc107
+                            {% else %}#dc3545
+                            {% endif %}">
+                            {{ report.health_score|floatformat:0 }}/100
+                        </div>
+                        <p class="text-muted">Score de santé</p>
+                        {% else %}
+                        <div class="text-muted">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                            <p>Score en cours de calcul</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if report.recommendations %}
+                    <div class="mb-3">
+                        <strong>Recommandations :</strong>
+                        <ul class="list-unstyled mt-2">
+                            {% for rec in report.recommendations|slice:":2" %}
+                            <li><small>• {{ rec }}</small></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid">
+                        <a href="{% url 'report_detail' report.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye"></i> Voir le rapport complet
+                        </a>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        Généré le {{ report.generated_at|date:"d/m/Y à H:i" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-file-medical-alt fa-4x text-muted"></i>
+        </div>
+        <h3 class="text-muted">Aucun rapport généré</h3>
+        <p class="text-muted">Commencez par générer votre premier rapport santé mensuel.</p>
+        <a href="{% url 'generate_report' %}" class="btn btn-success btn-lg">
+            <i class="fas fa-magic"></i> Générer mon premier rapport
+        </a>
+    </div>
+    <!-- Dans la carte de chaque rapport, ajoutez dans card-footer : -->
+<div class="card-footer bg-transparent">
+    <div class="btn-group w-100">
+        <a href="{% url 'report_detail' report.pk %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-eye"></i> Détails
+        </a>
+        <a href="{% url 'download_report_pdf' report.pk %}" class="btn btn-outline-success btn-sm">
+            <i class="fas fa-file-pdf"></i> PDF
+        </a>
+    </div>
+</div>
+    {% endif %}
+</div>
+{% endblock %}

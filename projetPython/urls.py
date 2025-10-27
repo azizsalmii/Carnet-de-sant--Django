@@ -10,6 +10,7 @@ urlpatterns = [
     path('', include('journal.urls')),
     path('', include('ai_models.urls')),   # <- important
     path('accounts/', include('users.urls')),  # <--- AJOUT
+    path('', include('journal.urls')),
 
 
  path('', include('detection.urls')),
