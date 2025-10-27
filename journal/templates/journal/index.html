@@ -2,12 +2,9 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
-    <title>Medic | Medical HTML Template</title>
-
-    <!-- Mobile responsive meta -->
+    <title>HEALTH TRACK | Medical HTML Template</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     <!-- Slick Carousel -->
@@ -17,68 +14,101 @@
     <!-- FancyBox -->
     <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
 
-    <!-- Font Awesome (Updated to version 6) -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
-    <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
 </head>
 
 <body>
-    <div class="page-wrapper">
+<div class="page-wrapper">
 
-        <!-- Header Top -->
-        <div class="header-top">
-            <div class="container clearfix">
-                <div class="top-left">
-                    <h6>Opening Hours: Saturday to Tuesday - 8am to 10pm</h6>
-                </div>
-                <div class="top-right">
-                    <ul class="social-links">
-                        <li><a href="#"><i class="fab fa-facebook-f" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fab fa-twitter" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fab fa-google-plus-g" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fab fa-instagram" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fab fa-pinterest-p" aria-hidden="true"></i></a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!-- Header Top End -->
+    {# ================== TOP BAR (bande blanche) ================== #}
+<div style="background:#ffffff;border-bottom:1px solid #eee;">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+    <div style="color:#333;font-size:14px;">
+      Opening Hours: Saturday to Tuesday - 8am to 10pm
+    </div>
 
-      
+    <div style="display:flex;align-items:center;gap:18px;">
+      <!-- Réseaux sociaux -->
+      <div style="display:flex;gap:14px;color:#666;">
+        <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
+      </div>
 
-        <!-- Main Header / Navbar -->
-        <nav class="navbar navbar-default">
-            <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div>
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li class="active"><a href="{% url 'home' %}">Home</a></li>
-                        <li><a href="{% url 'about' %}">About</a></li>
-                        <li><a href="{% url 'services' %}">Service</a></li>
-                        <li><a href="{% url 'gallery' %}">Gallery</a></li>
-                        <li><a href="{% url 'team' %}">Team</a></li>
-                        <li><a href="{% url 'appointment' %}">Appointment</a></li>
-                        <li><a href="{% url 'blog' %}">Blog</a></li>
-                        <li><a href="{% url 'contact' %}">Contact</a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        <!-- Main Header End -->
+      <!-- Auth (boutons comme sur l'index) -->
+      <div style="display:flex;gap:10px;">
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'profile' %}" class="btn btn-sm"
+             style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-user-circle"></i> Profil
+          </a>
+          <a href="{% url 'logout' %}" class="btn btn-sm"
+             style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-sign-out-alt"></i> Déconnexion
+          </a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-sm"
+             style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-right-to-bracket"></i> Connexion
+          </a>
+          <a href="{% url 'signup' %}" class="btn btn-sm"
+             style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-user-plus"></i> Inscription
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ================== NAV (barre turquoise identique index) ================== #}
+<nav style="background:#39b7bd;">
+  <div class="container" style="display:flex;align-items:center;gap:28px;height:64px;">
+    <!-- Logo -->
+    <a href="{% url 'home' %}"
+       style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+      <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
+      <strong style="font-size:22px;line-height:1;">Health Track</strong>
+    </a>
+
+    <!-- Menu -->
+    <ul style="display:flex;align-items:center;gap:28px;margin:0;padding:0;list-style:none;flex:1;">
+      <li><a href="{% url 'home' %}" style="color:#fff;text-transform:uppercase;font-weight:700;">Home</a></li>
+
+      {# Utilise des chemins simples pour éviter NoReverseMatch si les noms ne sont pas définis #}
+      <li><a href="/about/"   style="color:#fff;text-transform:uppercase;">About</a></li>
+      <li><a href="/service/" style="color:#fff;text-transform:uppercase;">Service</a></li>
+      <li><a href="/gallery/" style="color:#fff;text-transform:uppercase;">Gallery</a></li>
+      <li><a href="/team/"    style="color:#fff;text-transform:uppercase;">Team</a></li>
+
+      <li>
+        <a href="{% url 'brain_tumor_page' %}"
+           style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-brain"></i> Brain Tumor AI
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'chest_xray_page' %}"
+           style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-stethoscope"></i> Chest X-Ray AI
+        </a>
+      </li>
+
+    </ul>
+  </div>
+</nav>
+
+</div>
+</body>
+</html>
+
+
 
         <!-- Page Slider -->
         <div class="hero-slider">

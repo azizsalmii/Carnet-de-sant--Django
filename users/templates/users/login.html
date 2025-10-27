@@ -1,27 +1,223 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Connexion</title>
-</head>
-<body>
-    <h1>Se connecter</h1>
-    {% if messages %}
-        {% for message in messages %}
-            <p style="color:red;">{{ message }}</p>
+{% extends "journal/base.html" %}
+{% load forms_extras %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<!-- Styles spécifiques page auth (tu peux déplacer ceci dans static/css/auth.css) -->
+<style>
+  :root{
+    --teal-600:#0db2ad;
+    --teal-700:#099b95;
+    --teal-800:#0a7f7a;
+    --bg-1:#e9fbff;
+    --card:#ffffff;
+    --text:#0e2b3a;
+    --muted:#5e7a87;
+  }
+  .auth-wrap{
+    min-height:calc(100vh - 80px); /* marge si ton header existe dans base.html */
+    display:grid; place-items:center;
+    background: radial-gradient(1200px 800px at 85% 15%, rgba(13,178,173,.25) 0%, rgba(13,178,173,0) 60%),
+                radial-gradient(900px 700px at 10% 90%, rgba(9,155,149,.20) 0%, rgba(9,155,149,0) 60%),
+                linear-gradient(135deg, #eaf7f7 0%, #dff4ff 100%);
+    padding:24px;
+  }
+  .auth-card{
+    width: min(980px, 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,.75));
+    backdrop-filter: blur(6px);
+    border-radius: 22px;
+    box-shadow: 0 20px 70px rgba(0,0,0,.12);
+    display:grid;
+    grid-template-columns: 1fr;
+    position:relative;
+    overflow:hidden;
+  }
+  @media (min-width: 992px){
+    .auth-card{ grid-template-columns: 1.1fr .9fr; }
+  }
+  .auth-visual{
+    background: linear-gradient(145deg, #0fb9b4, #0aa39f);
+    padding: 48px 36px;
+    position: relative;
+    color: #eaffff;
+  }
+  .bubble{
+    position:absolute; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.85), rgba(255,255,255,.25) 60%, rgba(255,255,255,0) 70%);
+    box-shadow: inset 0 2px 20px rgba(255,255,255,.35);
+    filter: blur(.2px);
+  }
+  .bubble.b1{ width:160px;height:160px; top:28px; right:36px;}
+  .bubble.b2{ width:110px;height:110px; bottom:26px; left:34px;}
+  .bubble.b3{ width:80px;height:80px; top:110px; left:18%;}
+  .auth-visual .title{
+    font-weight:700; font-size:34px; line-height:1.2; margin:0 0 6px;
+  }
+  .auth-visual .subtitle{ opacity:.9; }
+
+  .auth-form{
+    padding: 44px 32px;
+    background: var(--card);
+  }
+  @media (min-width: 576px){ .auth-form{ padding: 56px 60px; } }
+
+  .brand-mark{
+    width:56px;height:56px;border-radius:14px;
+    background: linear-gradient(135deg, #cffffc, #e9ffff);
+    display:grid;place-items:center;color:var(--teal-800);
+    box-shadow: 0 8px 30px rgba(13,178,173,.25), inset 0 -2px 8px rgba(13,178,173,.15);
+    margin:0 auto 14px;
+  }
+  .welcome{ text-align:center; color:var(--text); margin-bottom:22px; }
+  .welcome h1{ font-size:28px; margin:6px 0 8px; font-weight:800; }
+  .welcome p{ color:var(--muted); margin:0; }
+
+  .form-group{ margin-bottom:16px; }
+  .field{
+    position:relative;
+  }
+  .field .icon{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    opacity:.6;
+  }
+  .field input{
+    padding:14px 44px 14px 42px;
+    border:1px solid #e3eef3; border-radius:12px;
+    width:100%;
+    transition:.2s border-color, .2s box-shadow, .2s background;
+    background:#f8fcff;
+  }
+  .field input:focus{
+    outline:none;
+    border-color: rgba(13,178,173,.55);
+    box-shadow: 0 0 0 4px rgba(13,178,173,.12);
+    background:#fff;
+  }
+  .pw-toggle{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:transparent;border:0;cursor:pointer;opacity:.7;
+  }
+  .help-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:6px; margin-bottom:18px; font-size:.93rem;
+  }
+  .link{ color:var(--teal-700); text-decoration:none; }
+  .link:hover{ text-decoration:underline; }
+
+  .btn-primary{
+    display:block; width:100%;
+    padding:14px 18px; border-radius:12px; border:0; cursor:pointer;
+    background: linear-gradient(180deg, var(--teal-600), var(--teal-700));
+    color:#fff; font-weight:700; letter-spacing:.2px;
+    box-shadow: 0 14px 40px rgba(13,178,173,.25);
+    transition:transform .06s ease, filter .2s ease;
+  }
+  .btn-primary:active{ transform: translateY(1px) scale(.998); }
+
+  .divider{
+    display:flex; align-items:center; gap:14px; margin:18px 0;
+    color:#8aa2ad; font-size:.9rem;
+  }
+  .divider::before, .divider::after{
+    content:""; height:1px; flex:1; background:linear-gradient(90deg, transparent, #dbe9ef, transparent);
+  }
+  .btn-google{
+    display:flex; align-items:center; justify-content:center;
+    gap:10px; width:100%; padding:12px 14px; border-radius:12px; border:1px solid #e1edf2;
+    background:#fff; font-weight:600; color:#335; cursor:pointer;
+  }
+  .footnote{ text-align:center; margin-top:14px; color:#6a8894; }
+  .lang-switch{
+    position:absolute; right:16px; top:14px;
+    background:rgba(255,255,255,.25); color:#003d40; border-radius:999px; padding:6px 10px; font-weight:600;
+  }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <!-- Panneau visuel -->
+    <div class="auth-visual">
+      <div class="bubble b1"></div>
+      <div class="bubble b2"></div>
+      <div class="bubble b3"></div>
+
+      <h2 class="title">Health Track!</h2>
+      <p class="subtitle">Welcome to your virtuel Hospital.</p>
+
+      <!-- Ligne ECG décorative -->
+      <svg width="100%" height="80" viewBox="0 0 600 80" fill="none" style="margin-top:24px;opacity:.85">
+        <path d="M0 40 H120 l20 -20 l16 40 l24 -60 l18 40 h90 l18 -22 l12 22 h280"
+              stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+
+    <!-- Form -->
+    <div class="auth-form">
+      <div class="brand-mark"><i class="fa-solid fa-notes-medical"></i></div>
+      <div class="welcome">
+        <h1>Sign In</h1>
+        <p>Enter your identifiers to continue</p>
+      </div>
+
+      {% if messages %}
+        {% for m in messages %}
+          <div class="alert alert-{{ m.tags }}">{{ m }}</div>
         {% endfor %}
-    {% endif %}
-    <form method="post" action="{% url 'login_page' %}">
+      {% endif %}
+
+      <form method="post" novalidate>
         {% csrf_token %}
-        <label>Username:</label><br>
-        <input type="text" name="username" required><br><br>
+        {{ form.non_field_errors }}
 
-        <label>Mot de passe:</label><br>
-        <input type="password" name="password" required><br><br>
+        <div class="form-group field">
+          <span class="icon"><i class="fa-regular fa-user"></i></span>
+          {{ form.username|add_class:"form-control"|add_class:"auth-input" }}
+          {{ form.username.errors }}
+        </div>
 
-        <button type="submit">Se connecter</button>
-    </form>
+        <div class="form-group field">
+          <span class="icon"><i class="fa-solid fa-lock"></i></span>
+          {{ form.password|add_class:"form-control"|add_class:"auth-input" }}
+          <button class="pw-toggle" type="button" aria-label="Afficher/Masquer le mot de passe">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+          {{ form.password.errors }}
+        </div>
 
-    <p>Pas encore de compte ? <a href="{% url 'register_page' %}">Inscrivez-vous</a></p>
-</body>
-</html>
+        <div class="help-row">
+          <span></span>
+          <a class="link" href="{% url 'password_reset' %}">Forgot password?</a>
+        </div>
+
+        <button class="btn-primary" type="submit">SIGN IN</button>
+
+        <div class="divider">OR</div>
+
+     
+        <div class="footnote">
+          Don’t have an account ? <a class="link" href="{% url 'signup' %}">Sign Up</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const toggle = document.querySelector('.pw-toggle');
+    if(!toggle) return;
+    const input = toggle.parentElement.querySelector('input[type="password"], input[name$="password"]');
+    toggle.addEventListener('click', ()=>{
+      if(!input) return;
+      const isPw = input.type === 'password';
+      input.type = isPw ? 'text' : 'password';
+      toggle.innerHTML = isPw ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+    });
+  })();
+</script>
+{% endblock %}

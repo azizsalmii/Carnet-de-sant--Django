@@ -1,0 +1,348 @@
+{% extends "journal/base.html" %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+<style>
+  :root{
+    --teal-600:#0db2ad;
+    --teal-700:#099b95;
+    --teal-800:#0a7f7a;
+    --ink:#0e2b3a;
+    --muted:#6c8693;
+    --soft:#f4fbfd;
+    --card:#ffffff;
+    --border:#e6eef3;
+  }
+  .profile-wrap{
+    min-height:calc(100vh - 80px);
+    background:
+      radial-gradient(1200px 700px at 85% 15%, rgba(13,178,173,.18) 0%, rgba(13,178,173,0) 55%),
+      radial-gradient(900px 600px at 5% 90%, rgba(9,155,149,.14) 0%, rgba(9,155,149,0) 55%),
+      linear-gradient(135deg, #eff9ff 0%, #e7fbfb 100%);
+    display:grid; place-items:start center;
+    padding:28px 20px 56px;
+  }
+  .profile-card{
+    width:min(980px, 100%);
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 18px 60px rgba(0,0,0,.08);
+  }
+  .profile-hero{
+    background:linear-gradient(135deg, #10b8b2, #0aa39f);
+    padding:28px 28px 76px;
+    color:#eaffff;
+    position:relative;
+  }
+  .bubble{
+    position:absolute; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.85), rgba(255,255,255,.22) 62%, rgba(255,255,255,0) 72%);
+    filter:blur(.2px);
+  }
+  .b1{width:140px;height:140px; top:18px; right:24px}
+  .b2{width:90px; height:90px; bottom:24px; left:32px}
+  .profile-head{ display:flex; align-items:center; gap:18px; }
+  .avatar{
+    width:84px;height:84px;border-radius:22px;background:#dff9ff;
+    display:grid;place-items:center;color:var(--teal-800);
+    box-shadow: inset 0 -2px 10px rgba(255,255,255,.65), 0 10px 24px rgba(0,0,0,.08);
+    font-size:36px; font-weight:800;
+  }
+  .name{ margin:0; font-weight:800; letter-spacing:.2px; }
+  .meta{ margin:2px 0 0; opacity:.9 }
+  .profile-body{ margin-top:-52px; padding:0 22px 28px; }
+  .grid{ display:grid; gap:16px; grid-template-columns: 1fr; }
+  @media (min-width: 900px){ .grid{ grid-template-columns: 1.2fr .8fr; } }
+  .card{ background:#fff; border:1px solid var(--border); border-radius:18px; padding:18px; }
+  .card h3{ margin:0 0 12px; font-size:16px; letter-spacing:.2px; color:var(--ink); }
+  .info-list{ display:grid; gap:10px; }
+  .info-item{
+    display:flex; gap:12px; align-items:start;
+    padding:12px; border:1px dashed var(--border); border-radius:12px; background:var(--soft);
+  }
+  .info-item i{ color:var(--teal-700); width:18px; margin-top:2px; }
+  .info-item b{ color:var(--ink) }
+  .kpis{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; }
+  .kpi{
+    background:linear-gradient(180deg,#f7ffff,#ffffff);
+    border:1px solid var(--border); border-radius:14px; padding:14px;
+    text-align:center;
+  }
+  .kpi .v{ font-size:20px; font-weight:800; color:var(--teal-700) }
+  .kpi .l{ color:var(--muted); font-size:12px }
+  .actions{ display:grid; gap:10px; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    border:1px solid var(--border); background:#fff; color:#143541;
+    padding:12px 14px; border-radius:12px; text-decoration:none; font-weight:600;
+    transition:transform .06s ease, box-shadow .2s ease;
+  }
+  .btn:hover{ box-shadow:0 10px 26px rgba(13,178,173,.14) }
+  .btn-primary{
+    background:linear-gradient(180deg, var(--teal-600), var(--teal-700));
+    color:#fff; border:0;
+  }
+  .btn-danger{ border-color:#ffd9dd; background:#fff5f6; color:#a8142a }
+  .alert{
+    margin:0 0 14px; border-radius:12px; padding:10px 12px; border:1px solid var(--border);
+    background:#fff; color:#13303d;
+  }
+  .alert-success{ border-color:#c7f1e9; background:#ecfffb; color:#0d7f78 }
+  .alert-error, .alert-danger{ border-color:#ffd9dd; background:#fff5f6; color:#a8142a }
+
+  /* ===== Diagnostics section ===== */
+  .diag-section{ margin-top:16px }
+  .diag-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px }
+  .diag-header h3{ margin:0; font-size:16px; color:var(--ink) }
+  .diag-grid{ display:grid; grid-template-columns: 1fr; gap:14px; }
+  @media (min-width: 700px){ .diag-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px){ .diag-grid{ grid-template-columns: repeat(3, 1fr); } }
+
+  .diag-card{
+    border:1px solid var(--border);
+    border-radius:14px; overflow:hidden; background:#fff;
+    display:flex; flex-direction:column;
+    box-shadow:0 10px 26px rgba(0,0,0,.04);
+  }
+  .diag-media{
+    aspect-ratio: 16/10;
+    background:linear-gradient(135deg,#f1fcff,#f8fffe);
+    display:grid; place-items:center; overflow:hidden;
+  }
+  .diag-media img{ width:100%; height:100%; object-fit:cover }
+  .diag-body{ padding:12px 14px }
+  .badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; font-weight:700; letter-spacing:.3px;
+    padding:6px 10px; border-radius:999px;
+    background:#ecfffb; color:#0a7f7a; border:1px solid #c7f1e9;
+  }
+  .pred{ font-size:18px; font-weight:800; color:var(--ink); margin:10px 0 6px }
+  .meta-line{ color:var(--muted); font-size:12px }
+
+  .prob-bar{
+    --p:0;
+    margin-top:8px; height:8px; background:#eef5f8; border-radius:999px; overflow:hidden;
+  }
+  .prob-bar > span{
+    display:block; height:100%;
+    background:linear-gradient(180deg, var(--teal-600), var(--teal-700));
+    width: calc(var(--p) * 100%);
+  }
+
+  .diag-actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap }
+  .btn-mini{
+    border:1px solid var(--border); border-radius:10px; padding:8px 10px;
+    background:#fff; font-weight:600; text-decoration:none; color:#173847;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+</style>
+
+<div class="profile-wrap">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="profile-card">
+    <!-- Bandeau -->
+    <div class="profile-hero">
+      <div class="bubble b1"></div>
+      <div class="bubble b2"></div>
+
+      <div class="profile-head">
+        <!-- ✅ AVATAR avec photo -->
+        <div class="avatar" aria-hidden="true">
+          {% if request.user.profile.photo %}
+            <img src="{{ request.user.profile.photo.url }}" alt="" style="width:84px;height:84px;border-radius:22px;object-fit:cover;">
+          {% else %}
+            {{ request.user.username|first|upper }}
+          {% endif %}
+        </div>
+
+        <div>
+          <h1 class="name">Bonjour, {{ request.user.username }}</h1>
+          <div class="meta">
+            Membre depuis {{ request.user.date_joined|date:"d M Y" }}
+            {% if request.user.last_login %} • Dernière connexion {{ request.user.last_login|date:"d M Y H:i" }}{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenu -->
+    <div class="profile-body">
+      <div class="grid">
+        <!-- Colonne A -->
+        <section class="card">
+          <h3><i class="fa-regular fa-address-card"></i> Informations</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <i class="fa-regular fa-user"></i>
+              <div><b>User name</b><br>{{ request.user.username }}</div>
+            </div>
+
+            <div class="info-item">
+              <i class="fa-regular fa-envelope"></i>
+              <div><b>Email</b><br>{{ request.user.email|default:"—" }}</div>
+            </div>
+
+            <div class="info-item">
+              <i class="fa-solid fa-id-badge"></i>
+              <div><b>ID User</b><br>#{{ request.user.id }}</div>
+            </div>
+
+            <!-- ✅ INFOS PROFIL ENRICHI -->
+            <div class="info-item">
+              <i class="fa-regular fa-id-badge"></i>
+              <div><b>Nom complet</b><br>{{ request.user.profile.full_name|default:"—" }}</div>
+            </div>
+
+            <div class="info-item">
+              <i class="fa-regular fa-calendar"></i>
+              <div><b>Date de naissance</b><br>{{ request.user.profile.birth_date|date:"d M Y"|default:"—" }}</div>
+            </div>
+
+            <div class="info-item">
+              <i class="fa-solid fa-venus-mars"></i>
+              <div><b>Sexe</b><br>{{ request.user.profile.get_sex_display|default:"—" }}</div>
+            </div>
+
+            <div class="info-item">
+              <i class="fa-solid fa-vial"></i>
+              <div><b>Groupe sanguin</b><br>{{ request.user.profile.blood_group|default:"—" }}</div>
+            </div>
+
+            <div class="info-item">
+              <i class="fa-solid fa-user-doctor"></i>
+              <div><b>Médecin traitant</b><br>{{ request.user.profile.doctor_name|default:"—" }}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px" class="kpis">
+            <div class="kpi">
+              <div class="v"><i class="fa-regular fa-circle-check"></i></div>
+              <div class="l">Authentificated</div>
+            </div>
+            <div class="kpi">
+              <div class="v">{{ request.user.is_staff|yesno:"Oui,Non" }}</div>
+              <div class="l">Staff</div>
+            </div>
+            <div class="kpi">
+              <div class="v">{{ request.user.is_superuser|yesno:"Oui,Non" }}</div>
+              <div class="l">Superuser</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Colonne B -->
+        <aside class="card">
+          <h3><i class="fa-solid fa-shield-heart"></i> actions & security</h3>
+
+          {% url 'password_change' as pw_change_url %}
+          {% url 'password_reset' as pw_reset_url %}
+          <div class="actions">
+            {% if pw_change_url %}
+              <a class="btn" href="{{ pw_change_url }}"><i class="fa-solid fa-key"></i> Change password</a>
+            {% endif %}
+           
+            <a class="btn-primary" href="{% url 'brain_tumor_page' %}">
+              <i class="fa-solid fa-brain"></i> Open Brain Tumor AI
+            </a>
+            <a class="btn-primary" href="{% url 'chest_xray_page' %}">
+              <i class="fa-solid fa-x-ray"></i> Open Chest X-Ray AI
+            </a>
+            
+            <a class="btn btn-danger" href="{% url 'logout' %}">
+              <i class="fa-solid fa-right-from-bracket"></i> Log out
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <!-- ===== Nouvelle section: Mes diagnostics ===== -->
+      <div class="card diag-section">
+        <div class="diag-header">
+          <h3><i class="fa-solid fa-flask"></i> Mes diagnostics</h3>
+          <div class="meta-line">
+            {{ diagnoses|length }} récent{{ diagnoses|length|pluralize:"s" }}
+          </div>
+        </div>
+
+        {% if diagnoses %}
+          <div class="diag-grid">
+            {% for d in diagnoses %}
+              <div class="diag-card">
+                <div class="diag-media">
+                  {% if d.image %}
+                    <img src="{{ d.image.url }}" alt="">
+                  {% else %}
+                    {% if d.modality == "brain" %}
+                      <i class="fa-solid fa-brain" style="font-size:42px; color:#0db2ad"></i>
+                    {% else %}
+                      <i class="fa-solid fa-x-ray" style="font-size:42px; color:#0db2ad"></i>
+                    {% endif %}
+                  {% endif %}
+                </div>
+
+                <div class="diag-body">
+                  <span class="badge">
+                    {% if d.modality == "brain" %}
+                      <i class="fa-solid fa-brain"></i> Brain Tumor
+                    {% else %}
+                      <i class="fa-solid fa-x-ray"></i> Chest X-Ray
+                    {% endif %}
+                  </span>
+
+                  <div class="pred">{{ d.predicted_class }}</div>
+                  <div class="meta-line">
+                    Le {{ d.created_at|date:"d M Y H:i" }} • {{ d.latency_ms|floatformat:0 }} ms
+                  </div>
+
+                  {% if d.confidence %}
+                    <div class="prob-bar" style="--p: {{ d.confidence|floatformat:2 }};">
+                      <span></span>
+                    </div>
+                    <div class="meta-line">Confiance ≈ {{ d.confidence|floatformat:2 }}</div>
+                  {% endif %}
+
+                  {% if d.summary %}
+                    <p style="margin:8px 0 0; font-size:13px; color:#345;">
+                      {{ d.summary|truncatechars:160 }}
+                    </p>
+                  {% endif %}
+
+                  <div class="diag-actions">
+                    <a class="btn-mini dl" href="{% url 'diagnosis_report_pdf' d.id %}">
+                      <i class="fa-regular fa-file-pdf"></i> Télécharger le PDF
+                    </a>
+
+                    {% if d.image %}
+                      <a class="btn-mini" href="{{ d.image.url }}" target="_blank">
+                        <i class="fa-regular fa-image"></i> Image
+                      </a>
+                    {% endif %}
+
+                    <a class="btn-mini" href="#" onclick="alert('Historique détaillé à venir'); return false;">
+                      <i class="fa-regular fa-clock"></i> Détails
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="meta-line">Aucun diagnostic pour l’instant. Lancez une analyse depuis les pages IA.</p>
+        {% endif %}
+      </div>
+      <!-- ===== Fin nouvelle section ===== -->
+    </div>
+  </div>
+</div>
+{% endblock %}

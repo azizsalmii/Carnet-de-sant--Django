@@ -1,0 +1,339 @@
+{% extends 'journal/base.html' %}
+{% load static %}
+
+{% block title %}Chest X-Ray Diagnosis | Medic{% endblock %}
+
+{# --- CSS spécifique à cette page --- #}
+{% block page_css %}
+<style>
+  body { background:#f6f9fc; }
+
+  .diagnosis-section { padding:50px 0; min-height:calc(100vh - 300px); }
+  .diagnosis-section h1 { text-align:center; color:#003366; margin-bottom:40px; font-weight:700; }
+
+  .upload-container {
+    max-width: 600px; margin: 0 auto; background:#fff; padding:40px;
+    border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  }
+  .image-placeholder {
+    width:100%; height:400px;
+    background:linear-gradient(135deg,#f6f9fc 0%,#e9f0f7 100%);
+    border:3px dashed #003366; border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    margin-bottom:30px; transition:.3s; cursor:pointer;
+  }
+  .image-placeholder:hover { background:linear-gradient(135deg,#e9f0f7 0%,#d9e7f3 100%); border-color:#005599; }
+  .image-placeholder i { font-size:64px; color:#003366; margin-bottom:20px; opacity:.7; }
+  .image-placeholder p { color:#003366; font-size:18px; font-weight:600; margin:0; }
+  .image-placeholder small { color:#666; font-size:14px; margin-top:8px; }
+
+  .image-preview { width:100%; max-height:400px; object-fit:contain; border-radius:12px; margin-bottom:30px; display:none; }
+  .image-preview.show { display:block; }
+
+  .btn-predict {
+    background:#003366; color:#fff; border:none; padding:14px 32px; border-radius:8px;
+    font-size:16px; font-weight:600; width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:.3s;
+  }
+  .btn-predict:hover:not(:disabled){ background:#005599; transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,51,102,.3); }
+  .btn-predict:disabled{ opacity:.6; cursor:not-allowed; }
+
+  .results-container { max-width:900px; margin:0 auto; display:none; }
+  .results-container.show { display:block; }
+  .results-grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-bottom:30px; }
+
+  .result-image-card, .result-details-card {
+    background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  }
+  .result-image-card img { width:100%; height:400px; object-fit:contain; border-radius:8px; border:2px solid #e0e0e0; }
+
+  .result-details-card h3 { color:#003366; margin-top:0; margin-bottom:20px; font-weight:700; }
+  .prediction-badge { display:inline-flex; align-items:center; gap:8px; background:#003366; color:#fff; padding:12px 20px; border-radius:8px; font-size:18px; font-weight:700; margin-bottom:10px; }
+  .latency-info { color:#666; font-size:14px; margin-bottom:20px; }
+
+  .probabilities-table { max-height:320px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:8px; }
+  .probabilities-table table { margin:0; width:100%; }
+  .probabilities-table tbody tr.positive td { background:#fff5f5; color:#c0392b; font-weight:700; }
+  .probabilities-table tbody tr.positive td:first-child::before { content:"⚠️ "; }
+
+  .btn-new-diagnosis {
+    background:#003366; color:#fff; border:none; padding:14px 32px; border-radius:8px; font-size:16px; font-weight:600;
+    width:100%; display:flex; align-items:center; justify-content:center; gap:10px; text-decoration:none; transition:.3s;
+  }
+  .btn-new-diagnosis:hover { background:#005599; transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,51,102,.3); color:#fff; text-decoration:none; }
+
+  .loading-hint { display:none; text-align:center; margin-top:15px; color:#666; font-size:14px; }
+  .loading-hint.show { display:block; }
+
+  /* util */
+  .hidden { display: none !important; }
+
+  @media (max-width: 767px) {
+    .results-grid { grid-template-columns:1fr; }
+    .upload-container { padding:25px; }
+    .image-placeholder { height:300px; }
+    .diagnosis-section h1 { font-size:24px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="diagnosis-section">
+  <div class="container">
+    <h1><i class="fas fa-x-ray"></i> Chest X-Ray Diagnosis</h1>
+
+    {# --- ÉTAT UPLOAD (initial ou si pas de résultat) --- #}
+    <div id="uploadState" class="upload-container" {% if result and not result.error %}style="display:none;"{% endif %}>
+      <div id="imagePlaceholder" class="image-placeholder" onclick="document.getElementById('image').click()">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>Click to upload X-Ray image</p>
+        <small>Supported formats: JPG, PNG</small>
+      </div>
+
+      <img id="previewImg" class="image-preview" alt="X-Ray Preview">
+
+      <form id="predictForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input id="image" type="file" name="image" accept="image/*" required style="display:none;">
+
+        <button id="predictBtn" type="submit" class="btn-predict">
+          <i class="fas fa-microscope"></i><span>Analyze X-Ray</span>
+        </button>
+
+        <div id="loadingHint" class="loading-hint">
+          <i class="fa fa-spinner fa-spin"></i> Analyzing image, please wait...
+        </div>
+      </form>
+    </div>
+
+    {# --- ÉTAT RÉSULTATS --- #}
+    <div id="resultsState" class="results-container {% if result and not result.error %}show{% endif %}">
+      {% if result and not result.error %}
+      <div class="results-grid">
+        <div class="result-image-card">
+          <img src="{{ image_url }}" alt="Analyzed X-Ray">
+        </div>
+
+        <div class="result-details-card">
+          <h3><i class="fas fa-clipboard-check"></i> Diagnosis Results</h3>
+
+          <div class="prediction-badge">
+            <i class="fas fa-stethoscope"></i>
+            <span>{{ result.predicted_class }}</span>
+          </div>
+
+          <div class="latency-info">
+            <i class="fas fa-clock"></i> Analysis completed in {{ result.latency_ms }} ms
+          </div>
+
+          <div class="probabilities-table">
+            <table class="table table-striped">
+              <thead>
+                <tr><th style="width:65%;">Condition</th><th style="text-align:right;">Probability</th></tr>
+              </thead>
+              <tbody>
+                {% for cls, prob in result.probabilities.items %}
+                <tr {% if prob >= 0.5 %}class="positive"{% endif %}>
+                  <td>{{ cls }}</td>
+                  <td style="text-align:right;">{{ prob|floatformat:3 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {# bouton pour relancer un nouveau diagnostic (revient sur cette même page) #}
+      <a href="{% url 'chest_xray_page' %}" class="btn-new-diagnosis">
+        <i class="fas fa-redo-alt"></i><span>New Diagnosis</span>
+      </a>
+      {% endif %}
+
+      {% if result and result.error %}
+      <div class="upload-container">
+        <div class="alert alert-danger">
+          <strong><i class="fas fa-exclamation-triangle"></i> Error:</strong> {{ result.error }}
+        </div>
+        <a href="{% url 'chest_xray_page' %}" class="btn-new-diagnosis">
+          <i class="fas fa-redo-alt"></i><span>Try Again</span>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    {# === CHAT ASSISTANT CHEST X-RAY — visible uniquement si un résultat OK existe === #}
+    <div id="xrayChat"
+         class="panel panel-default {% if not result or result.error %}hidden{% endif %}"
+         style="max-width:980px;margin:20px auto;">
+      <div class="panel-heading" style="background:#003366;color:#fff;">
+        <strong>Assistant — Conseils sur le résultat (Chest X-Ray)</strong>
+      </div>
+      <div id="xchatBody" class="panel-body" style="height:260px; overflow-y:auto; background:#f9fbfd;">
+        <div class="msg bot" style="margin-bottom:10px;">
+          <div class="bubble" style="background:#eef5ff;border:1px solid #d6e6ff;border-radius:8px;padding:10px;display:inline-block;">
+            Bonjour ! Je peux expliquer le résultat, proposer les prochaines étapes ou dire ce qu’il faut surveiller.
+            Que souhaites-tu savoir ?
+          </div>
+        </div>
+      </div>
+      <div class="panel-footer" style="background:#fff;">
+        <form id="xchatForm" class="form-inline" onsubmit="return false;">
+          {% csrf_token %}
+          <input id="xchatInput" class="form-control" type="text" placeholder="Écris ta question..." style="width:78%;">
+          <button id="xchatSend" class="btn btn-primary" style="background:#003366;border-color:#003366;">Envoyer</button>
+          <span id="xchatTyping" style="display:none;margin-left:8px;">
+            <i class="fa fa-spinner fa-spin"></i> Assistant rédige...
+          </span>
+        </form>
+        <div id="xchatQuick" style="margin-top:8px;">
+          <button class="btn btn-xs btn-default" data-q="Expliquer le résultat">Expliquer le résultat</button>
+          <button class="btn btn-xs btn-default" data-q="Prochaines étapes">Prochaines étapes</button>
+          <button class="btn btn-xs btn-default" data-q="Que surveiller ?">Que surveiller ?</button>
+        </div>
+      </div>
+    </div>
+    {# === FIN CHAT ASSISTANT === #}
+
+  </div>
+</section>
+{% endblock %}
+
+{# --- JS spécifique à cette page --- #}
+{% block page_js %}
+<script>
+(function () {
+  const fileInput = document.getElementById('image');
+  const previewImg = document.getElementById('previewImg');
+  const imagePlaceholder = document.getElementById('imagePlaceholder');
+  const predictForm = document.getElementById('predictForm');
+  const predictBtn = document.getElementById('predictBtn');
+  const loadingHint = document.getElementById('loadingHint');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      previewImg.classList.add('show');
+      imagePlaceholder.style.display = 'none';
+    });
+  }
+
+  if (predictForm) {
+    predictForm.addEventListener('submit', function () {
+      predictBtn.disabled = true;
+      loadingHint.classList.add('show');
+      predictBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i><span>Analyzing...</span>';
+    });
+  }
+})();
+</script>
+
+<script>
+/* === Chat assistant Chest X-Ray : appel API backend === */
+(function() {
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const form = document.getElementById('xchatForm');
+  const input = document.getElementById('xchatInput');
+  const send = document.getElementById('xchatSend');
+  const body = document.getElementById('xchatBody');
+  const typing = document.getElementById('xchatTyping');
+  const quick = document.getElementById('xchatQuick');
+
+  function appendMsg(side, html) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + side;
+    wrap.style.marginBottom = '10px';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.style.borderRadius = '8px';
+    bubble.style.padding = '10px';
+    bubble.style.display = 'inline-block';
+    if (side === 'user') {
+      bubble.style.background = '#e8f0ff';
+      bubble.style.border = '1px solid #cfe0ff';
+    } else {
+      bubble.style.background = '#eef5ff';
+      bubble.style.border = '1px solid #d6e6ff';
+    }
+    bubble.innerHTML = html;
+    wrap.appendChild(bubble);
+    body.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  async function askAssistant(text) {
+    typing.style.display = 'inline';
+    try {
+      const resp = await fetch("{% url 'xray_assistant_api' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error || "Erreur");
+      const r = data.reply;
+      let html = r.text || '';
+      if (r.bullets && r.bullets.length) {
+        html += "<ul style='margin:6px 0 0 18px;'>";
+        r.bullets.forEach(b => html += "<li>"+b+"</li>");
+        html += "</ul>";
+      }
+      if (r.suggestions && r.suggestions.length) {
+        html += "<div style='margin-top:6px;'>";
+        r.suggestions.forEach(s => {
+          html += "<button class='btn btn-xs btn-default xquick' style='margin-right:6px;margin-top:4px;' data-q='"+s+"'>"+s+"</button>";
+        });
+        html += "</div>";
+      }
+      html += "<div style='margin-top:6px;color:#777;font-size:12px;'><i class='fa fa-info-circle'></i> " + (r.disclaimer || '') + "</div>";
+      appendMsg('bot', html);
+    } catch (e) {
+      appendMsg('bot', "Désolé, une erreur est survenue. Réessaie.");
+    } finally {
+      typing.style.display = 'none';
+    }
+  }
+
+  if (form) {
+    send.addEventListener('click', function() {
+      const text = (input.value || '').trim();
+      if (!text) return;
+      appendMsg('user', text);
+      input.value = '';
+      askAssistant(text);
+    });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        send.click();
+      }
+    });
+  }
+
+  if (quick) {
+    quick.addEventListener('click', function(e) {
+      const btn = e.target.closest('button[data-q]');
+      if (!btn) return;
+      const q = btn.getAttribute('data-q');
+      appendMsg('user', q);
+      askAssistant(q);
+    });
+    body.addEventListener('click', function(e) {
+      const btn = e.target.closest('button.xquick');
+      if (!btn) return;
+      const q = btn.getAttribute('data-q');
+      appendMsg('user', q);
+      askAssistant(q);
+    });
+  }
+})();
+</script>
+{% endblock %}
