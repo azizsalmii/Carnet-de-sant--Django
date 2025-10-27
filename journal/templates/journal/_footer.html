@@ -1,0 +1,46 @@
+{% load static %}
+<!-- Footer Main -->
+<footer class="footer-main">
+  <div class="footer-top">
+    <div class="container">
+      <div class="row">
+        <!-- … ton code footer inchangé … -->
+        <!-- (col-md-4 * 3, recent posts, etc.) -->
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container clearfix">
+      <div class="copyright-text">
+        <p>&copy; Copyright 2018. All Rights Reserved by
+          <a href="{% url 'home' %}">Medic</a>
+        </p>
+      </div>
+      <ul class="footer-bottom-link">
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'about' %}">About</a></li>
+        <li><a href="{% url 'contact' %}">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+<!-- End Footer Main -->
+
+<!-- Scroll to Top -->
+<div class="scroll-to-top scroll-to-target" data-target=".header-top">
+  <span class="fas fa-angle-up"></span>
+</div>
+
+<!-- JS (les mêmes que l'index) -->
+<script src="{% static 'plugins/jquery.js' %}"></script>
+<script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-select.min.js' %}"></script>
+<script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+<script src="{% static 'plugins/fancybox/jquery.fancybox.min.js' %}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+<script src="{% static 'plugins/validate.js' %}"></script>
+<script src="{% static 'plugins/wow.js' %}"></script>
+<script src="{% static 'plugins/jquery-ui.js' %}"></script>
+<script src="{% static 'plugins/timePicker.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>

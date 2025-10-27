@@ -1,0 +1,73 @@
+{% load static %}
+
+{# ================== TOP BAR (bande blanche) ================== #}
+<div style="background:#ffffff;border-bottom:1px solid #eee;">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+    <div style="color:#333;font-size:14px;">
+      Opening Hours: Saturday to Tuesday - 8am to 10pm
+    </div>
+
+    <div style="display:flex;align-items:center;gap:18px;">
+      <div style="display:flex;gap:14px;color:#666;">
+        <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+        <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
+      </div>
+
+      {# --- Auth (boutons comme souhaité) --- #}
+      <div style="display:flex;gap:10px;">
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'profile' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-user-circle"></i> Profil
+          </a>
+          <a href="{% url 'logout' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-sign-out-alt"></i> Déconnexion
+          </a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-right-to-bracket"></i> Connexion
+          </a>
+          <a href="{% url 'signup' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+            <i class="fa fa-user-plus"></i> Inscription
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ================== NAV (barre turquoise) ================== #}
+<nav style="background:#39b7bd;">
+  <div class="container" style="display:flex;align-items:center;gap:28px;height:64px;">
+    {# Logo #}
+    <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+      <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
+      <strong style="font-size:22px;line-height:1;">Health Track</strong>
+    </a>
+
+    {# Menu #}
+    <ul style="display:flex;align-items:center;gap:28px;margin:0;padding:0;list-style:none;flex:1;">
+      <li><a href="{% url 'home' %}" style="color:#fff;text-transform:uppercase;font-weight:700;">Home</a></li>
+
+      {# si ces pages n'ont pas encore d'urls nommées, on met des liens simples pour éviter NoReverseMatch #}
+      <li><a href="/about/" style="color:#fff;text-transform:uppercase;">About</a></li>
+      <li><a href="/service/" style="color:#fff;text-transform:uppercase;">Service</a></li>
+      <li><a href="/gallery/" style="color:#fff;text-transform:uppercase;">Gallery</a></li>
+      <li><a href="/team/" style="color:#fff;text-transform:uppercase;">Team</a></li>
+
+      <li>
+        <a href="{% url 'brain_tumor_page' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-brain"></i> Brain Tumor AI
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'chest_xray_page' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-stethoscope"></i> Chest X-Ray AI
+        </a>
+      </li>
+
+    </ul>
+  </div>
+</nav>

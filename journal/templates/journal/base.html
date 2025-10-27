@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Medic | Medical HTML Template{% endblock %}</title>
+
+  <!-- Mobile responsive meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <!-- Slick Carousel -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+
+  <!-- FancyBox -->
+  <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+
+  <!-- Font Awesome (v6) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- Stylesheets (thème principal, mêmes couleurs que l'index) -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+  {# CSS spécifique à une page (optionnel) #}
+  {% block page_css %}{% endblock %}
+</head>
+
+<body>
+  <div class="page-wrapper">
+
+    {# Header global (topbar + navbar) #}
+    {% include 'journal/_header.html' %}
+
+    {# Contenu spécifique à chaque page #}
+    {% block content %}{% endblock %}
+
+    {# Footer global (avec scripts communs si tu les as mis dedans) #}
+    {% include 'journal/_footer.html' %}
+  </div>
+
+  {# Si tes scripts ne sont PAS déjà dans _footer.html, dé-commente ces lignes :
+  <script src="{% static 'plugins/jquery.js' %}"></script>
+  <script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+  <script src="{% static 'plugins/bootstrap-select.min.js' %}"></script>
+  <script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+  <script src="{% static 'plugins/fancybox/jquery.fancybox.min.js' %}"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+  <script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+  <script src="{% static 'plugins/validate.js' %}"></script>
+  <script src="{% static 'plugins/wow.js' %}"></script>
+  <script src="{% static 'plugins/jquery-ui.js' %}"></script>
+  <script src="{% static 'plugins/timePicker.js' %}"></script>
+  <script src="{% static 'js/script.js' %}"></script>
+  #}
+
+  {# JS spécifique à une page (optionnel) #}
+  {% block page_js %}{% endblock %}
+</body>
+</html>
