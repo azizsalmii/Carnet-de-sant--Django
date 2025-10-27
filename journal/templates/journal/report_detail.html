@@ -1,0 +1,339 @@
+{% extends 'journal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- En-tête avec boutons d'action -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-file-medical"></i> Rapport Santé - {{ report.month|date:"F Y" }}
+        </h1>
+        <div class="btn-group">
+            <a href="{% url 'view_report_pdf' report.pk %}" class="btn btn-outline-primary" target="_blank">
+                <i class="fas fa-eye"></i> Voir PDF
+            </a>
+            <a href="{% url 'download_report_pdf' report.pk %}" class="btn btn-primary">
+                <i class="fas fa-download"></i> Télécharger PDF
+            </a>
+            <a href="{% url 'report_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Résumé du mois -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-chart-line"></i> Résumé du Mois</h3>
+            <span class="badge bg-light text-primary">
+                <i class="fas fa-file-pdf"></i> Export PDF Disponible
+            </span>
+        </div>
+        <div class="card-body">
+            {% if report.report_content.summary %}
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <h2 class="health-score" style="color: 
+                        {% if report.report_content.summary.health_score >= 70 %}#28a745
+                        {% elif report.report_content.summary.health_score >= 50 %}#ffc107
+                        {% else %}#dc3545
+                        {% endif %}; font-size: 3em;">
+                        {{ report.report_content.summary.health_score }}/100
+                    </h2>
+                    <p><strong>Score de santé</strong></p>
+                </div>
+                <div class="col-md-3">
+                    <h3>{{ report.report_content.summary.total_days_tracked }}</h3>
+                    <p><strong>Jours suivis</strong></p>
+                </div>
+                <div class="col-md-3">
+                    <h3>{{ report.report_content.statistics.medication_adherence_rate }}%</h3>
+                    <p><strong>Observance traitement</strong></p>
+                </div>
+                <div class="col-md-3">
+                    <h3>{{ report.report_content.statistics.symptom_free_days }}</h3>
+                    <p><strong>Jours sans symptômes</strong></p>
+                </div>
+            </div>
+            
+            <!-- Points clés -->
+            {% if report.report_content.summary.key_highlights %}
+            <div class="mt-4">
+                <h5><i class="fas fa-star"></i> Points Clés</h5>
+                <div class="row">
+                    {% for highlight in report.report_content.summary.key_highlights %}
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <i class="fas fa-bullseye"></i> {{ highlight }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Aucune donnée disponible pour ce mois.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Analyse IA -->
+    {% if report.report_content.ai_analysis %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h3 class="mb-0"><i class="fas fa-robot"></i> Analyse Intelligente</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-lightbulb"></i> Recommandations personnalisées:</h5>
+                    {% for rec in report.report_content.ai_analysis.personalized_recommendations %}
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>{{ rec }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    {% if report.report_content.ai_analysis.risk_factors %}
+                    <h5><i class="fas fa-exclamation-triangle"></i> Facteurs de risque identifiés:</h5>
+                    {% for risk in report.report_content.ai_analysis.risk_factors %}
+                        <div class="alert alert-warning d-flex align-items-center">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span>{{ risk }}</span>
+                        </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- Insights prédictifs -->
+                    {% if report.report_content.ai_analysis.predictive_insights %}
+                    <h5><i class="fas fa-crystal-ball"></i> Insights Prédictifs:</h5>
+                    {% for insight in report.report_content.ai_analysis.predictive_insights %}
+                        <div class="alert alert-primary d-flex align-items-center">
+                            <i class="fas fa-chart-line me-2"></i>
+                            <span>{{ insight }}</span>
+                        </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Analyse du sommeil -->
+    <div class="card mb-4">
+        <div class="card-header" style="background-color: #6f42c1; color: white;">
+            <h3 class="mb-0"><i class="fas fa-bed"></i> Analyse du Sommeil</h3>
+        </div>
+        <div class="card-body">
+            {% if report.report_content.sleep_analysis.message %}
+                <div class="text-center py-3">
+                    <i class="fas fa-moon fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">{{ report.report_content.sleep_analysis.message }}</p>
+                </div>
+            {% else %}
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h2 style="color: #6f42c1;">{{ report.report_content.sleep_analysis.average_duration }}h</h2>
+                            <p class="mb-1"><strong>Durée moyenne</strong></p>
+                            <small class="text-muted">Recommandé: 7-9h</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h2 style="color: #6f42c1;">{{ report.report_content.sleep_analysis.average_quality }}/5</h2>
+                            <p class="mb-1"><strong>Qualité moyenne</strong></p>
+                            <small class="text-muted">Échelle: 1 (mauvais) à 5 (excellent)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h2 style="color: #6f42c1;">{{ report.report_content.sleep_analysis.sleep_consistency }}</h2>
+                            <p class="mb-1"><strong>Consistance</strong></p>
+                            <small class="text-muted">Régularité du sommeil</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if report.report_content.sleep_analysis.recommendations %}
+                <div class="mt-4">
+                    <h5><i class="fas fa-tips"></i> Conseils pour améliorer votre sommeil:</h5>
+                    <div class="row">
+                        {% for rec in report.report_content.sleep_analysis.recommendations %}
+                        <div class="col-md-6">
+                            <div class="alert alert-light border">
+                                <i class="fas fa-lightbulb text-warning me-2"></i>
+                                {{ rec }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Analyse de l'activité -->
+    <div class="card mb-4">
+        <div class="card-header" style="background-color: #20c997; color: white;">
+            <h3 class="mb-0"><i class="fas fa-running"></i> Analyse de l'Activité</h3>
+        </div>
+        <div class="card-body">
+            {% if report.report_content.activity_analysis.message %}
+                <div class="text-center py-3">
+                    <i class="fas fa-walking fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">{{ report.report_content.activity_analysis.message }}</p>
+                </div>
+            {% else %}
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h2 style="color: #20c997;">{{ report.report_content.activity_analysis.average_steps|floatformat:0 }}</h2>
+                            <p class="mb-1"><strong>Pas moyens/jour</strong></p>
+                            <small class="text-muted">Objectif: 10,000 pas</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h2 style="color: #20c997;">{{ report.report_content.activity_analysis.average_exercise_minutes }}min</h2>
+                            <p class="mb-1"><strong>Exercice moyen</strong></p>
+                            <small class="text-muted">Recommandé: 30min/jour</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            {% with level=report.report_content.activity_analysis.activity_level %}
+                            <h2 style="color: #20c997;">
+                                {% if level == "Sédentaire" %}😴
+                                {% elif level == "Légèrement actif" %}🚶
+                                {% elif level == "Actif" %}🏃
+                                {% else %}💪
+                                {% endif %}
+                            </h2>
+                            <p class="mb-1"><strong>{{ level }}</strong></p>
+                            <small class="text-muted">Niveau d'activité</small>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conseils d'activité -->
+                {% if report.report_content.activity_analysis.recommendations %}
+                <div class="mt-4">
+                    <h5><i class="fas fa-dumbbell"></i> Conseils d'activité:</h5>
+                    <div class="row">
+                        {% for rec in report.report_content.activity_analysis.recommendations %}
+                        <div class="col-md-6">
+                            <div class="alert alert-light border">
+                                <i class="fas fa-heart text-danger me-2"></i>
+                                {{ rec }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Analyse des symptômes -->
+    {% if report.report_content.symptoms_analysis.symptoms_log %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0"><i class="fas fa-stethoscope"></i> Analyse des Symptômes</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Symptômes</th>
+                            <th>Intensité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for symptom in report.report_content.symptoms_analysis.symptoms_log|slice:":10" %}
+                        <tr>
+                            <td>{{ symptom.date }}</td>
+                            <td>{{ symptom.symptoms|truncatewords:10 }}</td>
+                            <td>
+                                <span class="badge bg-{% if symptom.pain_level < 4 %}success{% elif symptom.pain_level < 7 %}warning{% else %}danger{% endif %}">
+                                    {{ symptom.pain_level }}/10
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if report.report_content.symptoms_analysis.symptoms_log|length > 10 %}
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Affichage des 10 premiers symptômes. Voir le PDF pour la liste complète.
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Section PDF -->
+    <div class="card border-success">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="fas fa-file-pdf"></i> Export du Rapport</h4>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5>📄 Rapport PDF Complet</h5>
+                    <p class="text-muted mb-0">
+                        Téléchargez la version PDF de ce rapport pour l'archiver, l'imprimer 
+                        ou le partager avec votre médecin. Le PDF inclut toutes les données 
+                        détaillées et analyses.
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group-vertical w-100">
+                        <a href="{% url 'view_report_pdf' report.pk %}" class="btn btn-outline-success mb-2" target="_blank">
+                            <i class="fas fa-eye"></i> Visualiser le PDF
+                        </a>
+                        <a href="{% url 'download_report_pdf' report.pk %}" class="btn btn-success">
+                            <i class="fas fa-download"></i> Télécharger le PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métadonnées -->
+    <div class="text-center mt-4">
+        <small class="text-muted">
+            Rapport généré le {{ report.generated_at|date:"d/m/Y à H:i" }}
+            {% if report.is_finalized %}
+                • <span class="badge bg-success">Finalisé</span>
+            {% else %}
+                • <span class="badge bg-warning">Brouillon</span>
+            {% endif %}
+        </small>
+    </div>
+</div>
+{% endblock %}

@@ -33,7 +33,7 @@ ALLOWED_HOSTS = []
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Ajoute cette ligne
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,22 +77,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'projetPython.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = 'projetPython.wsgi.application'
 
@@ -153,3 +137,17 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Ajoutez ces paramètres à la fin de votre settings.py
+
+# Paramètres d'authentification
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/health-data/'  # Redirige vers les données santé après connexion
+LOGOUT_REDIRECT_URL = '/'
+
+# Configuration des médias (pour les images médicales)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configuration de sécurité (pour le développement)
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
