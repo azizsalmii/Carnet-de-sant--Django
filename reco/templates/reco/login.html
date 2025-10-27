@@ -1,0 +1,64 @@
+{% extends 'reco/base.html' %}
+{% load static %}
+
+{% block title %}Connexion - HEALTH TRACK{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="dashboard-card">
+                <div class="text-center mb-4">
+                    <i class="fas fa-heartbeat text-primary" style="font-size: 4rem;"></i>
+                    <h2 class="mt-3 fw-bold">HEALTH TRACK</h2>
+                    <p class="text-muted">Connectez-vous à votre compte</p>
+                </div>
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Nom d'utilisateur</label>
+                        <input type="text" name="username" class="form-control" id="id_username" required autofocus>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label">Mot de passe</label>
+                        <input type="password" name="password" class="form-control" id="id_password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se Connecter
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted">
+                        Pas encore de compte ? 
+                        <a href="{% url 'reco:register' %}" class="text-primary fw-bold">S'inscrire</a>
+                    </p>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="small text-muted mb-2">Compte de démonstration :</p>
+                    <p class="small">
+                        <strong>Utilisateur:</strong> demouser_ml<br>
+                        <strong>Mot de passe:</strong> demo123
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -124,7 +124,12 @@
                                 <h2 class="text-white text-bold mb-2">Our Best Surgeons</h2>
                                 <p class="tag-text mb-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vel sunt animi sequi ratione quod at earum. <br>
                                     Quis quos officiis numquam!</p>
-                                <a href="#" class="btn btn-main btn-white">Explore</a>
+                                {% if user.is_authenticated %}
+                                <a href="{% url 'reco:dashboard' %}" class="btn btn-main btn-white">My Dashboard</a>
+                                {% else %}
+                                <a href="{% url 'reco:register' %}" class="btn btn-main btn-white mr-3">Sign Up</a>
+                                <a href="{% url 'reco:login' %}" class="btn btn-main btn-white-outline">Sign In</a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
