@@ -26,6 +26,80 @@
     <!-- Favicon -->
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
     <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+    <style>
+        .btn-main.btn-white-outline {
+            background-color: transparent;
+            border: 2px solid #fff;
+            color: #fff;
+        }
+        .btn-main.btn-white-outline:hover {
+            background-color: #fff;
+            color: #223a66;
+        }
+        .mr-3 {
+            margin-right: 15px !important;
+        }
+        
+        /* Navbar authentication buttons styling */
+        .navbar-nav > li > a.btn-nav-signin,
+        .navbar-nav > li > a.btn-nav-signup {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            padding: 8px 20px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-nav > li > a.btn-nav-signin {
+            background-color: transparent;
+            border: 2px solid #223a66;
+            color: #223a66;
+        }
+        
+        .navbar-nav > li > a.btn-nav-signin:hover {
+            background-color: #223a66;
+            color: #fff;
+        }
+        
+        .navbar-nav > li > a.btn-nav-signup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: 2px solid transparent;
+            font-weight: 600;
+        }
+        
+        .navbar-nav > li > a.btn-nav-signup:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .navbar-right > li {
+            margin-left: 5px;
+        }
+        
+        /* AI Health Dropdown Styling */
+        .dropdown-menu > li > a {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-menu > li > a:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff !important;
+        }
+        
+        .dropdown-menu > li > a:hover i {
+            color: #fff !important;
+        }
+        
+        .dropdown-menu > li > a i {
+            margin-right: 8px;
+            width: 18px;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -74,6 +148,45 @@
                         <li><a href="{% url 'appointment' %}">Appointment</a></li>
                         <li><a href="{% url 'blog' %}">Blog</a></li>
                         <li><a href="{% url 'contact' %}">Contact</a></li>
+                        
+                        <!-- AI Health Dropdown -->
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-brain"></i> AI Health <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% if user.is_authenticated %}
+                                <li><a href="{% url 'reco:dashboard' %}" style="color: #333;"><i class="fas fa-tachometer-alt" style="color: #667eea;"></i> AI Dashboard</a></li>
+                                <li><a href="{% url 'reco:recommendations' %}" style="color: #333;"><i class="fas fa-star" style="color: #667eea;"></i> My Recommendations</a></li>
+                                <li><a href="{% url 'reco:add_metrics' %}" style="color: #333;"><i class="fas fa-plus-circle" style="color: #667eea;"></i> Add Metrics</a></li>
+                                <li><a href="{% url 'reco:ai_progress' %}" style="color: #333;"><i class="fas fa-chart-line" style="color: #667eea;"></i> AI Progress</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="{% url 'reco:dashboard' %}" style="color: #333;"><i class="fas fa-heartbeat" style="color: #667eea;"></i> Health Dashboard</a></li>
+                                {% else %}
+                                <li><a href="{% url 'reco:login' %}" style="color: #333;"><i class="fas fa-sign-in-alt" style="color: #667eea;"></i> Login to Access</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <!-- Right side authentication buttons -->
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if user.is_authenticated %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> {{ user.username }} <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url 'reco:profile' %}" style="color: #333;"><i class="fas fa-user" style="color: #667eea;"></i> My Profile</a></li>
+                                <li><a href="{% url 'reco:dashboard' %}" style="color: #333;"><i class="fas fa-tachometer-alt" style="color: #667eea;"></i> Dashboard</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="{% url 'reco:logout' %}" style="color: #333;"><i class="fas fa-sign-out-alt" style="color: #667eea;"></i> Logout</a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li><a href="{% url 'reco:login' %}" class="btn-nav-signin"><i class="fas fa-sign-in-alt"></i> Sign In</a></li>
+                        <li><a href="{% url 'reco:register' %}" class="btn-nav-signup"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -90,7 +203,12 @@
                                 <h2 class="text-white text-bold mb-2">Our Best Surgeons</h2>
                                 <p class="tag-text mb-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vel sunt animi sequi ratione quod at earum. <br>
                                     Quis quos officiis numquam!</p>
-                                <a href="#" class="btn btn-main btn-white">Explore</a>
+                                {% if user.is_authenticated %}
+                                <a href="{% url 'reco:dashboard' %}" class="btn btn-main btn-white">My Dashboard</a>
+                                {% else %}
+                                <a href="{% url 'reco:register' %}" class="btn btn-main btn-white mr-3">Sign Up</a>
+                                <a href="{% url 'reco:login' %}" class="btn btn-main btn-white-outline">Sign In</a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

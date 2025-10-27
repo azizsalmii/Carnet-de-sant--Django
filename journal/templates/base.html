@@ -1,0 +1,300 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Medic | Medical HTML Template{% endblock %}</title>
+
+    <!-- Mobile responsive meta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!-- Slick Carousel -->
+    <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+
+    <!-- FancyBox -->
+    <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+
+    <!-- Font Awesome (Updated to version 6) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <!-- Custom navbar styles -->
+    <style>
+        .btn-nav-signup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            padding: 8px 20px !important;
+            border-radius: 20px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+        }
+        .btn-nav-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .navbar-right {
+            float: right !important;
+        }
+        .navbar-right > li > a {
+            padding: 15px;
+        }
+        
+        /* Dropdown menu styling with dark text */
+        .dropdown-menu > li > a {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-menu > li > a:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff !important;
+        }
+        
+        .dropdown-menu > li > a:hover i {
+            color: #fff !important;
+        }
+        
+        .dropdown-menu > li > a i {
+            margin-right: 8px;
+            width: 18px;
+            text-align: center;
+        }
+    </style>
+    
+    <!-- Reco specific styles -->
+    {% if 'reco' in request.path %}
+    <link rel="stylesheet" href="{% static 'reco/css/style.css' %}">
+    {% endif %}
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="page-wrapper">
+
+        <!-- Header Top -->
+        <div class="header-top">
+            <div class="container clearfix">
+                <div class="top-left">
+                    <h6>Opening Hours: Saturday to Tuesday - 8am to 10pm</h6>
+                </div>
+                <div class="top-right">
+                    <ul class="social-links">
+                        <li><a href="#"><i class="fab fa-facebook-f" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fab fa-twitter" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fab fa-google-plus-g" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fab fa-instagram" aria-hidden="true"></i></a></li>
+                        <li><a href="#"><i class="fab fa-pinterest-p" aria-hidden="true"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Header Top End -->
+
+        <!-- Header Upper -->
+        <section class="header-uper">
+            <div class="container clearfix">
+                <div class="logo">
+                    <figure>
+                        <a href="{% url 'home' %}">
+                            <img src="{% static 'images/logo.png' %}" alt="Medic Logo" width="130">
+                        </a>
+                    </figure>
+                </div>
+                <div class="right-side">
+                    <ul class="contact-info">
+                        <li class="item">
+                            <div class="icon-box">
+                                <i class="fa fa-envelope-o"></i>
+                            </div>
+                            <strong>Email</strong>
+                            <br>
+                            <a href="mailto:info@medic.com">
+                                <span>info@medic.com</span>
+                            </a>
+                        </li>
+                        <li class="item">
+                            <div class="icon-box">
+                                <i class="fa fa-phone"></i>
+                            </div>
+                            <strong>Call Now</strong>
+                            <br>
+                            <span>+ (88017) - 123 - 4567</span>
+                        </li>
+                    </ul>
+                    <div class="link-btn">
+                        <a href="{% url 'appointment' %}" class="btn-style-one">Appointment</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Header Upper End -->
+
+        <!-- Main Header / Navbar -->
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li {% if request.path == '/' %}class="active"{% endif %}>
+                            <a href="{% url 'home' %}">Home</a>
+                        </li>
+                        <li {% if 'about' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'about' %}">About</a>
+                        </li>
+                        <li {% if 'service' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'services' %}">Service</a>
+                        </li>
+                        <li {% if 'gallery' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'gallery' %}">Gallery</a>
+                        </li>
+                        <li {% if 'team' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'team' %}">Team</a>
+                        </li>
+                        <li {% if 'appointment' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'appointment' %}">Appointment</a>
+                        </li>
+                        <li {% if 'blog' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'blog' %}">Blog</a>
+                        </li>
+                        <li {% if 'contact' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'contact' %}">Contact</a>
+                        </li>
+                        
+                        <!-- AI Recommendations Section -->
+                        <li class="dropdown {% if '/reco/' in request.path %}active{% endif %}">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-brain"></i> AI Health <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% if user.is_authenticated %}
+                                <li><a href="{% url 'reco:dashboard' %}" style="color: #333;"><i class="fas fa-tachometer-alt" style="color: #667eea;"></i> AI Dashboard</a></li>
+                                <li><a href="{% url 'reco:recommendations' %}" style="color: #333;"><i class="fas fa-star" style="color: #667eea;"></i> My Recommendations</a></li>
+                                <li><a href="{% url 'reco:add_metrics' %}" style="color: #333;"><i class="fas fa-plus-circle" style="color: #667eea;"></i> Add Metrics</a></li>
+                                <li><a href="{% url 'reco:ai_progress' %}" style="color: #333;"><i class="fas fa-chart-line" style="color: #667eea;"></i> AI Progress</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="{% url 'reco:dashboard' %}" style="color: #333;"><i class="fas fa-heartbeat" style="color: #667eea;"></i> Health Dashboard</a></li>
+                                {% else %}
+                                <li><a href="{% url 'reco:login' %}" style="color: #333;"><i class="fas fa-sign-in-alt" style="color: #667eea;"></i> Login to Access</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <!-- Right Side Nav - Auth Buttons -->
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if user.is_authenticated %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> {{ user.username }} <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url 'reco:profile' %}" style="color: #333;"><i class="fas fa-user-edit" style="color: #667eea;"></i> My Profile</a></li>
+                                <li><a href="{% url 'reco:dashboard' %}" style="color: #333;"><i class="fas fa-tachometer-alt" style="color: #667eea;"></i> Dashboard</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="{% url 'reco:logout' %}" style="color: #333;"><i class="fas fa-sign-out-alt" style="color: #667eea;"></i> Logout</a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li {% if 'login' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'reco:login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                        </li>
+                        <li {% if 'register' in request.path %}class="active"{% endif %}>
+                            <a href="{% url 'reco:register' %}" class="btn-nav-signup">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Main Header End -->
+
+        <!-- Main Content -->
+        {% block content %}{% endblock %}
+        
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6">
+                        <div class="footer-widget about-widget">
+                            <h3>About Medic</h3>
+                            <p>Your trusted healthcare partner with AI-powered personalized health recommendations.</p>
+                            <ul class="social-links">
+                                <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                                <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fab fa-google-plus-g"></i></a></li>
+                                <li><a href="#"><i class="fab fa-instagram"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 col-sm-6">
+                        <div class="footer-widget quick-links">
+                            <h3>Quick Links</h3>
+                            <ul>
+                                <li><a href="{% url 'about' %}">About Us</a></li>
+                                <li><a href="{% url 'services' %}">Services</a></li>
+                                <li><a href="{% url 'team' %}">Our Team</a></li>
+                                <li><a href="{% url 'contact' %}">Contact</a></li>
+                                <li><a href="{% url 'reco:home' %}">AI Recommendations</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 col-sm-6">
+                        <div class="footer-widget contact-widget">
+                            <h3>Contact Info</h3>
+                            <ul>
+                                <li><i class="fa fa-map-marker"></i> 123 Medical Street, City</li>
+                                <li><i class="fa fa-phone"></i> + (88017) - 123 - 4567</li>
+                                <li><i class="fa fa-envelope"></i> info@medic.com</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    <div class="text-center">
+                        <p>&copy; 2025 Medic. All Rights Reserved. | AI Model: v1-calibrated</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Footer End -->
+
+    </div>
+    <!-- Page Wrapper End -->
+
+    <!-- jQuery -->
+    <script src="{% static 'plugins/jquery.js' %}"></script>
+    <!-- Bootstrap -->
+    <script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+    <!-- Slick Carousel -->
+    <script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+    <!-- FancyBox -->
+    <script src="{% static 'plugins/fancybox/jquery.fancybox.min.js' %}"></script>
+    <!-- Custom Script -->
+    <script src="{% static 'js/script.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

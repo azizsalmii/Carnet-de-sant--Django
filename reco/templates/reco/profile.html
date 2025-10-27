@@ -32,7 +32,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="post" action="{% url 'profile' %}">
+                    <form method="post" action="{% url 'reco:profile' %}">
                         {% csrf_token %}
                         
                         <!-- User Info Section -->

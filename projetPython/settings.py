@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--m92yzg)8xi)4$qoc&^mfng7**@9^it=5n5&usr=5wj&j=!qhf'
+SECRET_KEY = 'django-insecure--m92yzg)8xi)4&^mfng7**@9^it=5n5&usr=5wj&j=!qhf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,23 +30,6 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Ajoute cette ligne
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -54,11 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-        'rest_framework',
+    'rest_framework',
 
     'users',
-        "journal",
-
+    'journal',
+    'reco',  # AI-powered health recommendations
 ]
 
 REST_FRAMEWORK = {
@@ -66,6 +49,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -81,7 +65,7 @@ ROOT_URLCONF = 'projetPython.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,7 +97,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',    
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
@@ -153,3 +137,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication URLs
+LOGIN_URL = '/reco/login/'  # Points to reco app login page
+LOGIN_REDIRECT_URL = '/reco/dashboard/'  # After login, go to AI dashboard
+LOGOUT_REDIRECT_URL = '/'  # After logout, go to home

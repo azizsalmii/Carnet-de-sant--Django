@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .models import Profile, DailyMetrics, Recommendation
@@ -8,6 +8,8 @@ from .ml_service import get_personalization_service
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Avg
+
+User = get_user_model()
 
 
 def home(request):
@@ -182,7 +184,7 @@ def profile_view(request):
         profile.save()
         
         messages.success(request, 'Profil mis à jour avec succès !')
-        return redirect('profile')
+        return redirect('reco:profile')
     
     # Get stats for profile page
     metrics_count = DailyMetrics.objects.filter(user=request.user).count()
@@ -197,23 +199,81 @@ def profile_view(request):
     return render(request, 'reco/profile.html', context)
 
 
+
+
+def login_view(request):
+    """User login view"""
+    if request.user.is_authenticated:
+        return redirect('reco:dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'Bienvenue {user.username} !')
+            # Redirect to 'next' parameter or dashboard
+            next_url = request.GET.get('next', 'reco:dashboard')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Nom d\'utilisateur ou mot de passe incorrect.')
+    
+    return render(request, 'reco/login.html')
+
+
 def register(request):
     """User registration view"""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('reco:dashboard')
     
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        
+        # Validation
+        errors = []
+        if not username or not email or not password1 or not password2:
+            errors.append('Tous les champs sont requis.')
+        elif password1 != password2:
+            errors.append('Les mots de passe ne correspondent pas.')
+        elif len(password1) < 8:
+            errors.append('Le mot de passe doit contenir au moins 8 caractères.')
+        elif User.objects.filter(username=username).exists():
+            errors.append('Ce nom d\'utilisateur existe déjà.')
+        elif User.objects.filter(email=email).exists():
+            errors.append('Cet email est déjà utilisé.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'reco/register.html', {
+                'username': username,
+                'email': email
+            })
+        
+        # Create user
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1
+            )
             # Auto-login after registration
             login(request, user)
             messages.success(request, f'Bienvenue {user.username} ! Votre compte a été créé.')
-            return redirect('profile')  # Redirect to profile setup
-    else:
-        form = UserCreationForm()
+            return redirect('reco:profile')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la création du compte: {str(e)}')
+            return render(request, 'reco/register.html', {
+                'username': username,
+                'email': email
+            })
     
-    return render(request, 'reco/register.html', {'form': form})
+    return render(request, 'reco/register.html')
 
 
 def logout_view(request):

@@ -25,40 +25,37 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="post" action="{% url 'register' %}" id="registerForm">
+                    <form method="post" action="{% url 'reco:register' %}" id="registerForm">
                         {% csrf_token %}
                         
                         <!-- Username Field -->
                         <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <label for="username" class="form-label">
                                 <i class="fas fa-user"></i> Nom d'utilisateur
                             </label>
                             <input type="text" 
-                                   class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" 
-                                   id="{{ form.username.id_for_label }}" 
-                                   name="{{ form.username.name }}"
-                                   value="{{ form.username.value|default:'' }}"
+                                   class="form-control form-control-lg" 
+                                   id="username" 
+                                   name="username"
+                                   value="{{ username|default:'' }}"
                                    required
                                    placeholder="Choisissez un nom d'utilisateur">
-                            {% if form.username.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.username.errors.0 }}
-                                </div>
-                            {% endif %}
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle"></i> Lettres, chiffres et @/./+/-/_ uniquement
                             </small>
                         </div>
 
-                        <!-- Email Field (Optional) -->
+                        <!-- Email Field -->
                         <div class="mb-3">
                             <label for="email" class="form-label">
-                                <i class="fas fa-envelope"></i> Email (optionnel)
+                                <i class="fas fa-envelope"></i> Email
                             </label>
                             <input type="email" 
                                    class="form-control form-control-lg" 
                                    id="email" 
                                    name="email"
+                                   value="{{ email|default:'' }}"
+                                   required
                                    placeholder="votre.email@exemple.com">
                             <small class="form-text text-muted">
                                 <i class="fas fa-shield-alt"></i> Pour la récupération de mot de passe
@@ -67,20 +64,15 @@
 
                         <!-- Password Field -->
                         <div class="mb-3">
-                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            <label for="password1" class="form-label">
                                 <i class="fas fa-lock"></i> Mot de passe
                             </label>
                             <input type="password" 
-                                   class="form-control form-control-lg {% if form.password1.errors %}is-invalid{% endif %}" 
-                                   id="{{ form.password1.id_for_label }}" 
-                                   name="{{ form.password1.name }}"
+                                   class="form-control form-control-lg" 
+                                   id="password1" 
+                                   name="password1"
                                    required
                                    placeholder="Créez un mot de passe sécurisé">
-                            {% if form.password1.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.password1.errors.0 }}
-                                </div>
-                            {% endif %}
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle"></i> Au moins 8 caractères, pas trop commun
                             </small>
@@ -88,20 +80,15 @@
 
                         <!-- Password Confirmation Field -->
                         <div class="mb-4">
-                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            <label for="password2" class="form-label">
                                 <i class="fas fa-lock"></i> Confirmer le mot de passe
                             </label>
                             <input type="password" 
-                                   class="form-control form-control-lg {% if form.password2.errors %}is-invalid{% endif %}" 
-                                   id="{{ form.password2.id_for_label }}" 
-                                   name="{{ form.password2.name }}"
+                                   class="form-control form-control-lg" 
+                                   id="password2" 
+                                   name="password2"
                                    required
                                    placeholder="Confirmez votre mot de passe">
-                            {% if form.password2.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.password2.errors.0 }}
-                                </div>
-                            {% endif %}
                         </div>
 
                         <!-- Terms & Conditions -->
@@ -126,7 +113,7 @@
                         <div class="text-center">
                             <p class="text-muted mb-0">
                                 Vous avez déjà un compte ? 
-                                <a href="{% url 'login' %}" style="color: #667eea; font-weight: 600;">
+                                <a href="{% url 'reco:login' %}" style="color: #667eea; font-weight: 600;">
                                     <i class="fas fa-sign-in-alt"></i> Se connecter
                                 </a>
                             </p>

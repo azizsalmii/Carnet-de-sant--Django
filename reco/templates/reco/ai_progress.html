@@ -1,6 +1,6 @@
-{% extends 'reco/base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}Progression IA - HEALTH TRACK{% endblock %}
+{% block title %}AI Progress Tracker | Medic{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -176,13 +176,13 @@
                     <h5 class="mb-3"><i class="fas fa-lightbulb"></i> Comment améliorer l'IA ?</h5>
                     <p class="text-muted mb-4">Plus vous donnez de feedback, plus les recommandations deviennent précises !</p>
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
-                        <a href="{% url 'add_metrics' %}" class="btn btn-primary">
+                        <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Ajouter des Métriques
                         </a>
-                        <a href="{% url 'recommendations_view' %}" class="btn btn-success">
+                        <a href="{% url 'reco:recommendations' %}" class="btn btn-success">
                             <i class="fas fa-lightbulb"></i> Voir Recommandations
                         </a>
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'reco:dashboard' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-chart-line"></i> Dashboard
                         </a>
                     </div>

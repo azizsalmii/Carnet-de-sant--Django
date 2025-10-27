@@ -1,6 +1,6 @@
-{% extends 'reco/base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}Tableau de Bord - HEALTH TRACK{% endblock %}
+{% block title %}Dashboard - AI Health Recommendations | Medic{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -32,7 +32,7 @@
                     <li>Visitez la page <strong>"Recommandations"</strong> pour que l'IA génère vos conseils personnalisés</li>
                 </ol>
                 <div class="text-center mt-4">
-                    <a href="{% url 'add_metrics' %}" class="btn btn-primary btn-lg">
+                    <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary btn-lg">
                         <i class="fas fa-plus-circle"></i> Ajouter mes métriques du jour
                     </a>
                 </div>
@@ -194,14 +194,14 @@
                             <p class="mb-0 small">{{ reco.text|truncatewords:15 }}</p>
                         </div>
                         {% endfor %}
-                        <a href="{% url 'recommendations_view' %}" class="btn btn-outline-primary btn-sm w-100">
+                        <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-primary btn-sm w-100">
                             <i class="fas fa-arrow-right"></i> Voir toutes les recommandations
                         </a>
                     {% else %}
                         <div class="text-center py-4">
                             <i class="fas fa-robot fa-3x text-muted mb-3"></i>
                             <p class="text-muted mb-3">Pas encore de recommandations.</p>
-                            <a href="{% url 'recommendations_view' %}" class="btn btn-primary btn-sm">
+                            <a href="{% url 'reco:recommendations' %}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-magic"></i> Générer des recommandations
                             </a>
                         </div>
@@ -216,16 +216,16 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'add_metrics' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary btn-lg">
                             <i class="fas fa-plus-circle me-2"></i>Ajouter mes métriques du jour
                         </a>
-                        <a href="{% url 'recommendations_view' %}" class="btn btn-outline-success">
+                        <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-success">
                             <i class="fas fa-magic me-2"></i>Voir mes recommandations
                         </a>
-                        <a href="{% url 'ai_progress' %}" class="btn btn-outline-warning">
+                        <a href="{% url 'reco:ai_progress' %}" class="btn btn-outline-warning">
                             <i class="fas fa-brain me-2"></i>Progression de l'IA
                         </a>
-                        <a href="{% url 'profile' %}" class="btn btn-outline-info">
+                        <a href="{% url 'reco:profile' %}" class="btn btn-outline-info">
                             <i class="fas fa-user-edit me-2"></i>Modifier mon profil
                         </a>
                     </div>

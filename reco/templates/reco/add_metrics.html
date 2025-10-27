@@ -1,7 +1,7 @@
-{% extends 'reco/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Ajouter Métriques - HEALTH TRACK{% endblock %}
+{% block title %}Add Health Metrics | Medic{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -133,7 +133,7 @@
 
                     <!-- Buttons -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                        <a href="{% url 'reco:dashboard' %}" class="btn btn-outline-secondary btn-lg">
                             <i class="fas fa-arrow-left me-2"></i>Retour
                         </a>
                         <button type="submit" class="btn btn-primary btn-lg">

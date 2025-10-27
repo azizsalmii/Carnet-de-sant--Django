@@ -1,5 +1,7 @@
-{% extends 'reco/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
+
+{% block title %}AI Health Recommendations | Medic{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -12,17 +14,17 @@
                 <p class="lead mb-4 fade-in">Analysez vos données de santé et recevez des conseils personnalisés pour améliorer votre bien-être au quotidien.</p>
                 <div class="fade-in">
                     {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="btn btn-light btn-hero me-3">
+                    <a href="{% url 'reco:dashboard' %}" class="btn btn-light btn-hero me-3">
                         <i class="fas fa-chart-line me-2"></i>Mon Tableau de Bord
                     </a>
-                    <a href="{% url 'recommendations_view' %}" class="btn btn-outline-light btn-hero">
+                    <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-light btn-hero">
                         <i class="fas fa-star me-2"></i>Mes Recommandations
                     </a>
                     {% else %}
-                    <a href="{% url 'register' %}" class="btn btn-light btn-hero me-3">
+                    <a href="{% url 'reco:register' %}" class="btn btn-light btn-hero me-3">
                         <i class="fas fa-user-plus me-2"></i>Commencer Maintenant
                     </a>
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-hero">
+                    <a href="{% url 'reco:login' %}" class="btn btn-outline-light btn-hero">
                         <i class="fas fa-sign-in-alt me-2"></i>Se Connecter
                     </a>
                     {% endif %}
@@ -207,11 +209,11 @@
             </div>
             <div class="col-lg-4 text-center text-lg-end">
                 {% if not user.is_authenticated %}
-                <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 50px; font-weight: 600;">
+                <a href="{% url 'reco:register' %}" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 50px; font-weight: 600;">
                     <i class="fas fa-rocket me-2"></i>Commencer Maintenant
                 </a>
                 {% else %}
-                <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 50px; font-weight: 600;">
+                <a href="{% url 'reco:dashboard' %}" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 50px; font-weight: 600;">
                     <i class="fas fa-chart-line me-2"></i>Voir Mon Tableau de Bord
                 </a>
                 {% endif %}

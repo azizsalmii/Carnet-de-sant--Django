@@ -1,7 +1,7 @@
-{% extends 'reco/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Mes Recommandations - HEALTH TRACK{% endblock %}
+{% block title %}My Recommendations - AI Health | Medic{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -195,7 +195,7 @@
                         Cela signifie que vos métriques de santé sont bonnes ! <br>
                         Ou vous n'avez pas encore ajouté de données de santé.
                     </p>
-                    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <a href="{% url 'reco:dashboard' %}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Ajouter des Métriques
                     </a>
                 </div>
