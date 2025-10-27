@@ -1,205 +1,54 @@
+{% extends 'journal/base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Analysis | Intelligent Health Detector</title>
-    
-    <!-- Medical Template Styles -->
-    <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
-    <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
-    <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
-    <style>
-        .health-form-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 60px 0;
-            color: white;
-        }
-        .form-container {
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 25px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            outline: none;
-        }
-        .info-tooltip {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 12px 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .section-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .section-title h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        .progress-bar {
-            background: #f8f9fa;
-            border-radius: 10px;
-            height: 8px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        .progress-fill {
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-        .metric-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-left: 4px solid #667eea;
-        }
-        .btn-health {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        .btn-health:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-        .form-step {
-            display: none;
-        }
-        .form-step.active {
-            display: block;
-        }
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
-        }
-        .step {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 10px;
-            font-weight: bold;
-            color: #6c757d;
-        }
-        .step.active {
-            background: #667eea;
-            color: white;
-        }
-        .step-line {
-            flex: 1;
-            height: 3px;
-            background: #e9ecef;
-            margin: 0 5px;
-            align-self: center;
-        }
-        .service-item {
-            text-align: center;
-            padding: 30px 20px;
-            margin: 20px 0;
-        }
-        .service-item .icon-box {
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="page-wrapper">
+{% block title %}Health Analysis | Intelligent Health Detector{% endblock %}
 
-        <!-- Header Top -->
-        <div class="header-top">
-            <div class="container clearfix">
-                <div class="top-left">
-                    <h6>Intelligent Health Analysis - AI-Powered Anomaly Detection</h6>
-                </div>
-                <div class="top-right">
-                    <ul class="social-links">
-                        <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
-                        <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-                        <li><a href="#"><i class="fab fa-google-plus-g"></i></a></li>
-                    </ul>
-                </div>
-            </div>
+{% block content %}
+<style>
+    .health-form-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 60px 0;
+        color: white;
+    }
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        color: #333;
+    }
+    .form-group { margin-bottom: 25px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
+    .form-control { width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px; transition: all 0.3s ease; }
+    .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); outline: none; }
+    .info-tooltip { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 15px; margin: 10px 0; border-radius: 4px; font-size: 14px; }
+    .section-title { text-align: center; margin-bottom: 40px; }
+    .section-title h2 { color: #2c3e50; margin-bottom: 15px; }
+    .btn-health {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; padding: 15px 30px; border: none; border-radius: 8px;
+        font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%;
+    }
+    .btn-health:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3); }
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+    .step-indicator { display: flex; justify-content: center; margin-bottom: 40px; }
+    .step { width: 40px; height: 40px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; margin: 0 10px; font-weight: bold; color: #6c757d; }
+    .step.active { background: #667eea; color: white; }
+    .step-line { flex: 1; height: 3px; background: #e9ecef; margin: 0 5px; align-self: center; }
+    .service-item { text-align: center; padding: 30px 20px; margin: 20px 0; }
+    .service-item .icon-box { margin-bottom: 20px; }
+</style>
+
+<!-- ✅ HERO SECTION -->
+<section class="health-form-section">
+    <div class="container">
+        <div class="section-title text-center">
+            <h1 class="text-white">Intelligent Health Analysis</h1>
+            <p class="text-white">Our AI system analyzes your health data to detect anomalies and provide personalized recommendations</p>
         </div>
-
-        <!-- Navigation -->
-        <nav class="navbar navbar-default">
-            <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div>
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li><a href="/">Home</a></li>
-                        <li class="active"><a href="{% url 'health_analysis' %}">Health Analysis</a></li>
-                        <li><a href="{% url 'health_results' %}">My Results</a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Hero Section -->
-        <section class="health-form-section">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-8 col-md-offset-2">
-                        <div class="section-title text-center">
-                            <h1 class="text-white">Intelligent Health Analysis</h1>
-                            <p class="text-white">Our AI system analyzes your health data to detect anomalies and provide personalized recommendations</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+    </div>
+</section>
         <!-- Analysis Form -->
         <section class="section bg-gray">
             <div class="container">
@@ -592,5 +441,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

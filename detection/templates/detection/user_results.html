@@ -1,403 +1,294 @@
+{% extends 'journal/base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Results | Intelligent Health Detector</title>
-    
-    <!-- Medical Template Styles -->
-    <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
-    <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
-    <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
-    <style>
-        .results-section {
-            padding: 60px 0;
-            background: #f8f9fa;
-        }
-        .score-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .health-score {
-            font-size: 4rem;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .score-excellent { 
-            color: #28a745; 
-        }
-        .score-good { 
-            color: #17a2b8; 
-        }
-        .score-fair { 
-            color: #ffc107; 
-        }
-        .score-poor { 
-            color: #dc3545; 
-        }
-        .metric-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-        .alert-card {
-            border-left: 5px solid;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .alert-critical { 
-            border-color: #dc3545; 
-            background: #f8d7da; 
-        }
-        .alert-high { 
-            border-color: #fd7e14; 
-            background: #fff3cd; 
-        }
-        .alert-medium { 
-            border-color: #ffc107; 
-            background: #fff3cd; 
-        }
-        .alert-positive { 
-            border-color: #28a745; 
-            background: #d4edda; 
-        }
-        .status-indicator {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 20px;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .status-normal { 
-            background: #28a745; 
-        }
-        .status-warning { 
-            background: #ffc107; 
-            color: #000; 
-        }
-        .status-critical { 
-            background: #dc3545; 
-        }
-        .score-progress {
-            background: #f8f9fa;
-            border-radius: 10px;
-            height: 20px;
-            margin: 15px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        .score-progress-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.5s ease;
-            background: linear-gradient(90deg, #dc3545, #ffc107, #17a2b8, #28a745);
-        }
-        .score-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-            font-size: 12px;
-            color: #666;
-        }
-        .emergency-section {
-            border: 3px solid #dc3545;
-            background: #f8d7da;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .risk-high { 
-            color: #dc3545; 
-            font-weight: bold; 
-        }
-        .risk-medium { 
-            color: #e67e22; 
-            font-weight: bold; 
-        }
-        .risk-low { 
-            color: #f39c12; 
-            font-weight: bold; 
-        }
-        .risk-very-low { 
-            color: #27ae60; 
-            font-weight: bold; 
-        }
-        
-        /* Additional utility classes */
-        .metric-item {
-            margin: 10px 0;
-            padding: 10px;
-        }
-        .btn-main {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-main:hover {
-            background: #0056b3;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <div class="page-wrapper">
+{% block title %}Analysis Results | Medic{% endblock %}
 
-        <!-- Navigation -->
-        <nav class="navbar navbar-default">
-            <div class="container">
-                <div class="collapse navbar-collapse">
-                    <ul class="nav navbar-nav">
-                        <li><a href="/">Home</a></li>
-                        <li><a href="{% url 'health_analysis' %}">Health Analysis</a></li>
-                        <li class="active"><a href="{% url 'user_results' %}">My Results</a></li>
-                    </ul>
-                </div>
+{% block page_css %}
+<style>
+  body { background:#f6f9fc; }
+
+  .results-section { padding: 60px 0; background: #f8f9fa; }
+  .score-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+  .health-score { font-size: 4rem; font-weight: bold; margin: 20px 0; }
+  .score-excellent { color: #28a745; }
+  .score-good { color: #17a2b8; }
+  .score-fair { color: #ffc107; }
+  .score-poor { color: #dc3545; }
+
+  .metric-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  }
+  .alert-card {
+    border-left: 5px solid;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+  }
+  .alert-critical { border-color: #dc3545; background: #f8d7da; }
+  .alert-high { border-color: #fd7e14; background: #fff3cd; }
+  .alert-medium { border-color: #ffc107; background: #fff3cd; }
+  .alert-positive { border-color: #28a745; background: #d4edda; }
+
+  .status-indicator {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .status-normal { background: #28a745; }
+  .status-warning { background: #ffc107; color: #000; }
+  .status-critical { background: #dc3545; }
+
+  .score-progress {
+    background: #f8f9fa;
+    border-radius: 10px;
+    height: 20px;
+    margin: 15px 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .score-progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    background: linear-gradient(90deg, #dc3545, #ffc107, #17a2b8, #28a745);
+  }
+  .score-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+  }
+  .emergency-section {
+    border: 3px solid #dc3545;
+    background: #f8d7da;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .risk-high { color: #dc3545; font-weight: bold; }
+  .risk-medium { color: #e67e22; font-weight: bold; }
+  .risk-low { color: #f39c12; font-weight: bold; }
+  .risk-very-low { color: #27ae60; font-weight: bold; }
+
+  .metric-item { margin: 10px 0; padding: 10px; }
+  .btn-main {
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-main:hover { background: #0056b3; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="results-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+
+        {% if error %}
+        <div class="alert alert-danger text-center">
+          <h4><i class="fas fa-exclamation-triangle"></i> Analysis Error</h4>
+          <p>{{ error }}</p>
+          <a href="{% url 'health_analysis' %}" class="btn btn-main">Try Again</a>
+        </div>
+
+        {% elif results %}
+        {# --- Alerts depending on score --- #}
+        {% if results.health_score < 30 %}
+        <div class="emergency-section">
+          <div class="text-center">
+            <h3><i class="fas fa-exclamation-triangle"></i> CRITICAL HEALTH WARNING</h3>
+            <p class="lead">Your health score indicates critical conditions that require immediate medical attention.</p>
+          </div>
+        </div>
+        {% elif results.health_score < 50 %}
+        <div class="emergency-section" style="border-color:#e67e22;background:#fef9e7;">
+          <div class="text-center">
+            <h3><i class="fas fa-exclamation-circle"></i> HEALTH ALERT</h3>
+            <p class="lead">Your health score indicates serious concerns that should be addressed promptly.</p>
+          </div>
+        </div>
+        {% endif %}
+
+        {# --- Health Score Card --- #}
+        <div class="score-card" style="{% if results.health_score < 30 %}border:3px solid #dc3545;{% elif results.health_score < 50 %}border:2px solid #e67e22;{% endif %}">
+          <h2>Your Health Score</h2>
+          <div class="health-score score-{{ results.health_category|lower }}">
+            {{ results.health_score }}/100
+          </div>
+
+          <div class="score-progress">
+            <div class="score-progress-fill" style="width: {{ results.health_score }}%;"></div>
+          </div>
+
+          <div class="score-labels">
+            <span>Critical (0-29)</span>
+            <span>Poor (30-49)</span>
+            <span>Fair (50-69)</span>
+            <span>Good (70-84)</span>
+            <span>Excellent (85-100)</span>
+          </div>
+
+          <h3>{{ results.health_category }}</h3>
+          <p>Based on comprehensive analysis of your health data</p>
+        </div>
+
+        {# --- Health Assessment --- #}
+        <div class="metric-card">
+          <h4><i class="fas fa-search"></i> Health Assessment</h4>
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Overall Status:</strong>
+                <span class="status-{% if results.is_anomaly or results.health_score < 50 %}warning{% else %}normal{% endif %}">
+                  {% if results.is_anomaly %}⚠️ ANOMALY DETECTED{% else %}
+                    {% if results.health_score < 50 %}🟡 REVIEW NEEDED{% else %}✅ NORMAL{% endif %}
+                  {% endif %}
+                </span>
+              </p>
+              <p><strong>Risk Level:</strong>
+                <span class="risk-{{ results.risk_level|lower|cut:' '|cut:'-' }}">
+                  {{ results.risk_level }}
+                </span>
+              </p>
             </div>
-        </nav>
-
-        <!-- Results Section -->
-        <section class="results-section">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-10 col-md-offset-1">
-                        {% if error %}
-                        <div class="alert alert-danger text-center">
-                            <h4><i class="fas fa-exclamation-triangle"></i> Analysis Error</h4>
-                            <p>{{ error }}</p>
-                            <a href="{% url 'health_analysis' %}" class="btn btn-main">Try Again</a>
-                        </div>
-                        {% elif results %}
-                        
-                        <!-- Emergency Warning for Critical Health -->
-                        {% if results.health_score < 30 %}
-                        <div class="emergency-section">
-                            <div class="text-center">
-                                <h3><i class="fas fa-exclamation-triangle"></i> CRITICAL HEALTH WARNING</h3>
-                                <p class="lead">Your health score indicates critical conditions that require immediate medical attention.</p>
-                                <div class="alert alert-danger">
-                                    <h5><i class="fas fa-ambulance"></i> URGENT RECOMMENDATION</h5>
-                                    <p>Please consult a healthcare professional immediately. Visit emergency care if experiencing severe symptoms.</p>
-                                </div>
-                            </div>
-                        </div>
-                        {% elif results.health_score < 50 %}
-                        <div class="emergency-section" style="border-color: #e67e22; background: #fef9e7;">
-                            <div class="text-center">
-                                <h3><i class="fas fa-exclamation-circle"></i> HEALTH ALERT</h3>
-                                <p class="lead">Your health score indicates serious health concerns that should be addressed promptly.</p>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Health Score Card -->
-                        <div class="score-card" style="{% if results.health_score < 30 %}border: 3px solid #dc3545;{% elif results.health_score < 50 %}border: 2px solid #e67e22;{% endif %}">
-                            <h2>Your Health Score</h2>
-                            <div class="health-score score-{{ results.health_category|lower }}">
-                                {{ results.health_score }}/100
-                            </div>
-                            
-                            <!-- Health Score Progress Bar -->
-                            <div class="score-progress">
-                                <div class="score-progress-fill" style="width: {{ results.health_score }}%;"></div>
-                            </div>
-                            <div class="score-labels">
-                                <span>Critical (0-29)</span>
-                                <span>Poor (30-49)</span>
-                                <span>Fair (50-69)</span>
-                                <span>Good (70-84)</span>
-                                <span>Excellent (85-100)</span>
-                            </div>
-                            
-                            <h3>{{ results.health_category }}</h3>
-                            <p>Based on comprehensive analysis of your health data</p>
-                        </div>
-
-                        <!-- Health Assessment -->
-                        <div class="metric-card" style="{% if results.health_score < 30 %}border: 2px solid #dc3545; background: #f8d7da;{% elif results.health_score < 50 %}border: 2px solid #e67e22; background: #fef9e7;{% endif %}">
-                            <h4><i class="fas fa-search"></i> Health Assessment</h4>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Overall Status:</strong> 
-                                        <span class="status-{% if results.is_anomaly or results.health_score < 50 %}warning{% else %}normal{% endif %}" 
-                                              style="{% if results.health_score < 30 %}background: #dc3545;{% elif results.health_score < 50 %}background: #e67e22;{% endif %}">
-                                            {% if results.is_anomaly %}
-                                            ⚠️ ANOMALY DETECTED
-                                            {% else %}
-                                            {% if results.health_score < 50 %}🟡 REVIEW NEEDED{% else %}✅ NORMAL{% endif %}
-                                            {% endif %}
-                                        </span>
-                                    </p>
-                                    <p><strong>Risk Level:</strong> 
-                                        <span class="risk-{{ results.risk_level|lower|cut:' '|cut:'-' }}">
-                                            {{ results.risk_level }}
-                                        </span>
-                                    </p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Detection Confidence:</strong> 
-                                        <span style="font-weight: bold; color: 
-                                            {% if results.anomaly_confidence > 70 %}#dc3545
-                                            {% elif results.anomaly_confidence > 40 %}#e67e22
-                                            {% elif results.anomaly_confidence > 10 %}#3498db
-                                            {% else %}#2ecc71{% endif %};">
-                                            {{ results.anomaly_confidence }}%
-                                        </span>
-                                    </p>
-                                    <p><strong>Health Priority:</strong> 
-                                        <span style="font-weight: bold;
-                                            {% if results.health_score < 30 %}color: #dc3545;
-                                            {% elif results.health_score < 50 %}color: #e67e22;
-                                            {% elif results.health_score < 70 %}color: #f39c12;
-                                            {% else %}color: #27ae60;{% endif %}">
-                                            {% if results.health_score < 30 %}CRITICAL
-                                            {% elif results.health_score < 50 %}HIGH
-                                            {% elif results.health_score < 70 %}MODERATE
-                                            {% else %}LOW{% endif %}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Detailed Metrics -->
-                        <div class="metric-card">
-                            <h4><i class="fas fa-chart-bar"></i> Health Metrics Analysis</h4>
-                            <div class="row">
-                                {% for metric in results.metrics %}
-                                <div class="col-md-6">
-                                    <div class="metric-item" style="margin: 10px 0; padding: 10px; border-left: 4px solid {% if metric.status == 'good' %}#28a745{% elif metric.status == 'warning' %}#ffc107{% else %}#dc3545{% endif %};">
-                                        <strong>{{ metric.name }}</strong><br>
-                                        <span style="font-size: 1.2em; font-weight: bold;">{{ metric.value }}</span><br>
-                                        <small style="color: #666;">{{ metric.assessment }}</small>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Health Alerts -->
-                        {% if results.alerts %}
-                        <div class="metric-card">
-                            <h4><i class="fas fa-bell"></i> Health Alerts</h4>
-                            {% for alert in results.alerts %}
-                            <div class="alert-card alert-{{ alert.severity }}">
-                                <strong><i class="fas fa-{% if alert.severity == 'critical' %}exclamation-triangle{% elif alert.severity == 'high' %}exclamation-circle{% else %}info-circle{% endif %}"></i> 
-                                    {{ alert.severity|upper }} ALERT</strong>
-                                <p>{{ alert.message }}</p>
-                                <small>Category: {{ alert.category }}</small>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Recommendations -->
-                        <div class="metric-card">
-                            <h4><i class="fas fa-lightbulb"></i> Personalized Recommendations</h4>
-                            
-                            <!-- Priority Recommendations for Critical Health -->
-                            {% if results.health_score < 50 %}
-                            <div class="alert alert-warning">
-                                <h5><i class="fas fa-exclamation-circle"></i> Priority Actions</h5>
-                                <ul>
-                                    <li><strong>Consult a healthcare professional as soon as possible</strong></li>
-                                    <li>Schedule a comprehensive medical check-up</li>
-                                    <li>Monitor your vital signs regularly</li>
-                                </ul>
-                            </div>
-                            {% endif %}
-                            
-                            <ul>
-                                {% for recommendation in results.recommendations %}
-                                <li style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
-                                    <i class="fas fa-check-circle" style="color: {% if 'consult' in recommendation or 'doctor' in recommendation or 'healthcare' in recommendation or 'provider' in recommendation %}#dc3545{% else %}#28a745{% endif %};"></i> 
-                                    {{ recommendation }}
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="text-center" style="margin-top: 30px;">
-                            {% if results.health_score < 50 %}
-                            <a href="{% url 'health_analysis' %}" class="btn btn-warning btn-lg" style="margin: 5px;">
-                                <i class="fas fa-redo"></i> Re-evaluate Health
-                            </a>
-                            <button class="btn btn-danger btn-lg" style="margin: 5px;" onclick="alert('Please contact your healthcare provider immediately for a professional evaluation.')">
-                                <i class="fas fa-phone"></i> Contact Healthcare Provider
-                            </button>
-                            {% else %}
-                            <a href="{% url 'health_analysis' %}" class="btn btn-main btn-lg" style="margin: 5px;">
-                                <i class="fas fa-redo"></i> New Analysis
-                            </a>
-                            {% endif %}
-                            <a href="/" class="btn btn-secondary btn-lg" style="margin: 5px;">
-                                <i class="fas fa-home"></i> Back to Home
-                            </a>
-                        </div>
-
-                        {% else %}
-                        <div class="text-center">
-                            <div class="score-card">
-                                <h3>No Analysis Performed</h3>
-                                <p>You haven't completed a health analysis yet.</p>
-                                <a href="{% url 'health_analysis' %}" class="btn btn-main btn-lg">
-                                    <i class="fas fa-heartbeat"></i> Start Health Analysis
-                                </a>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+            <div class="col-md-6">
+              <p><strong>Detection Confidence:</strong>
+                <span style="font-weight:bold;color:
+                  {% if results.anomaly_confidence > 70 %}#dc3545
+                  {% elif results.anomaly_confidence > 40 %}#e67e22
+                  {% elif results.anomaly_confidence > 10 %}#3498db
+                  {% else %}#2ecc71{% endif %};">
+                  {{ results.anomaly_confidence }}%
+                </span>
+              </p>
+              <p><strong>Health Priority:</strong>
+                <span style="font-weight:bold;
+                  {% if results.health_score < 30 %}color:#dc3545;
+                  {% elif results.health_score < 50 %}color:#e67e22;
+                  {% elif results.health_score < 70 %}color:#f39c12;
+                  {% else %}color:#27ae60;{% endif %}">
+                  {% if results.health_score < 30 %}CRITICAL
+                  {% elif results.health_score < 50 %}HIGH
+                  {% elif results.health_score < 70 %}MODERATE
+                  {% else %}LOW{% endif %}
+                </span>
+              </p>
             </div>
-        </section>
+          </div>
+        </div>
 
-        <!-- Footer -->
-        <footer class="footer-main">
-            <div class="footer-bottom">
-                <div class="container clearfix">
-                    <div class="copyright-text">
-                        <p>&copy; 2024 Intelligent Health Detector. All rights reserved.</p>
-                        <p><small><em>This analysis is for informational purposes only. Always consult healthcare professionals for medical advice.</em></small></p>
-                    </div>
-                </div>
+        {# --- Metrics --- #}
+        <div class="metric-card">
+          <h4><i class="fas fa-chart-bar"></i> Health Metrics Analysis</h4>
+          <div class="row">
+            {% for metric in results.metrics %}
+            <div class="col-md-6">
+              <div class="metric-item" style="border-left:4px solid {% if metric.status == 'good' %}#28a745{% elif metric.status == 'warning' %}#ffc107{% else %}#dc3545{% endif %};">
+                <strong>{{ metric.name }}</strong><br>
+                <span style="font-size:1.2em;font-weight:bold;">{{ metric.value }}</span><br>
+                <small style="color:#666;">{{ metric.assessment }}</small>
+              </div>
             </div>
-        </footer>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# --- Alerts --- #}
+        {% if results.alerts %}
+        <div class="metric-card">
+          <h4><i class="fas fa-bell"></i> Health Alerts</h4>
+          {% for alert in results.alerts %}
+          <div class="alert-card alert-{{ alert.severity }}">
+            <strong><i class="fas fa-{% if alert.severity == 'critical' %}exclamation-triangle{% elif alert.severity == 'high' %}exclamation-circle{% else %}info-circle{% endif %}"></i> {{ alert.severity|upper }} ALERT</strong>
+            <p>{{ alert.message }}</p>
+            <small>Category: {{ alert.category }}</small>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {# --- Recommendations --- #}
+        <div class="metric-card">
+          <h4><i class="fas fa-lightbulb"></i> Personalized Recommendations</h4>
+          {% if results.health_score < 50 %}
+          <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-circle"></i> Priority Actions</h5>
+            <ul>
+              <li><strong>Consult a healthcare professional immediately</strong></li>
+              <li>Schedule a full medical check-up</li>
+              <li>Monitor your vitals regularly</li>
+            </ul>
+          </div>
+          {% endif %}
+          <ul>
+            {% for recommendation in results.recommendations %}
+            <li style="margin:10px 0;padding:10px;background:#f8f9fa;border-radius:5px;">
+              <i class="fas fa-check-circle" style="color:{% if 'consult' in recommendation or 'doctor' in recommendation %}#dc3545{% else %}#28a745{% endif %};"></i>
+              {{ recommendation }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        {# --- Action Buttons --- #}
+        <div class="text-center" style="margin-top:30px;">
+          {% if results.health_score < 50 %}
+          <a href="{% url 'health_analysis' %}" class="btn btn-warning btn-lg"><i class="fas fa-redo"></i> Re-evaluate Health</a>
+          <button class="btn btn-danger btn-lg" onclick="alert('Please contact your healthcare provider immediately.')">
+            <i class="fas fa-phone"></i> Contact Healthcare Provider
+          </button>
+          {% else %}
+          <a href="{% url 'health_analysis' %}" class="btn btn-main btn-lg"><i class="fas fa-redo"></i> New Analysis</a>
+          {% endif %}
+          <a href="/" class="btn btn-secondary btn-lg"><i class="fas fa-home"></i> Back to Home</a>
+        </div>
+
+        {% else %}
+        <div class="text-center">
+          <div class="score-card">
+            <h3>No Analysis Performed</h3>
+            <p>You haven't completed a health analysis yet.</p>
+            <a href="{% url 'health_analysis' %}" class="btn btn-main btn-lg">
+              <i class="fas fa-heartbeat"></i> Start Health Analysis
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
     </div>
+  </div>
+</section>
+{% endblock %}
 
-    <script src="{% static 'plugins/jquery.js' %}"></script>
-    <script src="{% static 'plugins/bootstrap.min.js' %}"></script>
-    
-    <script>
-        // Highlight critical metrics
-        $(document).ready(function() {
-            $('.metric-item').each(function() {
-                var borderColor = $(this).css('border-left-color');
-                if (borderColor === 'rgb(220, 53, 69)') { // #dc3545 - red
-                    $(this).css('background', '#f8f9fa');
-                }
-            });
-            
-            // Add click handler for emergency button
-            $('.btn-danger').click(function() {
-                alert('For immediate medical concerns, please:\n\n• Call emergency services (911) for life-threatening conditions\n• Contact your primary care physician\n• Visit urgent care for non-emergency concerns');
-            });
-        });
-    </script>
-</body>
-</html>
+{% block page_js %}
+<script>
+$(document).ready(function() {
+  $('.metric-item').each(function() {
+    var borderColor = $(this).css('border-left-color');
+    if (borderColor === 'rgb(220, 53, 69)') {
+      $(this).css('background', '#f8f9fa');
+    }
+  });
+});
+</script>
+{% endblock %}

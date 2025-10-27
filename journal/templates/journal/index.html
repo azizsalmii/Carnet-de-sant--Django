@@ -83,9 +83,13 @@
 
       {# Utilise des chemins simples pour éviter NoReverseMatch si les noms ne sont pas définis #}
       <li><a href="/about/"   style="color:#fff;text-transform:uppercase;">About</a></li>
-      <li><a href="/service/" style="color:#fff;text-transform:uppercase;">Service</a></li>
-      <li><a href="/gallery/" style="color:#fff;text-transform:uppercase;">Gallery</a></li>
-      <li><a href="/team/"    style="color:#fff;text-transform:uppercase;">Team</a></li>
+ 
+<li>
+  <a href="{% url 'health_analysis' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
+    <i class="fa fa-heartbeat"></i> Health Analyse
+  </a>
+</li>
+
 
       <li>
         <a href="{% url 'brain_tumor_page' %}"

@@ -57,8 +57,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'journal',
-    'ai_models'
-        'detection',
+    'ai_models',
+    'detection',
+  
 
 ]
 
