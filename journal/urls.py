@@ -1,11 +1,11 @@
 from django.urls import path
 from .views import (
-    home, journal_page, about, appointment, blog, contact, gallery, service, single_blog, team
+    home, mood_journal, about, appointment, blog, contact, gallery, service, single_blog, team
 )
 
 urlpatterns = [
     path('', home, name='home'),  # Home page, mapped to 'index' as per template
-    path('journal/', journal_page, name='journal_page'),  # Existing journal page
+    path('journal/', mood_journal, name='mood_journal'),  # Existing journal page
     path('about/', about, name='about'),  # About page
     path('appointment/', appointment, name='appointment'),  # Appointment page
     path('blog/', blog, name='blog'),  # Blog listing page

@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Journal des humeurs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 950px;
+            margin: 40px auto;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        label {
+            font-weight: 500;
+        }
+        select, input[type="number"], textarea, button {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            width: 100%;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .errors {
+            color: #d93025;
+            margin-bottom: 20px;
+        }
+        .score-container {
+            margin-bottom: 30px;
+        }
+        .score-global {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .score-bar {
+            background: #eee;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            width: 0;
+            transition: width 1s ease-in-out;
+        }
+        .entries {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .entry-card {
+            padding: 15px 20px;
+            border-radius: 12px;
+            background: #f0f4f8;
+            border-left: 6px solid #4CAF50;
+            transition: transform 0.2s;
+        }
+        .entry-card:hover {
+            transform: translateY(-3px);
+        }
+        .entry-header {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .entry-body {
+            font-size: 14px;
+        }
+        .tags, .sentiment, .objectives, .recommendations {
+            font-size: 12px;
+            margin-top: 3px;
+        }
+        .tags { color: #555; }
+        .sentiment { color: #1976d2; }
+        .objectives { color: #ff9800; }
+        .recommendations { color: #4caf50; }
+        .negative { border-left-color: #e53935; }
+        .neutral { border-left-color: #fbc02d; }
+        .positive { border-left-color: #4caf50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Journal des humeurs</h1>
+
+        <!-- Formulaire d'ajout -->
+        <form method="post">
+            {% csrf_token %}
+            <label for="emotion">Émotion :</label>
+            <select name="emotion" id="emotion">
+                <option value="">--Choisir--</option>
+                {% for value, label in entries.model.EMOTIONS %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="intensity">Intensité (1-10) :</label>
+            <input type="number" name="intensity" min="1" max="10">
+
+            <label for="text">Description :</label>
+            <textarea name="text" rows="3"></textarea>
+
+            <button type="submit">Ajouter</button>
+        </form>
+
+        <!-- Affichage des erreurs -->
+        {% if errors %}
+        <div class="errors">
+            <ul>
+                {% for field, message in errors.items %}
+                    <li>{{ field }} : {{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Score global -->
+        <div class="score-container">
+            <div class="score-global">
+                Score global : {{ global_score }}/10
+                {% if global_score < 0 %}😞
+                {% elif global_score <= 3 %}😐
+                {% elif global_score <= 6 %}🙂
+                {% else %}😄
+                {% endif %}
+            </div>
+            <div class="score-bar">
+                <div class="score-fill" style="width: {{ global_score|floatformat:0|add:'0' }}0%;"></div>
+            </div>
+        </div>
+
+        <!-- Liste des entrées -->
+        <div class="entries">
+            {% for entry in entries %}
+            <div class="entry-card
+                {% if entry.mood_score < 0 %}negative
+                {% elif entry.mood_score <= 3 %}neutral
+                {% else %}positive
+                {% endif %}">
+                <div class="entry-header">
+                    {{ entry.created_at|date:"d/m/Y H:i" }} - {{ entry.get_emotion_display }} - Intensité: {{ entry.intensity }} - Score: {{ entry.mood_score|floatformat:2 }}
+                </div>
+                <div class="entry-body">{{ entry.text }}</div>
+                {% if entry.tags %}
+                <div class="tags">Tags: {{ entry.tags }}</div>
+                {% endif %}
+                {% if entry.sentiment_score %}
+                <div class="sentiment">Analyse sentiment: {{ entry.sentiment_score|floatformat:2 }}</div>
+                {% endif %}
+                {% if entry.objectives %}
+                <div class="objectives"><strong>Objectifs:</strong> {{ entry.objectives }}</div>
+                {% endif %}
+                {% if entry.recommendations %}
+                <div class="recommendations"><strong>Recommandations:</strong> {{ entry.recommendations }}</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p>Aucune entrée pour le moment.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Conclusion intelligente -->
+        <h2>Conclusion</h2>
+        <ul>
+            {% for line in conclusion_lines %}
+                <li>{{ line }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        // Animation barre de score
+        window.addEventListener('load', () => {
+            const fill = document.querySelector('.score-fill');
+            fill.style.width = fill.style.width; // déclenche l'animation
+        });
+    </script>
+</body>
+</html>
