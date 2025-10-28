@@ -1,10 +1,10 @@
 {% load static %}
 
-{# ================== TOP BAR (bande blanche) ================== #}
+{# ================== TOP BAR (white strip) ================== #}
 <div style="background:#ffffff;border-bottom:1px solid #eee;">
   <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
     <div style="color:#333;font-size:14px;">
-      Opening Hours: Saturday to Tuesday - 8am to 10pm
+      Opening Hours: Saturday to Tuesday — 8am to 10pm
     </div>
 
     <div style="display:flex;align-items:center;gap:18px;">
@@ -16,21 +16,21 @@
         <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
       </div>
 
-      {# --- Auth (boutons comme souhaité) --- #}
+      {# --- Auth buttons --- #}
       <div style="display:flex;gap:10px;">
         {% if request.user.is_authenticated %}
           <a href="{% url 'profile' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-user-circle"></i> Profil
+            <i class="fa fa-user-circle"></i> Profile
           </a>
           <a href="{% url 'logout' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
             <i class="fa fa-sign-out-alt"></i> Log Out
           </a>
         {% else %}
           <a href="{% url 'login' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-right-to-bracket"></i> Log In 
+            <i class="fa fa-right-to-bracket"></i> Log In
           </a>
           <a href="{% url 'signup' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-user-plus"></i> signup
+            <i class="fa fa-user-plus"></i> Sign Up
           </a>
         {% endif %}
       </div>
@@ -38,9 +38,37 @@
   </div>
 </div>
 
-{# ================== NAV (barre turquoise) ================== #}
+{# ================== NAV (turquoise bar) ================== #}
+{# minimal CSS for dropdowns (inchangé) #}
+<style>
+  .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
+  .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
+  .hx-menu > li > a { color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+  .hx-dd { position:relative; }
+  .hx-dd-toggle { display:flex; align-items:center; gap:8px; color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+  .hx-caret { font-size:10px; opacity:.85; margin-left:6px; }
+  .hx-dd-menu {
+    position:absolute; top:100%; left:0; min-width:220px; background:#ffffff;
+    border-radius:10px; padding:10px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,.12);
+    border:1px solid rgba(0,0,0,.06); display:none; z-index:50;
+  }
+  .hx-dd:hover .hx-dd-menu,
+  .hx-dd:focus-within .hx-dd-menu { display:block; }
+  .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+                color:#223; text-decoration:none; white-space:nowrap; }
+  .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
+  .hx-dd-item:hover { background:#f2fbfb; }
+  @media (max-width: 768px) {
+    .hx-nav { flex-wrap:wrap; height:auto; padding:10px 0; }
+    .hx-menu { flex-wrap:wrap; gap:16px; }
+    .hx-dd-menu { position:static; box-shadow:none; border:none; padding:6px 0; margin:4px 0 0; display:none; background:#39b7bd10; }
+    .hx-dd:hover .hx-dd-menu { display:block; }
+    .hx-dd-item { color:#fff; }
+  }
+</style>
+
 <nav style="background:#39b7bd;">
-  <div class="container" style="display:flex;align-items:center;gap:28px;height:64px;">
+  <div class="container hx-nav">
     {# Logo #}
     <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
       <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
@@ -48,41 +76,55 @@
     </a>
 
     {# Menu #}
-    <ul style="display:flex;align-items:center;gap:28px;margin:0;padding:0;list-style:none;flex:1;">
-      <li><a href="{% url 'home' %}" style="color:#fff;text-transform:uppercase;font-weight:700;">Home</a></li>
+    <ul class="hx-menu">
+      <li><a href="{% url 'home' %}">Home</a></li>
 
-      {# si ces pages n'ont pas encore d'urls nommées, on met des liens simples pour éviter NoReverseMatch #}
-      <li><a href="/about/" style="color:#fff;text-transform:uppercase;">About</a></li>
+      {# === Diagnostics dropdown (Brain + Chest) === #}
+      <li class="hx-dd">
+        <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+        </a>
+        <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
+          <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}">
+            <i class="fa fa-brain"></i> Brain Tumor AI
+          </a>
+          <a class="hx-dd-item" href="{% url 'chest_xray_page' %}">
+            <i class="fa fa-stethoscope"></i> Chest X-Ray AI
+          </a>
+        </div>
+      </li>
+
+      {# === Medical Infos dropdown (Data + Reports + Journal) === #}
+      <li class="hx-dd">
+        <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+        </a>
+        <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
+          <a class="hx-dd-item" href="{% url 'health_data_list' %}">
+            <i class="fas fa-chart-line"></i> My Data
+          </a>
+          <a class="hx-dd-item" href="{% url 'report_list' %}">
+            <i class="fas fa-file-medical"></i> My Reports
+          </a>
+          <a class="hx-dd-item" href="{% url 'journal_page' %}">
+            <i class="fas fa-book"></i> Journal
+          </a>
+        </div>
+      </li>
+
+      {# === Direct link: Recommendations (reco namespace) === #}
       <li>
-  <a href="{% url 'health_analysis' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
-    <i class="fa fa-heartbeat"></i> Health Analyse
-  </a>
-</li>
-      <li>
-        <a href="{% url 'brain_tumor_page' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
-          <i class="fa fa-brain"></i> Brain Tumor AI
+        <a href="{% url 'reco:recommendations' %}" style="display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-lightbulb"></i> Recommendations
         </a>
       </li>
+
+      {# === Direct link: Health Analysis form === #}
       <li>
-        <a href="{% url 'chest_xray_page' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
-          <i class="fa fa-stethoscope"></i> Chest X-Ray AI
+        <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-heartbeat"></i> Health Analysis
         </a>
       </li>
-<li class="nav-item">
-                            <a class="nav-link" href="{% url 'health_data_list' %}">
-                                <i class="fas fa-chart-line"></i> Mes Données
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'report_list' %}">
-                                <i class="fas fa-file-medical"></i> Mes Rapports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'journal_page' %}">
-                                <i class="fas fa-book"></i> Journal
-                            </a>
-                        </li>
     </ul>
   </div>
 </nav>

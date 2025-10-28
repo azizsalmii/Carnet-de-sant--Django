@@ -2,127 +2,309 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">{{ title }}</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.errors %}
-                        <div class="alert alert-danger">
-                            <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
-                        </div>
-                        {% endif %}
+<style>
+  :root{
+    --hx-primary:#39b7bd;
+    --hx-primary-600:#2aa6ac;
+    --hx-primary-50:#e9f7f8;
+    --hx-dark:#22304a;
+    --hx-muted:#6b7a90;
+    --hx-success:#22c55e;
+    --hx-warning:#f59e0b;
+    --hx-danger:#ef4444;
+    --hx-card:#ffffff;
+    --hx-shadow:0 10px 30px rgba(0,0,0,.08);
+    --hx-r:14px;
+  }
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
-                                    {{ form.date }}
-                                    {% if form.date.errors %}
-                                    <div class="text-danger">{{ form.date.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+  .hx-wrap{ margin-top:1.5rem; margin-bottom:2rem; }
 
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">😴 Sommeil</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.sleep_duration.id_for_label }}" class="form-label">Durée (heures)</label>
-                                            {{ form.sleep_duration }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.sleep_quality.id_for_label }}" class="form-label">Qualité (1-5)</label>
-                                            {{ form.sleep_quality }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+  /* Bande titre */
+  .hx-toolbar{
+    background:linear-gradient(135deg,var(--hx-primary),var(--hx-primary-600));
+    color:#fff; border-radius:var(--hx-r); padding:18px 20px; box-shadow:var(--hx-shadow);
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .hx-toolbar h1{ margin:0; font-weight:800; letter-spacing:.2px; display:flex; gap:10px; align-items:center; }
+  .hx-toolbar .btn{ border-radius:10px; font-weight:700; }
+  .btn-hx-white{ background:#fff; color:var(--hx-primary); border:1px solid #fff; }
+  .btn-hx-white:hover{ background:transparent; color:#fff; border-color:#fff; }
+  .btn-hx-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.65); }
+  .btn-hx-ghost:hover{ border-color:#fff; }
 
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">🚶 Activité Physique</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.steps_count.id_for_label }}" class="form-label">Nombre de pas</label>
-                                            {{ form.steps_count }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.exercise_duration.id_for_label }}" class="form-label">Exercice (minutes)</label>
-                                            {{ form.exercise_duration }}
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="mb-3">
-                                            <label for="{{ form.activity_type.id_for_label }}" class="form-label">Type d'activité</label>
-                                            {{ form.activity_type }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+  /* Carte formulaire */
+  .hx-card{
+    background:var(--hx-card); border-radius:var(--hx-r); box-shadow:var(--hx-shadow); overflow:hidden;
+  }
+  .hx-card-h{
+    background:var(--hx-primary-50); padding:14px 18px; border-bottom:1px solid #dff1f2;
+    display:flex; align-items:center; gap:10px;
+  }
+  .hx-card-h h5{ margin:0; font-weight:800; color:var(--hx-dark); }
+  .hx-card-b{ padding:18px; }
 
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">😣 Symptômes</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="{{ form.symptoms.id_for_label }}" class="form-label">Description des symptômes</label>
-                                    {{ form.symptoms }}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ form.pain_level.id_for_label }}" class="form-label">Niveau de douleur (0-10)</label>
-                                    {{ form.pain_level }}
-                                </div>
-                            </div>
-                        </div>
+  /* Champs */
+  .hx-field, .hx-field select, .hx-field input, .hx-field textarea{
+    width:100%;
+    border:1px solid #e7edf4; border-radius:10px; padding:.6rem .85rem; background:#fff;
+  }
+  .hx-field:focus, .hx-field select:focus, .hx-field input:focus, .hx-field textarea:focus{
+    outline:none; border-color:var(--hx-primary); box-shadow:0 0 0 3px rgba(57,183,189,.15);
+  }
+  .hx-label{ font-weight:700; color:var(--hx-dark); margin-bottom:.35rem; }
+  .hx-help{ color:var(--hx-muted); font-size:.9rem; }
 
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">💊 Traitements</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="{{ form.medications.id_for_label }}" class="form-label">Médicaments</label>
-                                    {{ form.medications }}
-                                </div>
-                                <div class="form-check form-switch">
-                                    {{ form.medication_adherence }}
-                                    <label for="{{ form.medication_adherence.id_for_label }}" class="form-check-label">
-                                        Traitement pris aujourd'hui
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+  /* Switch */
+  .form-check.form-switch .form-check-input{
+    width:3rem; height:1.5rem; cursor:pointer;
+  }
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'health_data_list' %}" class="btn btn-secondary me-md-2">Annuler</a>
-                            <button type="submit" class="btn btn-primary">Enregistrer</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+  /* Action bar */
+  .hx-actions{
+    display:flex; gap:.5rem; justify-content:flex-end;
+    background:#fff; border-top:1px solid #eef2f7; padding:14px; border-radius:0 0 var(--hx-r) var(--hx-r);
+  }
+  .btn-hx-primary{
+    background:linear-gradient(135deg,var(--hx-primary),var(--hx-primary-600));
+    color:#fff; border:none; padding:.65rem 1.1rem; border-radius:10px; font-weight:800;
+  }
+  .btn-hx-primary:hover{ filter:brightness(.95); }
+  .btn-hx-secondary{
+    background:#f7f9fc; border:1px solid #dfe7f1; color:var(--hx-dark);
+    padding:.65rem 1rem; border-radius:10px; font-weight:700;
+  }
+  .btn-hx-secondary:hover{ background:#eef3f9; }
+
+  /* Chips section titles */
+  .hx-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    background:#fff; border:1px solid #dfe7f1; color:var(--hx-dark);
+    padding:.35rem .6rem; border-radius:999px; font-weight:700; font-size:.85rem;
+  }
+
+  /* Pain slider helper */
+  .hx-pain-scale{ display:flex; align-items:center; gap:10px; }
+  .hx-pain-scale .scale{
+    flex:1; height:8px; border-radius:999px; background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);
+    position:relative; opacity:.9;
+  }
+  .hx-pain-dot{ width:14px; height:14px; background:#fff; border:2px solid var(--hx-dark);
+    border-radius:50%; position:absolute; top:50%; transform:translate(-50%,-50%); pointer-events:none;
+  }
+
+  /* Mobile spacing */
+  @media (max-width: 768px){
+    .hx-toolbar{ padding:14px; }
+    .hx-card-b{ padding:14px; }
+  }
+</style>
+
+<div class="container hx-wrap">
+  <!-- Bande titre -->
+  <div class="hx-toolbar mb-4">
+    <h1>📝 {{ title }}</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'health_data_list' %}" class="btn btn-hx-ghost"><i class="fas fa-arrow-left me-1"></i> Retour</a>
+      <button form="healthDataForm" type="submit" class="btn btn-hx-white"><i class="fas fa-save me-1"></i> Enregistrer</button>
     </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      <div class="hx-card">
+        <div class="hx-card-b">
+          <form id="healthDataForm" method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.errors %}
+              <div class="alert alert-danger"><strong>Veuillez corriger les erreurs ci-dessous.</strong></div>
+            {% endif %}
+
+            <!-- Date -->
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-md-6">
+                <label for="{{ form.date.id_for_label }}" class="hx-label">Date</label>
+                <div class="hx-field">
+                  {{ form.date }}
+                </div>
+                <div class="hx-help">Format conseillé : JJ/MM/AAAA</div>
+                {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- Sommeil -->
+            <div class="hx-card mt-3">
+              <div class="hx-card-h">
+                <span class="hx-chip"><i class="fas fa-moon"></i> Sommeil</span>
+                <h5>Qualité du repos</h5>
+              </div>
+              <div class="hx-card-b">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="{{ form.sleep_duration.id_for_label }}" class="hx-label">Durée (heures)</label>
+                    <div class="hx-field">
+                      {{ form.sleep_duration }}
+                    </div>
+                    <div class="hx-help">Ex : 7.5</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="{{ form.sleep_quality.id_for_label }}" class="hx-label">Qualité (1–5)</label>
+                    <div class="hx-field">
+                      {{ form.sleep_quality }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activité -->
+            <div class="hx-card mt-3">
+              <div class="hx-card-h">
+                <span class="hx-chip"><i class="fas fa-walking"></i> Activité</span>
+                <h5>Exercice & Pas</h5>
+              </div>
+              <div class="hx-card-b">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="{{ form.steps_count.id_for_label }}" class="hx-label">Nombre de pas</label>
+                    <div class="hx-field">
+                      {{ form.steps_count }}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="{{ form.exercise_duration.id_for_label }}" class="hx-label">Exercice (minutes)</label>
+                    <div class="hx-field">
+                      {{ form.exercise_duration }}
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label for="{{ form.activity_type.id_for_label }}" class="hx-label">Type d’activité</label>
+                    <div class="hx-field">
+                      {{ form.activity_type }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Symptômes -->
+            <div class="hx-card mt-3">
+              <div class="hx-card-h">
+                <span class="hx-chip"><i class="fas fa-notes-medical"></i> Symptômes</span>
+                <h5>Auto-déclaration</h5>
+              </div>
+              <div class="hx-card-b">
+                <div class="mb-3">
+                  <label for="{{ form.symptoms.id_for_label }}" class="hx-label">Description</label>
+                  <div class="hx-field">
+                    {{ form.symptoms }}
+                  </div>
+                  <div class="d-flex justify-content-between mt-1">
+                    <div class="hx-help">Décris brièvement les symptômes ressentis.</div>
+                    <small class="text-muted" id="symCount">0 caractères</small>
+                  </div>
+                </div>
+
+                <div class="mb-1">
+                  <label for="{{ form.pain_level.id_for_label }}" class="hx-label">Douleur (0–10)</label>
+                  <div class="hx-field">
+                    {{ form.pain_level }}
+                  </div>
+                  <div class="hx-pain-scale mt-2">
+                    <div class="scale">
+                      <span class="hx-pain-dot" id="painDot" style="left:0%;"></span>
+                    </div>
+                    <small class="text-muted ms-1" id="painVal">0</small>
+                  </div>
+                  <div class="hx-help mt-1">0 = aucune douleur, 10 = douleur maximale.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Traitements -->
+            <div class="hx-card mt-3">
+              <div class="hx-card-h">
+                <span class="hx-chip"><i class="fas fa-pills"></i> Traitements</span>
+                <h5>Médication & Observance</h5>
+              </div>
+              <div class="hx-card-b">
+                <div class="mb-3">
+                  <label for="{{ form.medications.id_for_label }}" class="hx-label">Médicaments</label>
+                  <div class="hx-field">
+                    {{ form.medications }}
+                  </div>
+                  <div class="hx-help">Ex : Paracétamol 500 mg, 2×/jour</div>
+                </div>
+
+                <div class="form-check form-switch">
+                  {{ form.medication_adherence }}
+                  <label for="{{ form.medication_adherence.id_for_label }}" class="form-check-label">
+                    Traitement pris aujourd’hui
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="hx-actions">
+              <a href="{% url 'health_data_list' %}" class="btn btn-hx-secondary">
+                <i class="fas fa-times me-1"></i> Annuler
+              </a>
+              <button type="submit" class="btn btn-hx-primary">
+                <i class="fas fa-save me-1"></i> Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Conseils -->
+      <p class="mt-3 text-muted">
+        <i class="fas fa-info-circle me-1"></i>
+        Astuce : la durée de sommeil idéale chez l’adulte est entre 7 et 9 heures. Un suivi régulier améliore la qualité des recommandations.
+      </p>
+    </div>
+  </div>
 </div>
+
+<script>
+  // Compteur de caractères symptômes
+  (function(){
+    const ta = document.getElementById('{{ form.symptoms.id_for_label }}') || document.querySelector('[name="{{ form.symptoms.name }}"]');
+    const out = document.getElementById('symCount');
+    if(ta && out){
+      const update = ()=> out.textContent = (ta.value || '').length + ' caractères';
+      ta.addEventListener('input', update); update();
+    }
+  })();
+
+  // Visualiseur pour douleur (positionne un point sur la jauge)
+  (function(){
+    const input = document.getElementById('{{ form.pain_level.id_for_label }}') || document.querySelector('[name="{{ form.pain_level.name }}"]');
+    const dot   = document.getElementById('painDot');
+    const valEl = document.getElementById('painVal');
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+    function render(){
+      if(!input || !dot || !valEl) return;
+      const v = Number(input.value || 0);
+      const p = (clamp(v,0,10) / 10) * 100;
+      dot.style.left = p + '%';
+      valEl.textContent = String(clamp(v,0,10));
+    }
+    if(input){
+      input.addEventListener('input', render);
+      input.addEventListener('change', render);
+      render();
+    }
+  })();
+</script>
 {% endblock %}

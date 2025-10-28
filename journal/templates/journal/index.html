@@ -3,153 +3,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>HEALTH TRACK | Medical HTML Template</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="utf-8" />
+  <title>HEALTH TRACK | Medical HTML Template</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-    <!-- Slick Carousel -->
-    <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
-    <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+  <!-- Slick Carousel -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
 
-    <!-- FancyBox -->
-    <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+  <!-- FancyBox -->
+  <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <!-- Theme Styles -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- ==== Header/Nav overrides (AFTER style.css) ==== -->
+  <style>
+    /* Keep nav above hero/slider */
+    nav.hx-nav { position: relative !important; z-index: 1000001 !important; overflow: visible !important; }
+    nav.hx-nav .container { position: static !important; overflow: visible !important; }
+
+    /* Dropdown base/menu styles */
+    .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; }
+    .hx-menu > li > a { color:#fff; text-transform:uppercase; text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .hx-menu > li > a:hover { opacity:.9; }
+
+    .hx-dd { position:relative; }
+    .hx-dd > a { cursor:pointer; }
+    .hx-dd > a .hx-caret { font-size:12px; opacity:.8; margin-left:6px; }
+
+    .hx-dd-menu{
+      position:absolute; left:0; top:100%;           /* sit flush to avoid gap */
+      margin-top:0;                                   /* IMPORTANT: no hover gap */
+      min-width:220px; background:#ffffff; color:#333;
+      border-radius:8px; padding:10px 0;
+      box-shadow:0 12px 30px rgba(0,0,0,.12);
+      display:none;
+      z-index: 2000000;                               /* above slider */
+    }
+    /* Keep open when hovering parent OR the menu itself */
+    .hx-dd:hover .hx-dd-menu,
+    .hx-dd:focus-within .hx-dd-menu,
+    .hx-dd.open .hx-dd-menu { display:block; }
+
+    /* Invisible “bridge” to prevent hover loss */
+    .hx-dd::after{
+      content:"";
+      position:absolute; left:0; right:0; top:100%;
+      height:14px;                                     /* small buffer */
+    }
+
+    .hx-dd-menu a{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 16px;
+      color:#2c3e50; text-decoration:none;
+      white-space:nowrap;
+    }
+    .hx-dd-menu a:hover{ background:#f5f8fb; }
+
+    /* Slider & slick must not clip the menu */
+    .hero-slider, .banner, .banner-carousel, .slick-slider, .slick-list, .slick-track,
+    .page-title, .health-form-section {
+      position: relative !important; z-index: 1 !important;
+    }
+    .slick-list { overflow: visible !important; }
+    .page-wrapper { position: relative !important; overflow: visible !important; }
+
+    /* Small top bar buttons */
+    .hx-top-btn {
+      background:#eef7ff; border:1px solid #cfe3ff; color:#0b5ed7;
+      padding:6px 10px; border-radius:6px; text-decoration:none;
+    }
+    .hx-top-btn--primary { background:#0b5ed7; border-color:#0b5ed7; color:#fff; }
+
+    /* Optional: ensure dropdown items are easily clickable on touch */
+    @media (hover:none) {
+      .hx-dd > a { pointer-events:auto; }
+    }
+  </style>
 </head>
 
 <body>
 <div class="page-wrapper">
 
-    {# ================== TOP BAR (bande blanche) ================== #}
-<div style="background:#ffffff;border-bottom:1px solid #eee;">
-  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
-    <div style="color:#333;font-size:14px;">
-      Opening Hours: Saturday to Tuesday - 8am to 10pm
-    </div>
+  <!-- ================== TOP BAR ================== -->
+  <div style="background:#ffffff;border-bottom:1px solid #eee;">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+      <div style="color:#333;font-size:14px;">Opening Hours: Saturday to Tuesday — 8am to 10pm</div>
 
-    <div style="display:flex;align-items:center;gap:18px;">
-      <!-- Réseaux sociaux -->
-      <div style="display:flex;gap:14px;color:#666;">
-        <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
-        <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
-        <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
-        <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
-        <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
-      </div>
+      <div style="display:flex;align-items:center;gap:18px;">
+        <!-- Socials -->
+        <div style="display:flex;gap:14px;color:#666;">
+          <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
+        </div>
 
-      <!-- Auth (boutons comme sur l'index) -->
-      <div style="display:flex;gap:10px;">
-        {% if request.user.is_authenticated %}
-          <a href="{% url 'profile' %}" class="btn btn-sm"
-             style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-user-circle"></i> Profil
-          </a>
-          <a href="{% url 'logout' %}" class="btn btn-sm"
-             style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-sign-out-alt"></i> Déconnexion
-          </a>
-        {% else %}
-          <a href="{% url 'login' %}" class="btn btn-sm"
-             style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-right-to-bracket"></i> Connexion
-          </a>
-          <a href="{% url 'signup' %}" class="btn btn-sm"
-             style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
-            <i class="fa fa-user-plus"></i> Inscription
-          </a>
-        {% endif %}
+        <!-- Auth -->
+        <div style="display:flex;gap:10px;">
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="hx-top-btn"><i class="fa fa-user-circle"></i> Profile</a>
+            <a href="{% url 'logout' %}" class="hx-top-btn hx-top-btn--primary"><i class="fa fa-sign-out-alt"></i> Log Out</a>
+          {% else %}
+            <a href="{% url 'login' %}" class="hx-top-btn"><i class="fa fa-right-to-bracket"></i> Log In</a>
+            <a href="{% url 'signup' %}" class="hx-top-btn hx-top-btn--primary"><i class="fa fa-user-plus"></i> Sign Up</a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-{# ================== NAV (barre turquoise identique index) ================== #}
-<nav style="background:#39b7bd;">
-  <div class="container" style="display:flex;align-items:center;gap:28px;height:64px;">
-    <!-- Logo -->
-    <a href="{% url 'home' %}"
-       style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
-      <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
-      <strong style="font-size:22px;line-height:1;">Health Track</strong>
-    </a>
+  <!-- ================== NAV (turquoise) ================== -->
+  <nav class="hx-nav" style="background:#39b7bd;">
+    <div class="container" style="display:flex;align-items:center;gap:28px;height:64px;">
+      <!-- Logo -->
+      <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+        <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
+        <strong style="font-size:22px;line-height:1;">Health Track</strong>
+      </a>
 
-    <!-- Menu -->
-    <ul style="display:flex;align-items:center;gap:28px;margin:0;padding:0;list-style:none;flex:1;">
-      <li><a href="{% url 'home' %}" style="color:#fff;text-transform:uppercase;font-weight:700;">Home</a></li>
+      <!-- Menu -->
+      <ul class="hx-menu" style="flex:1;">
+        <li><a href="{% url 'home' %}" style="font-weight:700;">HOME</a></li>
 
-      {# Utilise des chemins simples pour éviter NoReverseMatch si les noms ne sont pas définis #}
-      <li><a href="/about/"   style="color:#fff;text-transform:uppercase;">About</a></li>
- 
-<li>
-  <a href="{% url 'health_analysis' %}" style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
-    <i class="fa fa-heartbeat"></i> Health Analyse
-  </a>
-</li>
+        <!-- Diagnostics dropdown -->
+        <li class="hx-dd">
+          <a><i class="fa fa-user-nurse"></i> DIAGNOSTICS <span class="hx-caret"><i class="fa fa-caret-down"></i></span></a>
+          <div class="hx-dd-menu">
+            <a href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
+            <a href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
+          </div>
+        </li>
 
-
-      <li>
-        <a href="{% url 'brain_tumor_page' %}"
-           style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
-          <i class="fa fa-brain"></i> Brain Tumor AI
+        <!-- Medical infos dropdown -->
+        <li class="hx-dd">
+          <a><i class="fa fa-notes-medical"></i> MEDICAL INFOS <span class="hx-caret"><i class="fa fa-caret-down"></i></span></a>
+          <div class="hx-dd-menu">
+            <a href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Data</a>
+            <a href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
+            <a href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Journal</a>
+          </div>
+        </li>
+  <li>
+        <a href="{% url 'reco:recommendations' %}" style="display:flex;align-items:center;gap:8px;">
+          <i class="fa fa-lightbulb"></i> Recommendations
         </a>
       </li>
-      <li>
-        <a href="{% url 'chest_xray_page' %}"
-           style="color:#fff;text-transform:uppercase;display:flex;align-items:center;gap:8px;">
-          <i class="fa fa-stethoscope"></i> Chest X-Ray AI
-        </a>
-      </li>
+        <!-- Health Analysis (regular link) -->
+        <li>
+          <a href="{% url 'health_analysis' %}"><i class="fa fa-heartbeat"></i> HEALTH ANALYSIS</a>
+        </li>
+          {# === Direct link: Recommendations (reco namespace) === #}
+    
+      </ul>
+    </div>
+  </nav>
 
-    </ul>
-  </div>
-</nav>
+  <!-- ======= PAGE SLIDER (unchanged) ======= -->
+  <div class="hero-slider">
+    <div class="slider-item slide1" style="background-image: url('{% static 'images/slider/slider-bg-1.jpg' %}');">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 text-center">
+            <div class="content style">
+              <h2 class="text-white text-bold mb-2">Our Best Surgeons</h2>
+              <p class="tag-text mb-5">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vel sunt animi sequi ratione quod at earum.
+                <br>Quis quos officiis numquam!
+              </p>
+              {% if user.is_authenticated %}
+                <a href="{% url 'reco:dashboard' %}" class="btn btn-main btn-white">My Dashboard</a>
+              {% else %}
+                <a href="{% url 'reco:register' %}" class="btn btn-main btn-white mr-3">Sign Up</a>
+                <a href="{% url 'reco:login' %}" class="btn btn-main btn-white-outline">Sign In</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-</div>
+    <div class="slider-item" style="background-image: url('{% static 'images/slider/slider-bg-2.jpg' %}');">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 text-right">
+            <div class="content style">
+              <h2 class="text-white">We Care About <br>Your Health</h2>
+              <p class="tag-text">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+              <a href="{% url 'about' %}" class="btn btn-main btn-white">About Us</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /hero-slider -->
+
+</div><!-- /page-wrapper -->
+
+<!-- Scripts (keep your existing includes) -->
+<script src="{% static 'plugins/jquery.js' %}"></script>
+<script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+<script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+
+<!-- Tiny helper to soften close behavior -->
+<script>
+  (function () {
+    var HIDE_DELAY = 150; // ms
+    var timers = new WeakMap();
+
+    document.querySelectorAll('.hx-dd').forEach(function (dd) {
+      dd.addEventListener('mouseenter', function () {
+        clearTimeout(timers.get(dd));
+        dd.classList.add('open');
+      });
+      dd.addEventListener('mouseleave', function () {
+        var t = setTimeout(function(){ dd.classList.remove('open'); }, HIDE_DELAY);
+        timers.set(dd, t);
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      document.querySelectorAll('.hx-dd.open').forEach(function (dd) {
+        if (!dd.contains(e.target)) dd.classList.remove('open');
+      });
+    });
+  })();
+</script>
+
 </body>
 </html>
 
-
-
-        <!-- Page Slider -->
-        <div class="hero-slider">
-            <div class="slider-item slide1" style="background-image: url('{% static 'images\slider\slider-bg-1.jpg' %}');">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-12 text-center">
-                            <div class="content style">
-                                <h2 class="text-white text-bold mb-2">Our Best Surgeons</h2>
-                                <p class="tag-text mb-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vel sunt animi sequi ratione quod at earum. <br>
-                                    Quis quos officiis numquam!</p>
-                                {% if user.is_authenticated %}
-                                <a href="{% url 'reco:dashboard' %}" class="btn btn-main btn-white">My Dashboard</a>
-                                {% else %}
-                                <a href="{% url 'reco:register' %}" class="btn btn-main btn-white mr-3">Sign Up</a>
-                                <a href="{% url 'reco:login' %}" class="btn btn-main btn-white-outline">Sign In</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="slider-item" style="background-image: url('{% static 'images/slider/slider-bg-2.jpg' %}');">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-12 text-right">
-                            <div class="content style">
-                                <h2 class="text-white">We Care About <br>Your Health</h2>
-                                <p class="tag-text">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-                                <a href="{% url 'about' %}" class="btn btn-main btn-white">About Us</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Page Slider End -->
 
         <!-- Call To Action Section -->
         <section class="cta">

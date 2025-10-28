@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'ai_models',
     'detection',
     'reco',  # AI-powered health recommendations
+    "adminpanel",
 ]
 
 
@@ -137,3 +138,6 @@ CSRF_COOKIE_SECURE = False
 
 # === DEFAULT FIELD TYPE ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_REDIRECT_URL = "/dashboard/"

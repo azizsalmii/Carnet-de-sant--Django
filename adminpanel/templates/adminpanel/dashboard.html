@@ -1,0 +1,96 @@
+{% extends "adminpanel/_layout.html" %}
+
+{% block panel %}
+<h1 class="ap-h1">Admin Dashboard</h1>
+
+{# ===== barre d'actions rapides ===== #}
+<div class="ap-toolbar">
+  <a class="ap-pill" href="{% url 'adminpanel:diagnostics' %}">Voir tous les diagnostics</a>
+  <a class="ap-pill" href="{% url 'adminpanel:recos' %}">Voir toutes les recommandations</a>
+  <a class="ap-pill" href="{% url 'adminpanel:medimgs' %}">Voir les images médicales</a>
+  <a class="ap-pill" href="{% url 'adminpanel:health' %}">Voir les analyses santé</a>
+  <a class="ap-pill" href="{% url 'adminpanel:users' %}">Liste des utilisateurs</a>
+</div>
+
+{# ===== cartes stats cliquables ===== #}
+<div class="ap-card">
+  <div class="ap-breadcrumbs">Aujourd’hui : {{ now|date:"Y-m-d H:i" }}</div>
+
+  <style>
+    /* mini-styles spécifiques aux tuiles */
+    .ap-statlink{display:block;text-decoration:none;color:#cfe0ff}
+    .ap-stat{background:#0e203b;border:1px solid #1d335a;border-radius:12px;padding:16px;transition:background .15s ease}
+    .ap-stat h4{margin:0 0 6px;font-size:14px;color:#9fc2ff;font-weight:700}
+    .ap-stat .num{font-size:28px;font-weight:800;color:#e8f0ff}
+    .ap-statlink:hover .ap-stat{background:#132b4e}
+  </style>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+    <a class="ap-statlink" href="{% url 'adminpanel:diagnostics' %}">
+      <div class="ap-stat"><h4>Total diagnostics</h4><div class="num">{{ diag_total|default:0 }}</div></div>
+    </a>
+    <a class="ap-statlink" href="{% url 'adminpanel:diagnostics' %}?q=brain">
+      <div class="ap-stat"><h4>Brain</h4><div class="num">{{ diag_brain|default:0 }}</div></div>
+    </a>
+    <a class="ap-statlink" href="{% url 'adminpanel:diagnostics' %}?q=chest">
+      <div class="ap-stat"><h4>Chest X-ray</h4><div class="num">{{ diag_cxr|default:0 }}</div></div>
+    </a>
+    <a class="ap-statlink" href="{% url 'adminpanel:users' %}">
+      <div class="ap-stat"><h4>Profils</h4><div class="num">{{ profile_count|default:"—" }}</div></div>
+    </a>
+  </div>
+</div>
+
+{# ===== derniers diagnostics (avec lien vers l'utilisateur) ===== #}
+<div class="ap-card">
+  <h3 style="margin:0 0 8px">Derniers diagnostics</h3>
+
+  {% if recent_diags %}
+    <table class="ap-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Utilisateur</th>
+          <th>Modality</th>
+          <th>Résultat</th>
+          <th>Confiance</th>
+        </tr>
+      </thead>
+     <tbody>
+{% for r in recent_rows %}
+  <tr>
+    <td>{{ r.date|date:"Y-m-d H:i" }}</td>
+    <td>
+      {% if r.user %}
+        <a href="{% url 'adminpanel:diagnostics_user' r.user.id %}">
+          {{ r.user.get_full_name|default:r.user.username|default:r.user }}
+        </a>
+      {% else %}—{% endif %}
+    </td>
+    <td>{{ r.modality|default:"—" }}</td>
+    <td>{{ r.result|default:"—" }}</td>
+    <td>
+      {% if r.conf %}{{ r.conf|floatformat:1 }}%{% else %}—{% endif %}
+    </td>
+  </tr>
+{% empty %}
+  <tr><td colspan="5" class="ap-empty">Aucun diagnostic.</td></tr>
+{% endfor %}
+</tbody>
+
+    </table>
+  {% else %}
+    <div class="ap-empty">Aucun diagnostic.</div>
+  {% endif %}
+</div>
+
+{# ===== rappel (optionnel) si des modèles manquent dans ton projet ===== #}
+{% if missing_models and missing_models|length %}
+  <div class="ap-card">
+    <h3 style="margin:0 0 8px">Modèles manquants détectés</h3>
+    <ul style="margin:0 0 0 18px">
+      {% for m in missing_models %}<li>{{ m }}</li>{% endfor %}
+    </ul>
+  </div>
+{% endif %}
+{% endblock %}

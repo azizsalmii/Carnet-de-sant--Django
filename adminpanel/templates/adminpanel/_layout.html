@@ -1,0 +1,49 @@
+{% extends "journal/base.html" %}
+{% load static %}
+{% block page_css %}
+<style>
+  .ap-shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 140px);}
+  .ap-aside{background:#0f1a2b;padding:18px}
+  .ap-aside a{display:block;color:#d6e6ff;text-decoration:none;padding:10px 12px;border-radius:8px;margin-bottom:6px}
+  .ap-aside a.active,.ap-aside a:hover{background:#153154}
+  .ap-main{background:#0b1626;padding:24px}
+  .ap-h1{color:#e8f0ff;margin:0 0 16px;font-weight:800;letter-spacing:.3px}
+  .ap-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .ap-card{background:#111f35;border:1px solid #1d335a;border-radius:12px;padding:16px;margin-bottom:16px}
+  .ap-table{width:100%;color:#cfe0ff}
+  .ap-table th{font-weight:700;color:#9fc2ff;border-bottom:1px solid #1e355e;padding:10px}
+  .ap-table td{border-bottom:1px dashed #183056;padding:10px}
+  .ap-pill{background:#153154;border:1px solid #22477d;border-radius:999px;padding:6px 10px;font-size:12px}
+  .ap-breadcrumbs{color:#9fc2ff;margin-bottom:8px}
+  .ap-actions a{margin-right:6px}
+  .ap-empty{color:#7fa2d9;padding:12px}
+  .ap-search{flex:1;min-width:240px}
+  .ap-pagination a{margin:0 4px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ap-shell">
+  <aside class="ap-aside">
+    <div style="color:#9fc2ff;font-weight:700;margin-bottom:8px;">Admin Panel</div>
+    <a href="{% url 'adminpanel:home' %}" class="{% if section == 'home' %}active{% endif %}">🏠 Dashboard</a>
+    <a href="{% url 'adminpanel:users' %}" class="{% if section == 'users' %}active{% endif %}">👤 Utilisateurs</a>
+    <a href="{% url 'adminpanel:diagnostics' %}" class="{% if section == 'diagnostics' %}active{% endif %}">🩺 Diagnostics</a>
+    <a href="{% url 'adminpanel:recos' %}" class="{% if section == 'recos' %}active{% endif %}">📋 Recommandations</a>
+    <a href="{% url 'adminpanel:medimgs' %}" class="{% if section == 'medimgs' %}active{% endif %}">🖼️ Images médicales</a>
+    <a href="{% url 'adminpanel:health' %}" class="{% if section == 'health' %}active{% endif %}">📈 Health Analysis</a>
+    <li>
+  <a href="{% url 'adminpanel:journal' %}">
+    <span>📝 Journal</span>
+  </a>
+</li>
+
+    <hr style="border-color:#1d335a">
+    <a href="/admin/">⚙️ Django Admin</a>
+  </aside>
+
+  <main class="ap-main">
+    {% block panel %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

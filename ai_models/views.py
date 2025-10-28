@@ -23,6 +23,8 @@ from django.contrib.auth.decorators import login_required        # <-- AJOUT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Table, TableStyle            # <-- AJOUT
+
 
 from .serializers import ChestXRayInputSerializer
 from .assistant import get_bot_reply
@@ -522,3 +524,4 @@ def diagnosis_report_pdf(request, pk):
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     resp.write(pdf_bytes)
     return resp
+

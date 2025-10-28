@@ -2,96 +2,374 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>📊 Mes Données de Santé</h1>
+<style>
+  /* ==== Palette & tokens (aligné au template) ==== */
+  :root{
+    --hx-primary:#39b7bd;
+    --hx-primary-600:#2aa6ac;
+    --hx-primary-50:#e9f7f8;
+    --hx-dark:#22304a;
+    --hx-muted:#6b7a90;
+    --hx-success:#22c55e;
+    --hx-warning:#f59e0b;
+    --hx-danger:#ef4444;
+    --hx-card-bg:#ffffff;
+    --hx-card-shadow:0 10px 30px rgba(0,0,0,.08);
+    --hx-radius:14px;
+  }
+
+  /* ==== Page wrapper ==== */
+  .hx-page{
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  /* ==== Header actions (ruban) ==== */
+  .hx-toolbar{
+    background: linear-gradient(135deg, var(--hx-primary), var(--hx-primary-600));
+    border-radius: var(--hx-radius);
+    padding: 18px 20px;
+    color:#fff;
+    box-shadow: var(--hx-card-shadow);
+  }
+  .hx-toolbar h1{
+    font-weight: 800;
+    letter-spacing: .2px;
+    margin:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .hx-toolbar .hx-actions .btn{
+    border-radius: 10px;
+    padding: .6rem 1rem;
+    font-weight: 700;
+  }
+  .btn-hx-white{
+    background:#fff; color:var(--hx-primary);
+    border:1px solid #fff;
+  }
+  .btn-hx-white:hover{
+    background:transparent; color:#fff;
+    border-color:#fff;
+  }
+  .btn-hx-ghost{
+    background: transparent; color:#fff; border:1px solid rgba(255,255,255,.6);
+  }
+  .btn-hx-ghost:hover{ border-color:#fff; }
+
+  /* ==== Cards KPI ==== */
+  .hx-kpi{
+    background: var(--hx-card-bg);
+    border-radius: var(--hx-radius);
+    box-shadow: var(--hx-card-shadow);
+    padding: 16px 16px;
+    display:flex; gap:14px; align-items:center;
+  }
+  .hx-kpi .hx-ico{
+    width:46px; height:46px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; color:#fff;
+  }
+  .hx-kpi .hx-val{ font-size: 26px; font-weight: 800; line-height: 1; color:var(--hx-dark);}
+  .hx-kpi .hx-lab{ font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--hx-muted); }
+
+  /* ==== Filter bar ==== */
+  .hx-filters{
+    background: #fff; border-radius: var(--hx-radius);
+    box-shadow: var(--hx-card-shadow);
+    padding: 12px 14px;
+  }
+  .hx-field{
+    border:1px solid #e7edf4; border-radius:10px; padding:.55rem .8rem; width:100%;
+  }
+  .hx-field:focus{ outline:none; border-color: var(--hx-primary); box-shadow: 0 0 0 3px rgba(57,183,189,.15); }
+
+  /* ==== Table ==== */
+  .table.hx-table{
+    background:#fff; border-radius: 12px; overflow:hidden;
+    box-shadow: var(--hx-card-shadow);
+  }
+  .hx-thead{
+    position: sticky; top: 0; z-index: 1;
+    background: var(--hx-primary); color:#fff;
+  }
+  .hx-thead th{
+    border:none; padding: 12px 14px; font-weight:800; letter-spacing:.03em;
+  }
+  .hx-row td{
+    vertical-align: middle;
+  }
+  .hx-row:hover{ background: var(--hx-primary-50); }
+  .hx-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:.35rem .6rem; border-radius:999px; font-weight:700; font-size:.85rem;
+  }
+  .hx-badge-success{ background:#ecfdf5; color:var(--hx-success); border:1px solid #d1fae5; }
+  .hx-badge-warning{ background:#fffbeb; color:var(--hx-warning); border:1px solid #fef3c7; }
+  .hx-badge-danger{  background:#fef2f2; color:var(--hx-danger);  border:1px solid #fee2e2; }
+
+  /* ==== Actions colonne ==== */
+  .hx-actions .btn{
+    border-radius:10px;
+  }
+
+  /* ==== Empty state ==== */
+  .hx-empty{
+    background:#fff; border-radius: var(--hx-radius);
+    box-shadow: var(--hx-card-shadow);
+    padding: 40px 26px; text-align:center;
+  }
+  .hx-empty i{ opacity:.4; }
+  .hx-empty h3{ color: var(--hx-dark); font-weight:800; }
+  .hx-empty p{ color: var(--hx-muted); }
+
+  /* Small adjust */
+  .form-text-muted{ color: var(--hx-muted); font-size: .9rem; }
+</style>
+
+<div class="container hx-page">
+  <!-- Toolbar -->
+  <div class="hx-toolbar d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <h1><span>📊</span> Mes Données de Santé</h1>
+    <div class="hx-actions d-flex gap-2">
+      <a href="{% url 'generate_report' %}" class="btn btn-hx-ghost">
+        <i class="fas fa-chart-bar me-1"></i> Générer un rapport
+      </a>
+      <a href="{% url 'health_data_create' %}" class="btn btn-hx-white">
+        <i class="fas fa-plus me-1"></i> Ajouter des données
+      </a>
+    </div>
+  </div>
+
+  <!-- Messages Django -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- KPI Row -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-4">
+      <div class="hx-kpi">
+        <div class="hx-ico" style="background:linear-gradient(135deg,#60a5fa,#2563eb);">
+          <i class="fas fa-database"></i>
+        </div>
         <div>
-            <a href="{% url 'health_data_create' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Ajouter des données
-            </a>
-            <a href="{% url 'generate_report' %}" class="btn btn-success">
-                <i class="fas fa-chart-bar"></i> Générer un rapport
-            </a>
+          <div class="hx-val">{{ health_data|length }}</div>
+          <div class="hx-lab">Enregistrements</div>
         </div>
+      </div>
     </div>
+    <div class="col-12 col-md-4">
+      <div class="hx-kpi">
+        <div class="hx-ico" style="background:linear-gradient(135deg,#34d399,#10b981);">
+          <i class="fas fa-bed"></i>
+        </div>
+        <div>
+          <div class="hx-val">Sommeil</div>
+          <div class="hx-lab">Durée & Qualité</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="hx-kpi">
+        <div class="hx-ico" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);">
+          <i class="fas fa-walking"></i>
+        </div>
+        <div>
+          <div class="hx-val">Activité</div>
+          <div class="hx-lab">Pas & Sédentarité</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+  <!-- Filters -->
+  <div class="hx-filters mb-3">
+    <div class="row g-2 align-items-center">
+      <div class="col-12 col-md-4">
+        <input id="searchInput" type="text" class="hx-field" placeholder="🔎 Rechercher (date  JJ/MM/AAAA ou nombre de pas, etc.)">
+      </div>
+      <div class="col-6 col-md-4">
+        <select id="painFilter" class="hx-field">
+          <option value="">Filtrer par douleur</option>
+          <option value="low">Douleur faible (0–3)</option>
+          <option value="mid">Douleur moyenne (4–6)</option>
+          <option value="high">Douleur forte (7–10)</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-4 text-md-end">
+        <button id="resetFilters" class="btn btn-outline-secondary" style="border-radius:10px;">
+          <i class="fas fa-undo me-1"></i> Réinitialiser
+        </button>
+      </div>
+    </div>
+  </div>
 
-    {% if health_data %}
+  {% if health_data %}
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Date</th>
-                    <th>Sommeil</th>
-                    <th>Activité</th>
-                    <th>Douleur</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for data in health_data %}
-                <tr>
-                    <td>{{ data.date|date:"d/m/Y" }}</td>
-                    <td>
-                        {% if data.sleep_duration %}
-                            {{ data.sleep_duration }}h 
-                            {% if data.sleep_quality %}
-                                ({{ data.sleep_quality }}/5)
-                            {% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if data.steps_count %}
-                            {{ data.steps_count }} pas
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if data.pain_level %}
-                            <span class="badge bg-{% if data.pain_level < 4 %}success{% elif data.pain_level < 7 %}warning{% else %}danger{% endif %}">
-                                {{ data.pain_level }}/10
-                            </span>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
-                            <a href="{% url 'health_data_update' data.pk %}" class="btn btn-outline-primary">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'health_data_delete' data.pk %}" class="btn btn-outline-danger">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <table class="table table-hover align-middle hx-table" id="healthTable">
+        <thead class="hx-thead">
+          <tr>
+            <th style="width:130px;">Date</th>
+            <th>Sommeil</th>
+            <th>Activité</th>
+            <th>Douleur</th>
+            <th style="width:110px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for data in health_data %}
+          <tr class="hx-row">
+            <td data-col="date">{{ data.date|date:"d/m/Y" }}</td>
+
+            <td data-col="sleep">
+              {% if data.sleep_duration %}
+                <div class="d-flex align-items-center gap-2">
+                  <span class="hx-badge hx-badge-success"><i class="fas fa-moon"></i> {{ data.sleep_duration }}h</span>
+                  {% if data.sleep_quality %}
+                    <small class="text-muted">(Qualité {{ data.sleep_quality }}/5)</small>
+                  {% endif %}
+                </div>
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+
+            <td data-col="activity">
+              {% if data.steps_count %}
+                <div class="d-flex align-items-center gap-2">
+                  <span class="hx-badge" style="background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;">
+                    <i class="fas fa-shoe-prints"></i> {{ data.steps_count }} pas
+                  </span>
+                </div>
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+
+            <td data-col="pain" data-pain="{{ data.pain_level|default:0 }}">
+              {% if data.pain_level is not None %}
+                {% if data.pain_level < 4 %}
+                  <span class="hx-badge hx-badge-success"><i class="fas fa-smile"></i> {{ data.pain_level }}/10</span>
+                {% elif data.pain_level < 7 %}
+                  <span class="hx-badge hx-badge-warning"><i class="fas fa-meh"></i> {{ data.pain_level }}/10</span>
+                {% else %}
+                  <span class="hx-badge hx-badge-danger"><i class="fas fa-frown"></i> {{ data.pain_level }}/10</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+
+            <td class="hx-actions">
+              <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                <a href="{% url 'health_data_update' data.pk %}" class="btn btn-outline-primary" title="Modifier">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'health_data_delete' data.pk %}"
+                   class="btn btn-outline-danger btn-delete"
+                   data-href="{% url 'health_data_delete' data.pk %}"
+                   title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="form-text-muted mt-2 mb-0"><i class="fas fa-info-circle me-1"></i> Astuce : utilisez la recherche pour filtrer par date (ex: <b>12/10/2025</b>) ou par “pas”.</p>
     </div>
-    {% else %}
-    <div class="text-center py-5">
-        <div class="mb-4">
-            <i class="fas fa-clipboard-list fa-4x text-muted"></i>
-        </div>
-        <h3 class="text-muted">Aucune donnée de santé enregistrée</h3>
-        <p class="text-muted">Commencez par ajouter vos premières données de santé.</p>
-        <a href="{% url 'health_data_create' %}" class="btn btn-primary btn-lg">
-            <i class="fas fa-plus"></i> Ajouter ma première donnée
-        </a>
+  {% else %}
+    <div class="hx-empty">
+      <div class="mb-3">
+        <i class="fas fa-clipboard-list fa-4x"></i>
+      </div>
+      <h3>Aucune donnée de santé enregistrée</h3>
+      <p>Commencez par ajouter vos premières données de santé pour visualiser vos tendances.</p>
+      <a href="{% url 'health_data_create' %}" class="btn btn-primary" style="border-radius:10px;">
+        <i class="fas fa-plus me-1"></i> Ajouter ma première donnée
+      </a>
     </div>
-    {% endif %}
+  {% endif %}
 </div>
+
+<!-- Modale de confirmation (Bootstrap 5) -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:14px;">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Confirmer la suppression</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Êtes-vous sûr de vouloir supprimer cet enregistrement ? Cette action est irréversible.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius:10px;">Annuler</button>
+        <a id="confirmDeleteBtn" href="#" class="btn btn-danger" style="border-radius:10px;"><i class="fas fa-trash me-1"></i> Supprimer</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====== Recherche & filtres client-side ======
+  (function(){
+    const searchInput = document.getElementById('searchInput');
+    const painFilter  = document.getElementById('painFilter');
+    const resetBtn    = document.getElementById('resetFilters');
+    const rows        = Array.from(document.querySelectorAll('#healthTable tbody tr'));
+
+    function inPainRange(val, filter){
+      const n = Number(val || 0);
+      if(!filter) return true;
+      if(filter==='low')  return n >= 0 && n <= 3;
+      if(filter==='mid')  return n >= 4 && n <= 6;
+      if(filter==='high') return n >= 7 && n <= 10;
+      return true;
+    }
+
+    function applyFilters(){
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      const pf = painFilter?.value || '';
+
+      rows.forEach(tr=>{
+        const t = tr.innerText.toLowerCase();
+        const painTd = tr.querySelector('[data-col="pain"]');
+        const painVal = painTd ? painTd.getAttribute('data-pain') : '';
+        const matchText = !q || t.includes(q);
+        const matchPain = inPainRange(painVal, pf);
+        tr.style.display = (matchText && matchPain) ? '' : 'none';
+      });
+    }
+
+    searchInput?.addEventListener('input', applyFilters);
+    painFilter?.addEventListener('change', applyFilters);
+    resetBtn?.addEventListener('click', ()=>{
+      if(searchInput) searchInput.value='';
+      if(painFilter)  painFilter.value='';
+      applyFilters();
+    });
+  })();
+
+  // ====== Confirmation suppression ======
+  (function(){
+    const modalEl = document.getElementById('confirmDeleteModal');
+    if(!modalEl) return;
+    const deleteBtns = document.querySelectorAll('.btn-delete');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const bsModal = window.bootstrap ? new bootstrap.Modal(modalEl) : null;
+
+    deleteBtns.forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const href = btn.getAttribute('data-href') || btn.getAttribute('href');
+        if(confirmBtn) confirmBtn.setAttribute('href', href);
+        bsModal && bsModal.show();
+      });
+    });
+  })();
+</script>
 {% endblock %}

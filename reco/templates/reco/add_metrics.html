@@ -1,247 +1,467 @@
-{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Add Health Metrics | Medic{% endblock %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Add Health Metrics | Medic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Header -->
-            <div class="text-center mb-5">
-                <h1 class="display-5 fw-bold">
-                    <i class="fas fa-heartbeat text-danger me-3"></i>
-                    Mes Métriques de Santé
-                </h1>
-                <p class="lead text-muted">
-                    Suivez votre santé au quotidien pour des recommandations personnalisées
-                </p>
-            </div>
+  <!-- Vendor CSS -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Theme -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-            <!-- Form Card -->
-            <div class="dashboard-card">
-                <form method="post" id="metricsForm">
-                    {% csrf_token %}
-                    
-                    <!-- Date Selection -->
-                    <div class="mb-4">
-                        <label for="date" class="form-label">
-                            <i class="fas fa-calendar-alt me-2"></i>Date
-                        </label>
-                        <input 
-                            type="date" 
-                            class="form-control form-control-lg" 
-                            id="date" 
-                            name="date" 
-                            value="{{ today|date:'Y-m-d' }}"
-                            max="{{ today|date:'Y-m-d' }}"
-                            required
-                        >
-                        <small class="text-muted">Sélectionnez la date de vos mesures</small>
-                    </div>
+  {# ===== Header dropdown minimal CSS (identique à la dernière page) ===== #}
+  <style>
+    .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
+    .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
+    .hx-menu > li > a { color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+    .hx-dd { position:relative; }
+    .hx-dd-toggle { display:flex; align-items:center; gap:8px; color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+    .hx-caret { font-size:10px; opacity:.85; margin-left:6px; }
+    .hx-dd-menu {
+      position:absolute; top:100%; left:0; min-width:220px; background:#ffffff;
+      border-radius:10px; padding:10px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,.12);
+      border:1px solid rgba(0,0,0,.06); display:none; z-index:50;
+    }
+    .hx-dd:hover .hx-dd-menu,
+    .hx-dd:focus-within .hx-dd-menu { display:block; }
+    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#223; text-decoration:none; white-space:nowrap; }
+    .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
+    .hx-dd-item:hover { background:#f2fbfb; }
+    @media (max-width: 768px) {
+      .hx-nav { flex-wrap:wrap; height:auto; padding:10px 0; }
+      .hx-menu { flex-wrap:wrap; gap:16px; }
+      .hx-dd-menu { position:static; box-shadow:none; border:none; padding:6px 0; margin:4px 0 0; display:none; background:#39b7bd10; }
+      .hx-dd:hover .hx-dd-menu { display:block; }
+      .hx-dd-item { color:#fff; }
+    }
+  </style>
 
-                    <!-- Steps -->
-                    <div class="mb-4">
-                        <label for="steps" class="form-label">
-                            <i class="fas fa-walking me-2 text-primary"></i>Nombre de Pas
-                        </label>
-                        <div class="input-group input-group-lg">
-                            <input 
-                                type="number" 
-                                class="form-control" 
-                                id="steps" 
-                                name="steps" 
-                                placeholder="Ex: 8000"
-                                min="0"
-                                max="50000"
-                                {% if today_metrics and today_metrics.steps %}value="{{ today_metrics.steps }}"{% endif %}
-                            >
-                            <span class="input-group-text">pas</span>
-                        </div>
-                        <small class="text-muted">Objectif recommandé : 8000-10000 pas/jour</small>
-                    </div>
+  {# ===== Styles d’amélioration pour CE formulaire ===== #}
+  <style>
+    :root{
+      --hx-primary:#39b7bd;
+      --hx-primary-600:#2aa6ac;
+      --hx-primary-50:#e9f7f8;
+      --hx-dark:#22304a;
+      --hx-muted:#6b7a90;
+      --hx-card:#ffffff;
+      --hx-shadow:0 10px 30px rgba(0,0,0,.08);
+      --hx-r:14px;
+    }
 
-                    <!-- Sleep Hours -->
-                    <div class="mb-4">
-                        <label for="sleep_hours" class="form-label">
-                            <i class="fas fa-moon me-2 text-info"></i>Heures de Sommeil
-                        </label>
-                        <div class="input-group input-group-lg">
-                            <input 
-                                type="number" 
-                                class="form-control" 
-                                id="sleep_hours" 
-                                name="sleep_hours" 
-                                placeholder="Ex: 7.5"
-                                min="0"
-                                max="24"
-                                step="0.5"
-                                {% if today_metrics and today_metrics.sleep_hours %}value="{{ today_metrics.sleep_hours }}"{% endif %}
-                            >
-                            <span class="input-group-text">heures</span>
-                        </div>
-                        <small class="text-muted">Recommandé : 7-9 heures pour un adulte</small>
-                    </div>
+    .page-section{ padding:48px 0; }
 
-                    <!-- Blood Pressure -->
-                    <div class="mb-4">
-                        <label class="form-label">
-                            <i class="fas fa-heartbeat me-2 text-danger"></i>Tension Artérielle
-                        </label>
-                        <div class="row">
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">Systolique</span>
-                                    <input 
-                                        type="number" 
-                                        class="form-control" 
-                                        id="systolic_bp" 
-                                        name="systolic_bp" 
-                                        placeholder="120"
-                                        min="60"
-                                        max="250"
-                                        {% if today_metrics and today_metrics.systolic_bp %}value="{{ today_metrics.systolic_bp }}"{% endif %}
-                                    >
-                                    <span class="input-group-text">mmHg</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">Diastolique</span>
-                                    <input 
-                                        type="number" 
-                                        class="form-control" 
-                                        id="diastolic_bp" 
-                                        name="diastolic_bp" 
-                                        placeholder="80"
-                                        min="40"
-                                        max="150"
-                                        {% if today_metrics and today_metrics.diastolic_bp %}value="{{ today_metrics.diastolic_bp }}"{% endif %}
-                                    >
-                                    <span class="input-group-text">mmHg</span>
-                                </div>
-                            </div>
-                        </div>
-                        <small class="text-muted">Normal : &lt; 120/80 mmHg</small>
-                    </div>
+    /* Titre / intro */
+    .hx-hero-title{
+      display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; margin-bottom:26px;
+    }
+    .hx-hero-title h1{ font-weight:800; letter-spacing:.2px; }
+    .hx-hero-sub{ color:var(--hx-muted); }
 
-                    <!-- Info Box -->
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Conseil :</strong> Entrez au moins 2-3 métriques pour obtenir des recommandations personnalisées. Vous pouvez compléter les autres champs plus tard.
-                    </div>
+    /* Carte formulaire */
+    .hx-card{
+      background:var(--hx-card); border-radius:var(--hx-r); box-shadow:var(--hx-shadow);
+      padding:24px; border:1px solid #eef2f5;
+    }
 
-                    <!-- Buttons -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
-                        <a href="{% url 'reco:dashboard' %}" class="btn btn-outline-secondary btn-lg">
-                            <i class="fas fa-arrow-left me-2"></i>Retour
-                        </a>
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-save me-2"></i>Enregistrer
-                        </button>
-                    </div>
-                </form>
-            </div>
+    /* Groupes de section avec en-tête */
+    .hx-section{
+      border:1px solid #edf3f5; border-radius:12px; margin-bottom:18px; overflow:hidden;
+      background:#fff;
+    }
+    .hx-section__head{
+      background:linear-gradient(135deg, var(--hx-primary), var(--hx-primary-600));
+      color:#fff; padding:12px 14px; display:flex; align-items:center; gap:10px; font-weight:800;
+    }
+    .hx-section__body{ padding:16px; }
 
-            <!-- Quick Stats -->
-            {% if today_metrics %}
-            <div class="alert alert-success mt-4">
-                <h5 class="mb-3">
-                    <i class="fas fa-check-circle me-2"></i>Métriques existantes pour aujourd'hui
-                </h5>
-                <div class="row">
-                    {% if today_metrics.steps %}
-                    <div class="col-6 col-md-3 mb-2">
-                        <strong>Pas:</strong> {{ today_metrics.steps|floatformat:0 }}
-                    </div>
-                    {% endif %}
-                    {% if today_metrics.sleep_hours %}
-                    <div class="col-6 col-md-3 mb-2">
-                        <strong>Sommeil:</strong> {{ today_metrics.sleep_hours }}h
-                    </div>
-                    {% endif %}
-                    {% if today_metrics.systolic_bp and today_metrics.diastolic_bp %}
-                    <div class="col-6 col-md-6 mb-2">
-                        <strong>Tension:</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg
-                    </div>
-                    {% endif %}
-                </div>
-                <small class="text-muted">Modifier les champs ci-dessus et cliquer sur "Enregistrer" pour mettre à jour</small>
-            </div>
-            {% endif %}
+    /* Champs */
+    .form-label{ font-weight:700; color:var(--hx-dark); }
+    .form-control, .input-group-text, .form-select{
+      border-radius:10px; border:1px solid #dfe7ee;
+    }
+    .form-control:focus{
+      border-color:var(--hx-primary); box-shadow:0 0 0 .18rem rgba(57,183,189,.18);
+    }
+    .input-group-text{ background:#f8fafb; font-weight:700; color:#4a5a70; }
+    .form-text{ color:#6c7a92; }
 
-            <!-- Tips -->
-            <div class="row mt-5">
-                <div class="col-md-4 mb-3">
-                    <div class="text-center p-4 bg-light rounded">
-                        <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-                        <h5>Utilisez un tracker</h5>
-                        <p class="small text-muted">Montre connectée, smartphone ou bracelet fitness pour compter vos pas</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="text-center p-4 bg-light rounded">
-                        <i class="fas fa-clock fa-3x text-info mb-3"></i>
-                        <h5>Routine quotidienne</h5>
-                        <p class="small text-muted">Entrez vos métriques chaque soir avant de vous coucher</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="text-center p-4 bg-light rounded">
-                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
-                        <h5>Suivez vos progrès</h5>
-                        <p class="small text-muted">Visualisez l'évolution de vos métriques sur le tableau de bord</p>
-                    </div>
-                </div>
-            </div>
+    /* Boutons */
+    .btn-lg{ border-radius:10px; font-weight:800; }
+    .btn-primary{
+      background:var(--hx-primary); border-color:var(--hx-primary);
+    }
+    .btn-primary:hover{ background:var(--hx-primary-600); border-color:var(--hx-primary-600); }
+    .btn-outline-secondary{ border-width:2px; }
+
+    /* Tips blocs */
+    .hx-tip{
+      text-align:center; padding:22px; background:#f7fbfc; border:1px solid #e6eef0; border-radius:12px;
+      transition:transform .25s ease, box-shadow .25s ease;
+      height:100%;
+    }
+    .hx-tip:hover{ transform:translateY(-4px); box-shadow:var(--hx-shadow); }
+
+    /* Alert info */
+    .alert-info{
+      border:1px solid #cdebee; background:#f0fbfc; color:#0b5562;
+      border-radius:12px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="page-wrapper">
+
+  {# ================== HEADER (identique) ================== #}
+  <div style="background:#ffffff;border-bottom:1px solid #eee;">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+      <div style="color:#333;font-size:14px;">Opening Hours: Saturday to Tuesday — 8am to 10pm</div>
+
+      <div style="display:flex;align-items:center;gap:18px;">
+        <div style="display:flex;gap:14px;color:#666;">
+          <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
         </div>
+
+        <div style="display:flex;gap:10px;">
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-user-circle"></i> Profile
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-sign-out-alt"></i> Log Out
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-right-to-bracket"></i> Log In
+            </a>
+            <a href="{% url 'signup' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-user-plus"></i> Sign Up
+            </a>
+          {% endif %}
+        </div>
+      </div>
     </div>
+  </div>
+
+  <nav style="background:#39b7bd;">
+    <div class="container hx-nav">
+      <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+        <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
+        <strong style="font-size:22px;line-height:1;">Health Track</strong>
+      </a>
+
+      <ul class="hx-menu">
+        <li><a href="{% url 'home' %}">Home</a></li>
+
+        <li class="hx-dd">
+          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+          </a>
+          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
+            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
+            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
+          </div>
+        </li>
+
+        <li class="hx-dd">
+          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+          </a>
+          <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
+            <a class="hx-dd-item" href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Data</a>
+            <a class="hx-dd-item" href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
+            <a class="hx-dd-item" href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Journal</a>
+          </div>
+        </li>
+
+        <li>
+          <a href="{% url 'reco:recommendations' %}" style="display:flex;align-items:center;gap:8px;">
+            <i class="fa fa-lightbulb"></i> Recommendations
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
+            <i class="fa fa-heartbeat"></i> Health Analysis
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  {# ================== /HEADER ================== #}
+
+  {# ================== CONTENU ================== #}
+  <div class="container page-section">
+    <div class="row justify-content-center">
+      <div class="col-lg-9">
+
+        <!-- Title -->
+        <div class="hx-hero-title">
+          <h1 class="display-6">
+            <i class="fas fa-heartbeat text-danger me-2"></i> Mes Métriques de Santé
+          </h1>
+          <p class="hx-hero-sub">Suivez votre santé au quotidien pour des recommandations personnalisées</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="hx-card">
+          <form method="post" id="metricsForm">
+            {% csrf_token %}
+
+            <!-- Date -->
+            <div class="hx-section">
+              <div class="hx-section__head"><i class="fa fa-calendar-alt"></i> Date</div>
+              <div class="hx-section__body">
+                <label for="date" class="form-label">Jour de saisie</label>
+                <input
+                  type="date"
+                  class="form-control form-control-lg"
+                  id="date"
+                  name="date"
+                  value="{{ today|date:'Y-m-d' }}"
+                  max="{{ today|date:'Y-m-d' }}"
+                  required
+                >
+                <div class="form-text mt-1">Sélectionnez la date de vos mesures</div>
+              </div>
+            </div>
+
+            <!-- Activity (Steps) -->
+            <div class="hx-section">
+              <div class="hx-section__head"><i class="fa-solid fa-person-walking"></i> Activité</div>
+              <div class="hx-section__body">
+                <label for="steps" class="form-label">Nombre de pas</label>
+                <div class="input-group input-group-lg">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="steps"
+                    name="steps"
+                    placeholder="Ex : 8000"
+                    min="0"
+                    max="50000"
+                    {% if today_metrics and today_metrics.steps %}value="{{ today_metrics.steps }}"{% endif %}
+                  >
+                  <span class="input-group-text">pas</span>
+                </div>
+                <div class="form-text mt-1">Objectif recommandé : 8000–10000 pas/jour</div>
+              </div>
+            </div>
+
+            <!-- Sleep -->
+            <div class="hx-section">
+              <div class="hx-section__head"><i class="fa-solid fa-moon"></i> Sommeil</div>
+              <div class="hx-section__body">
+                <label for="sleep_hours" class="form-label">Heures de sommeil</label>
+                <div class="input-group input-group-lg">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="sleep_hours"
+                    name="sleep_hours"
+                    placeholder="Ex : 7.5"
+                    min="0"
+                    max="24"
+                    step="0.5"
+                    {% if today_metrics and today_metrics.sleep_hours %}value="{{ today_metrics.sleep_hours }}"{% endif %}
+                  >
+                  <span class="input-group-text">heures</span>
+                </div>
+                <div class="form-text mt-1">Recommandé : 7–9 heures pour un adulte</div>
+              </div>
+            </div>
+
+            <!-- Blood Pressure -->
+            <div class="hx-section">
+              <div class="hx-section__head"><i class="fa-solid fa-gauge-high"></i> Tension Artérielle</div>
+              <div class="hx-section__body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="systolic_bp" class="form-label">Systolique</label>
+                    <div class="input-group input-group-lg">
+                      <span class="input-group-text">SYS</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="systolic_bp"
+                        name="systolic_bp"
+                        placeholder="120"
+                        min="60"
+                        max="250"
+                        {% if today_metrics and today_metrics.systolic_bp %}value="{{ today_metrics.systolic_bp }}"{% endif %}
+                      >
+                      <span class="input-group-text">mmHg</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="diastolic_bp" class="form-label">Diastolique</label>
+                    <div class="input-group input-group-lg">
+                      <span class="input-group-text">DIA</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="diastolic_bp"
+                        name="diastolic_bp"
+                        placeholder="80"
+                        min="40"
+                        max="150"
+                        {% if today_metrics and today_metrics.diastolic_bp %}value="{{ today_metrics.diastolic_bp }}"{% endif %}
+                      >
+                      <span class="input-group-text">mmHg</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-text mt-1">Valeur normale indicative : &lt; 120/80 mmHg</div>
+              </div>
+            </div>
+
+            <!-- Info -->
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Conseil :</strong> Entrez au moins 2–3 métriques pour obtenir des recommandations personnalisées.
+              Vous pourrez compléter les autres champs plus tard.
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-3">
+              <a href="{% url 'reco:dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i> Retour
+              </a>
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save me-2"></i> Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Quick Stats -->
+        {% if today_metrics %}
+        <div class="alert alert-success mt-4" style="border-radius:12px;">
+          <h5 class="mb-3">
+            <i class="fas fa-check-circle me-2"></i>Métriques existantes pour aujourd'hui
+          </h5>
+          <div class="row">
+            {% if today_metrics.steps %}
+            <div class="col-6 col-md-3 mb-2"><strong>Pas :</strong> {{ today_metrics.steps|floatformat:0 }}</div>
+            {% endif %}
+            {% if today_metrics.sleep_hours %}
+            <div class="col-6 col-md-3 mb-2"><strong>Sommeil :</strong> {{ today_metrics.sleep_hours }}h</div>
+            {% endif %}
+            {% if today_metrics.systolic_bp and today_metrics.diastolic_bp %}
+            <div class="col-12 col-md-6 mb-2"><strong>Tension :</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg</div>
+            {% endif %}
+          </div>
+          <small class="text-muted">Modifiez ci-dessus puis cliquez sur “Enregistrer” pour mettre à jour.</small>
+        </div>
+        {% endif %}
+
+        <!-- Tips -->
+        <div class="row mt-4">
+          <div class="col-md-4 mb-3">
+            <div class="hx-tip">
+              <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+              <h5>Utilisez un tracker</h5>
+              <p class="small text-muted mb-0">Montre connectée, smartphone ou bracelet fitness pour compter vos pas.</p>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="hx-tip">
+              <i class="fas fa-clock fa-3x text-info mb-3"></i>
+              <h5>Routine quotidienne</h5>
+              <p class="small text-muted mb-0">Saisissez vos métriques chaque soir avant de vous coucher.</p>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="hx-tip">
+              <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+              <h5>Suivez vos progrès</h5>
+              <p class="small text-muted mb-0">Visualisez l’évolution sur le tableau de bord.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {# ================== /CONTENU ================== #}
+
+  {# ================== FOOTER (identique) ================== #}
+  <footer class="footer-main">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <!-- … ton footer (colonnes, posts, etc.) … -->
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container clearfix">
+        <div class="copyright-text">
+          <p>&copy; Copyright 2018. All Rights Reserved by
+            <a href="{% url 'home' %}">Medic</a>
+          </p>
+        </div>
+        <ul class="footer-bottom-link">
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'about' %}">About</a></li>
+          <li><a href="{% url 'contact' %}">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <div class="scroll-to-top scroll-to-target" data-target=".header-top">
+    <span class="fas fa-angle-up"></span>
+  </div>
 </div>
 
-<style>
-    .form-control:focus, .input-group-text {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-    
-    .input-group-text {
-        background-color: #f8f9fa;
-        font-weight: 500;
-    }
-    
-    .bg-light {
-        transition: transform 0.3s ease;
-    }
-    
-    .bg-light:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-</style>
+<!-- JS -->
+<script src="{% static 'plugins/jquery.js' %}"></script>
+<script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-select.min.js' %}"></script>
+<script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+<script src="{% static 'plugins/fancybox/jquery.fancybox.min.js' %}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+<script src="{% static 'plugins/validate.js' %}"></script>
+<script src="{% static 'plugins/wow.js' %}"></script>
+<script src="{% static 'plugins/jquery-ui.js' %}"></script>
+<script src="{% static 'plugins/timePicker.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
 
 <script>
-// Form validation
+/* Validation légère côté client (inchangée dans l’esprit) */
 document.getElementById('metricsForm').addEventListener('submit', function(e) {
-    const steps = document.getElementById('steps').value;
-    const sleep = document.getElementById('sleep_hours').value;
-    const systolic = document.getElementById('systolic_bp').value;
-    const diastolic = document.getElementById('diastolic_bp').value;
-    
-    // Check if at least one field is filled
-    if (!steps && !sleep && !systolic && !diastolic) {
-        e.preventDefault();
-        alert('Veuillez remplir au moins une métrique avant d\'enregistrer.');
-        return false;
-    }
-    
-    // Validate BP: if one is filled, both should be
-    if ((systolic && !diastolic) || (!systolic && diastolic)) {
-        e.preventDefault();
-        alert('Veuillez remplir les deux valeurs de tension artérielle (systolique ET diastolique).');
-        return false;
-    }
-    
-    return true;
+  const steps = document.getElementById('steps').value;
+  const sleep = document.getElementById('sleep_hours').value;
+  const systolic = document.getElementById('systolic_bp').value;
+  const diastolic = document.getElementById('diastolic_bp').value;
+
+  // Au moins une métrique
+  if (!steps && !sleep && !systolic && !diastolic) {
+    e.preventDefault();
+    alert('Veuillez remplir au moins une métrique avant d\'enregistrer.');
+    return false;
+  }
+  // Si une seule valeur TA est saisie
+  if ((systolic && !diastolic) || (!systolic && diastolic)) {
+    e.preventDefault();
+    alert('Veuillez remplir les deux valeurs de tension artérielle (systolique ET diastolique).');
+    return false;
+  }
+  return true;
 });
 </script>
-{% endblock %}
+</body>
+</html>

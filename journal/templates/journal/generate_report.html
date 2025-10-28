@@ -2,132 +2,252 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-chart-bar"></i> Générer un Rapport Santé Mensuel
-                    </h3>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+<style>
+  :root{
+    --hx-primary:#39b7bd;
+    --hx-primary-600:#2aa6ac;
+    --hx-primary-50:#e9f7f8;
+    --hx-dark:#22304a;
+    --hx-muted:#6b7a90;
+    --hx-success:#22c55e;
+    --hx-warning:#f59e0b;
+    --hx-danger:#ef4444;
+    --hx-card:#ffffff;
+    --hx-shadow:0 10px 30px rgba(0,0,0,.08);
+    --hx-r:14px;
+  }
 
-                    <!-- Afficher les erreurs de formulaire -->
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <h5>Erreurs dans le formulaire :</h5>
-                        <ul>
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
+  .hx-wrap{ margin-top:1.5rem; margin-bottom:2.25rem; }
 
-                    <div class="alert alert-info">
-                        <h5 class="alert-heading">
-                            <i class="fas fa-info-circle"></i> Comment ça marche ?
-                        </h5>
-                        <p class="mb-0">
-                            Sélectionnez un mois pour générer un rapport détaillé de vos données de santé. 
-                            Notre IA analysera vos symptômes, sommeil, activité physique et traitements 
-                            pour vous fournir des insights personnalisés.
-                        </p>
-                    </div>
+  /* Bande titre */
+  .hx-toolbar{
+    background:linear-gradient(135deg,var(--hx-primary),var(--hx-primary-600));
+    color:#fff; border-radius:var(--hx-r); padding:18px 20px; box-shadow:var(--hx-shadow);
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .hx-toolbar h1{ margin:0; font-weight:800; letter-spacing:.2px; display:flex; gap:10px; align-items:center; }
+  .hx-toolbar .btn{ border-radius:10px; font-weight:700; }
+  .btn-hx-white{ background:#fff; color:var(--hx-primary); border:1px solid #fff; }
+  .btn-hx-white:hover{ background:transparent; color:#fff; border-color:#fff; }
+  .btn-hx-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.65); }
+  .btn-hx-ghost:hover{ border-color:#fff; }
 
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.month.id_for_label }}" class="form-label">
-                                        <strong>Mois à analyser :</strong>
-                                    </label>
-                                    {{ form.month }}
-                                    {% if form.month.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.month.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                    <div class="form-text">
-                                        Sélectionnez le mois pour lequel vous souhaitez générer le rapport.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+  /* Cartes */
+  .hx-card{ background:var(--hx-card); border-radius:var(--hx-r); box-shadow:var(--hx-shadow); overflow:hidden; }
+  .hx-card-h{ background:var(--hx-primary-50); padding:14px 18px; border-bottom:1px solid #dff1f2; display:flex; align-items:center; gap:10px; }
+  .hx-card-h h5{ margin:0; font-weight:800; color:var(--hx-dark); }
+  .hx-card-b{ padding:18px; }
 
-                        <div class="mb-4">
-                            <div class="form-check form-switch">
-                                {{ form.include_ai_analysis }}
-                                <label for="{{ form.include_ai_analysis.id_for_label }}" class="form-check-label">
-                                    <strong>Inclure l'analyse IA avancée</strong>
-                                </label>
-                            </div>
-                            <div class="form-text">
-                                L'analyse IA fournit des recommandations personnalisées, 
-                                identifie les facteurs de risque et calcule un score de santé.
-                            </div>
-                        </div>
+  /* Champs */
+  .hx-field, .hx-field select, .hx-field input, .hx-field textarea{
+    width:100%; border:1px solid #e7edf4; border-radius:10px; padding:.65rem .9rem; background:#fff;
+  }
+  .hx-field:focus, .hx-field select:focus, .hx-field input:focus, .hx-field textarea:focus{
+    outline:none; border-color:var(--hx-primary); box-shadow:0 0 0 3px rgba(57,183,189,.15);
+  }
+  .hx-label{ font-weight:700; color:var(--hx-dark); margin-bottom:.4rem; }
+  .hx-help{ color:var(--hx-muted); font-size:.92rem; }
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'health_data_list' %}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left"></i> Retour aux données
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-magic"></i> Générer le rapport
-                            </button>
-                        </div>
-                    </form>
+  /* Switch */
+  .form-check.form-switch .form-check-input{ width:3rem; height:1.5rem; cursor:pointer; }
 
-                    <!-- Section données existantes -->
-                    {% if existing_reports %}
-                    <div class="mt-5">
-                        <h5>Rapports existants :</h5>
-                        <div class="list-group">
-                            {% for report in existing_reports %}
-                            <a href="{% url 'report_detail' report.pk %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Rapport {{ report.month|date:"F Y" }}</h6>
-                                    <small>Généré le {{ report.generated_at|date:"d/m/Y" }}</small>
-                                </div>
-                                <p class="mb-1">
-                                    Score santé : 
-                                    <span class="badge bg-{% if report.health_score >= 70 %}success{% elif report.health_score >= 50 %}warning{% else %}danger{% endif %}">
-                                        {{ report.health_score|default:"N/A" }}/100
-                                    </span>
-                                </p>
-                                <small>
-                                    {% if report.is_finalized %}
-                                        <span class="badge bg-success">Finalisé</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">Brouillon</span>
-                                    {% endif %}
-                                </small>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+  /* Actions */
+  .hx-actions{
+    display:flex; gap:.5rem; justify-content:flex-end;
+    background:#fff; border-top:1px solid #eef2f7; padding:14px; border-radius:0 0 var(--hx-r) var(--hx-r);
+  }
+  .btn-hx-primary{
+    background:linear-gradient(135deg,var(--hx-primary),var(--hx-primary-600));
+    color:#fff; border:none; padding:.7rem 1.15rem; border-radius:10px; font-weight:800;
+  }
+  .btn-hx-primary:hover{ filter:brightness(.95); }
+  .btn-hx-secondary{
+    background:#f7f9fc; border:1px solid #dfe7f1; color:var(--hx-dark);
+    padding:.7rem 1.05rem; border-radius:10px; font-weight:700;
+  }
+  .btn-hx-secondary:hover{ background:#eef3f9; }
+
+  /* Alertes custom info */
+  .alert-hx-info{
+    border:1px solid #ccebed; background:#f4fbfc; color:#0b5562; border-radius:12px;
+  }
+
+  /* Liste de rapports */
+  .hx-report{
+    display:flex; flex-direction:column; gap:.35rem; padding:14px 16px; border:1px solid #e9eef5; border-radius:12px;
+    transition:transform .08s ease, box-shadow .08s ease; text-decoration:none;
+    background:#fff;
+  }
+  .hx-report:hover{ transform:translateY(-1px); box-shadow:var(--hx-shadow); }
+  .hx-report .meta{ display:flex; justify-content:space-between; gap:12px; color:var(--hx-muted); }
+  .hx-badge{
+    display:inline-flex; align-items:center; gap:6px; padding:.25rem .55rem; border-radius:999px; font-weight:700; font-size:.82rem;
+  }
+  .hx-badge-success{ background:#e8f7ef; color:#0e8a44; border:1px solid #ccefdc; }
+  .hx-badge-warn{ background:#fff7e8; color:#a76707; border:1px solid #fae2b9; }
+  .hx-score{ display:inline-flex; align-items:center; gap:8px; }
+  .hx-score .dot{ width:10px; height:10px; border-radius:50%; }
+  .dot-green{ background:#22c55e; } .dot-amber{ background:#f59e0b; } .dot-red{ background:#ef4444; }
+
+  @media (max-width: 768px){
+    .hx-toolbar{ padding:14px; }
+    .hx-card-b{ padding:14px; }
+  }
+</style>
+
+<div class="container hx-wrap">
+  <!-- Bande de titre -->
+  <div class="hx-toolbar mb-4">
+    <h1><i class="fas fa-chart-bar"></i> Générer un Rapport Santé Mensuel</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'health_data_list' %}" class="btn btn-hx-ghost">
+        <i class="fas fa-arrow-left me-1"></i> Retour aux données
+      </a>
+      <button form="reportForm" type="submit" class="btn btn-hx-white">
+        <i class="fas fa-magic me-1"></i> Générer le rapport
+      </button>
     </div>
+  </div>
+
+  <!-- Messages Django -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Carte formulaire -->
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      <div class="hx-card">
+
+        <div class="hx-card-b">
+          <!-- Erreurs de formulaire -->
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <h5 class="mb-2"><i class="fas fa-exclamation-triangle me-1"></i> Erreurs dans le formulaire</h5>
+              <ul class="mb-0">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }} :</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <!-- Aide -->
+          <div class="alert alert-hx-info mb-4">
+            <h6 class="mb-1"><i class="fas fa-info-circle me-1"></i> Comment ça marche ?</h6>
+            <p class="mb-0">
+              Choisissez un <strong>mois</strong> pour générer un rapport détaillé (sommeil, activité, symptômes, traitements).
+              Si activée, l’<strong>analyse IA</strong> calcule un score de santé et propose des insights personnalisés.
+            </p>
+          </div>
+
+          <!-- Form -->
+          <form id="reportForm" method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="{{ form.month.id_for_label }}" class="hx-label">Mois à analyser</label>
+                <div class="hx-field">
+                  {{ form.month }}
+                </div>
+                {% if form.month.errors %}
+                  <div class="text-danger small mt-1">
+                    {% for error in form.month.errors %}{{ error }}{% endfor %}
+                  </div>
+                {% endif %}
+                <div class="hx-help">Ex : 2025-10 (si ton widget est un input type="month")</div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <div class="form-check form-switch">
+                {{ form.include_ai_analysis }}
+                <label for="{{ form.include_ai_analysis.id_for_label }}" class="form-check-label">
+                  <strong>Inclure l’analyse IA avancée</strong>
+                </label>
+              </div>
+              <div class="hx-help mt-1">
+                Ajoute recommandations, facteurs de risque et un score global de santé.
+              </div>
+            </div>
+
+            <!-- Barre d’actions -->
+            <div class="hx-actions mt-4">
+              <a href="{% url 'health_data_list' %}" class="btn btn-hx-secondary">
+                <i class="fas fa-times me-1"></i> Annuler
+              </a>
+              <button type="submit" class="btn btn-hx-primary">
+                <i class="fas fa-magic me-1"></i> Générer le rapport
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Rapports existants -->
+      {% if existing_reports %}
+        <div class="mt-4">
+          <div class="hx-card">
+            <div class="hx-card-h">
+              <h5><i class="fas fa-folder-open me-2"></i> Rapports existants</h5>
+            </div>
+            <div class="hx-card-b">
+              <div class="row g-3">
+                {% for report in existing_reports %}
+                  <div class="col-12">
+                    <a href="{% url 'report_detail' report.pk %}" class="hx-report">
+                      <div class="meta">
+                        <h6 class="mb-0 fw-bold">Rapport {{ report.month|date:"F Y" }}</h6>
+                        <small>Généré le {{ report.generated_at|date:"d/m/Y" }}</small>
+                      </div>
+                      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="hx-score">
+                          {% if report.health_score >= 70 %}
+                            <span class="dot dot-green"></span>
+                            <span class="badge hx-badge hx-badge-success">Score : {{ report.health_score }}/100</span>
+                          {% elif report.health_score >= 50 %}
+                            <span class="dot dot-amber"></span>
+                            <span class="badge hx-badge hx-badge-warn">Score : {{ report.health_score }}/100</span>
+                          {% else %}
+                            <span class="dot dot-red"></span>
+                            <span class="badge hx-badge" style="background:#fdecec;color:#9d1520;border:1px solid #fac8cc;">
+                              Score : {{ report.health_score|default:"N/A" }}/100
+                            </span>
+                          {% endif %}
+                        </div>
+                        <div>
+                          {% if report.is_finalized %}
+                            <span class="hx-badge hx-badge-success"><i class="fas fa-check"></i> Finalisé</span>
+                          {% else %}
+                            <span class="hx-badge hx-badge-warn"><i class="fas fa-pencil-alt"></i> Brouillon</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted mt-4">
+          <i class="fas fa-info-circle me-1"></i>
+          Aucun rapport enregistré pour l’instant. Génère ton premier rapport ci-dessus.
+        </p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

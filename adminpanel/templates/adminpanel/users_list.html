@@ -1,0 +1,25 @@
+{% extends "adminpanel/_layout.html" %}
+{% block panel %}
+<h1 class="ap-h1">Utilisateurs</h1>
+
+<div class="ap-card">
+  <table class="ap-table">
+    <thead>
+      <tr><th>Utilisateur</th><th>Diagnostics</th><th>Recommandations</th><th>Images</th><th>Health</th></tr>
+    </thead>
+    <tbody>
+      {% for u in page_obj.object_list %}
+      <tr>
+        <td>{{ u.get_full_name|default:u.username }}</td>
+        <td><a href="{% url 'adminpanel:diagnostics_user' u.id %}" class="ap-pill">{{ u.diag_count|default:'—' }}</a></td>
+        <td><a href="{% url 'adminpanel:recos_user' u.id %}" class="ap-pill">{{ u.reco_count|default:'—' }}</a></td>
+        <td><a href="{% url 'adminpanel:medimgs_user' u.id %}" class="ap-pill">{{ u.img_count|default:'—' }}</a></td>
+        <td><a href="{% url 'adminpanel:health_user' u.id %}" class="ap-pill">{{ u.health_count|default:'—' }}</a></td>
+      </tr>
+      {% empty %}<tr><td colspan="5" class="ap-empty">Aucun utilisateur.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+
+  {% include "adminpanel/_pagination.html" %}
+</div>
+{% endblock %}

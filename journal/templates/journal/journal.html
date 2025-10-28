@@ -1,142 +1,471 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Journal de Santé</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            text-align: center;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        form input, form select, form textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        form button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        form button:hover {
-            background-color: #0056b3;
-        }
-        .entry {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
-        .entry:last-child {
-            border-bottom: none;
-        }
-        .entry h3 {
-            margin: 0;
-        }
-        .entry p {
-            margin: 5px 0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Journal de Santé | Medic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <!-- Vendor CSS -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Theme -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  {# ====== Header dropdown minimal CSS (identique Recommendations) ====== #}
+  <style>
+    .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
+    .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
+    .hx-menu > li > a { color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+    .hx-dd { position:relative; }
+    .hx-dd-toggle { display:flex; align-items:center; gap:8px; color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+    .hx-caret { font-size:10px; opacity:.85; margin-left:6px; }
+    .hx-dd-menu {
+      position:absolute; top:100%; left:0; min-width:220px; background:#ffffff;
+      border-radius:10px; padding:10px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,.12);
+      border:1px solid rgba(0,0,0,.06); display:none; z-index:50;
+    }
+    .hx-dd:hover .hx-dd-menu, .hx-dd:focus-within .hx-dd-menu { display:block; }
+    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#223; text-decoration:none; white-space:nowrap; }
+    .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
+    .hx-dd-item:hover { background:#f2fbfb; }
+    @media (max-width: 768px) {
+      .hx-nav { flex-wrap:wrap; height:auto; padding:10px 0; }
+      .hx-menu { flex-wrap:wrap; gap:16px; }
+      .hx-dd-menu { position:static; box-shadow:none; border:none; padding:6px 0; margin:4px 0 0; display:none; background:#39b7bd10; }
+      .hx-dd:hover .hx-dd-menu { display:block; }
+      .hx-dd-item { color:#fff; }
+    }
+  </style>
+
+  {# ====== Styles de la page Journal (amélioration UI) ====== #}
+  <style>
+    :root{
+      --hx-primary:#39b7bd;
+      --hx-primary-600:#2aa6ac;
+      --hx-indigo:#667eea;
+      --hx-red:#e74c3c;
+      --hx-amber:#f39c12;
+      --hx-muted:#6b7a90;
+      --hx-border:#e8edf3;
+      --hx-card:#ffffff;
+      --hx-shadow:0 10px 28px rgba(0,0,0,.08);
+      --hx-r:14px;
+    }
+
+    .page-section{ padding:32px 0; }
+
+    /* Carte conteneur formulaire */
+    .journal-card{
+      background:var(--hx-card);
+      border:1px solid var(--hx-border);
+      border-radius:var(--hx-r);
+      box-shadow:var(--hx-shadow);
+      padding:20px;
+    }
+
+    .journal-title{
+      display:flex; align-items:center; gap:12px; margin:0 0 8px 0;
+      font-weight:800; color:#22304a;
+    }
+    .journal-sub{ color:var(--hx-muted); margin:0 0 18px 0; }
+
+    /* Groups & labels */
+    .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media (max-width: 768px){ .form-grid{ grid-template-columns:1fr; } }
+
+    .form-group{ display:flex; flex-direction:column; gap:6px; }
+    .form-label{ font-weight:700; color:#2a3b57; font-size:14px; }
+    .form-hint{ font-size:12px; color:var(--hx-muted); }
+
+    /* Inputs */
+    .hx-input, .hx-select, .hx-textarea{
+      width:100%; border:1.5px solid var(--hx-border); border-radius:10px;
+      padding:12px 14px; font-size:15px; transition: all .2s ease; background:#fff;
+    }
+    .hx-textarea{ min-height:110px; resize:vertical; }
+    .hx-input:focus, .hx-select:focus, .hx-textarea:focus{
+      outline:none; border-color:var(--hx-primary); box-shadow:0 0 0 4px rgba(57,183,189,.12);
+    }
+
+    /* Boutons */
+    .btn{
+      display:inline-flex; align-items:center; gap:10px; border-radius:10px; padding:12px 18px;
+      font-weight:800; text-decoration:none; border:2px solid transparent; cursor:pointer;
+      transition: all .15s ease;
+    }
+    .btn-primary{ background:var(--hx-primary); color:#fff; border-color:var(--hx-primary); }
+    .btn-primary:hover{ background:var(--hx-primary-600); border-color:var(--hx-primary-600); }
+    .btn-ghost{ background:#fff; color:#2a3b57; border-color:var(--hx-border); }
+    .btn-ghost:hover{ border-color:#cfd7e3; background:#fafcfd; }
+
+    /* Erreurs serveur */
+    .alert{
+      border-radius:12px; padding:12px 14px; border:1px solid #f3c2c2; background:#fff5f5; color:#8f1d1d;
+    }
+
+    /* Historique */
+    .entry{
+      background:#fff; border:1px solid var(--hx-border); border-left:4px solid var(--hx-primary);
+      border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 6px 18px rgba(0,0,0,.05);
+    }
+    .entry-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+      background:#eef6f7; color:#0f5660; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.03em;
+    }
+    .entry-meta{ color:var(--hx-muted); font-size:12px; }
+    .entry p{ margin:6px 0; }
+
+    /* Conclusion IA */
+    .ia-title{
+      color:var(--hx-primary); border-bottom:2px solid var(--hx-primary); padding-bottom:6px; margin-top:16px;
+    }
+    .ia-card{
+      background:#fefefe; color:#333; padding:12px; border-radius:10px; border:1px solid var(--hx-border);
+      box-shadow:0 4px 12px rgba(0,0,0,0.06); margin:8px 0;
+    }
+    .ia-danger{ background:#fde8ea; color:#7d1b28; font-weight:700; border:1px solid #f4ccd1; }
+    .ia-info{ background:#e6f6fa; color:#0c5460; font-weight:700; border:1px solid #cdebf1; }
+
+    /* Petits helpers */
+    .icon-label{ display:flex; align-items:center; gap:8px; }
+  </style>
 </head>
+
 <body>
-<div class="container">
-    <h1>Journal de Santé</h1>
+<div class="page-wrapper">
 
-    {% if errors %}
-        <ul style="color:red;">
-            {% for field, msgs in errors.items %}
-                {% for msg in msgs %}
-                    <li>{{ field }}: {{ msg }}</li>
-                {% endfor %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+  {# ================== HEADER (identique Recommendations) ================== #}
+  <div style="background:#ffffff;border-bottom:1px solid #eee;">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+      <div style="color:#333;font-size:14px;">Opening Hours: Saturday to Tuesday — 8am to 10pm</div>
 
-    <form method="post" action="{% url 'journal_page' %}">
-        {% csrf_token %}
-        <label>Catégorie:</label>
-        <select name="category" required>
-            <option value="symptome">Symptôme</option>
-            <option value="traitement">Traitement</option>
-            <option value="activite">Activité</option>
-            <option value="sommeil">Sommeil</option>
-            <option value="alimentation">Alimentation</option>
-            <option value="vitaux">Vitaux</option>
-        </select>
-
-        <label>Contenu:</label>
-        <textarea name="content" rows="3" required></textarea>
-
-        <label>Intensité (0-10):</label>
-        <input type="number" name="intensity" min="0" max="10">
-    <!-- Nouvelle saisie pour durée -->
-<label>Durée (hh:mm):</label>
-<input type="text" name="duration" placeholder="ex: 01:30">
-
-
-        <label>Localisation corporelle:</label>
-        <input type="text" name="location">
-
-        <label>Tags (séparés par des virgules):</label>
-        <input type="text" name="tags">
-
-        <button type="submit">Ajouter au journal</button>
-    </form>
-
-    <hr>
-
-    <h2>Historique des entrées</h2>
-    {% for entry in entries %}
-        <div class="entry">
-            <h3>{{ entry.get_category_display }} - {{ entry.created_at|date:"d/m/Y H:i" }}</h3>
-            <p><strong>Contenu:</strong> {{ entry.content }}</p>
-            {% if entry.intensity %}<p><strong>Intensité:</strong> {{ entry.intensity }}</p>{% endif %}
-            {% if entry.duration %}<p><strong>Durée:</strong> {{ entry.duration }}</p>{% endif %}
-            {% if entry.location %}<p><strong>Localisation:</strong> {{ entry.location }}</p>{% endif %}
-            {% if entry.tags %}<p><strong>Tags:</strong> {{ entry.tags }}</p>{% endif %}
+      <div style="display:flex;align-items:center;gap:18px;">
+        <div style="display:flex;gap:14px;color:#666;">
+          <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
         </div>
-    {% empty %}
-        <p>Aucune entrée pour le moment.</p>
-    {% endfor %}
 
-  {% if conclusion_lines %}
-<div style="margin-top:20px;">
-    <h2 style="color:#007BFF; border-bottom:2px solid #007BFF; padding-bottom:5px;">Conclusion Générée par l'IA</h2>
-    {% for line in conclusion_lines %}
-        {% if '⚠️' in line or '🥵' in line %}
-            <div style="background-color:#f8d7da; color:#721c24; padding:12px; border-radius:8px; margin:8px 0; font-weight:bold;">
-                {{ line }}
-            </div>
-        {% elif '💊' in line or '🥗' in line or '💪' in line or '😴' in line %}
-            <div style="background-color:#d1ecf1; color:#0c5460; padding:12px; border-radius:8px; margin:8px 0; font-weight:bold;">
-                {{ line }}
-            </div>
-        {% else %}
-            <div style="background-color:#fefefe; color:#333; padding:10px; border-radius:8px; margin:8px 0; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
-                {{ line }}
-            </div>
+        <div style="display:flex;gap:10px;">
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-user-circle"></i> Profile
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-sign-out-alt"></i> Log Out
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-right-to-bracket"></i> Log In
+            </a>
+            <a href="{% url 'signup' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-user-plus"></i> Sign Up
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav style="background:#39b7bd;">
+    <div class="container hx-nav">
+      <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+        <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
+        <strong style="font-size:22px;line-height:1;">Health Track</strong>
+      </a>
+
+      <ul class="hx-menu">
+        <li><a href="{% url 'home' %}">Home</a></li>
+
+        <li class="hx-dd">
+          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+          </a>
+          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
+            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
+            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
+          </div>
+        </li>
+
+        <li class="hx-dd">
+          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+          </a>
+          <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
+            <a class="hx-dd-item" href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Data</a>
+            <a class="hx-dd-item" href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
+            <a class="hx-dd-item" href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Journal</a>
+          </div>
+        </li>
+
+        <li>
+          <a href="{% url 'reco:recommendations' %}" style="display:flex;align-items:center;gap:8px;">
+            <i class="fa fa-lightbulb"></i> Recommendations
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
+            <i class="fa fa-heartbeat"></i> Health Analysis
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  {# ================== /HEADER ================== #}
+
+  {# ================== CONTENU ================== #}
+  <div class="container page-section">
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+
+        <!-- En-tête -->
+        <div class="mb-3">
+          <h1 class="journal-title">
+            <i class="fas fa-book-medical" style="color:var(--hx-primary);"></i>
+            Journal de Santé
+          </h1>
+          <p class="journal-sub">Note tes symptômes, traitements, activités, sommeil, alimentation et signes vitaux.</p>
+        </div>
+
+        <!-- Erreurs serveur -->
+        {% if errors %}
+          <div class="alert mb-3">
+            <strong>Erreurs dans le formulaire :</strong>
+            <ul style="margin:8px 0 0 18px;">
+              {% for field, msgs in errors.items %}
+                {% for msg in msgs %}
+                  <li><strong>{{ field|title }} :</strong> {{ msg }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
         {% endif %}
-    {% endfor %}
-</div>
-{% endif %}
 
+        <!-- Formulaire -->
+        <div class="journal-card mb-4">
+          <form method="post" action="{% url 'journal_page' %}" id="journalForm" novalidate>
+            {% csrf_token %}
+
+            <div class="form-grid">
+              <!-- Catégorie -->
+              <div class="form-group">
+                <label class="form-label icon-label" for="category">
+                  <i class="fas fa-layer-group" style="color:var(--hx-primary);"></i> Catégorie
+                </label>
+                <select id="category" name="category" class="hx-select" required>
+                  <option value="" disabled selected>— Sélectionner —</option>
+                  <option value="symptome">Symptôme</option>
+                  <option value="traitement">Traitement</option>
+                  <option value="activite">Activité</option>
+                  <option value="sommeil">Sommeil</option>
+                  <option value="alimentation">Alimentation</option>
+                  <option value="vitaux">Vitaux</option>
+                </select>
+                <small class="form-hint">Choisis la catégorie correspondant à ton entrée.</small>
+              </div>
+
+              <!-- Intensité -->
+              <div class="form-group">
+                <label class="form-label icon-label" for="intensity">
+                  <i class="fas fa-temperature-high" style="color:var(--hx-amber);"></i> Intensité (0–10)
+                </label>
+                <input id="intensity" type="number" name="intensity" min="0" max="10" class="hx-input" placeholder="ex : 4" />
+                <small class="form-hint">Optionnel — utile pour douleur/symptômes.</small>
+              </div>
+            </div>
+
+            <!-- Contenu -->
+            <div class="form-group">
+              <label class="form-label icon-label" for="content">
+                <i class="fas fa-pen-to-square" style="color:var(--hx-indigo);"></i> Contenu
+              </label>
+              <textarea id="content" name="content" class="hx-textarea" rows="4" required placeholder="Décris brièvement : contexte, durée, déclencheurs, etc."></textarea>
+              <small class="form-hint">Ex : “Céphalée légère après effort • Hydratation ok • Repos aidant”.</small>
+            </div>
+
+            <!-- Ligne 2 -->
+            <div class="form-grid">
+              <!-- Durée -->
+              <div class="form-group">
+                <label class="form-label icon-label" for="duration">
+                  <i class="far fa-clock" style="color:var(--hx-primary);"></i> Durée (hh:mm)
+                </label>
+                <input id="duration" type="text" name="duration" class="hx-input" placeholder="ex : 01:30" />
+                <small class="form-hint">Format 24h — ex : 00:45, 02:10</small>
+              </div>
+
+              <!-- Localisation -->
+              <div class="form-group">
+                <label class="form-label icon-label" for="location">
+                  <i class="fas fa-location-dot" style="color:var(--hx-primary);"></i> Localisation corporelle
+                </label>
+                <input id="location" type="text" name="location" class="hx-input" placeholder="ex : tête, bas du dos, genou droit…" />
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label class="form-label icon-label" for="tags">
+                <i class="fas fa-hashtag" style="color:var(--hx-primary);"></i> Tags
+              </label>
+              <input id="tags" type="text" name="tags" class="hx-input" placeholder="Mots-clés séparés par des virgules : migraine, running, café…" />
+              <small class="form-hint">Ex : douleur, sommeil, médication, stress</small>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+              <a href="{% url 'health_data_list' %}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Retour</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Ajouter au journal
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Historique -->
+        <h2 class="journal-title" style="font-size:20px;">
+          <i class="fas fa-clock-rotate-left" style="color:var(--hx-primary);"></i>
+          Historique des entrées
+        </h2>
+
+        {% for entry in entries %}
+          <div class="entry">
+            <div class="entry-header">
+              <span class="chip">
+                {% if entry.category == 'sommeil' %} 🌙 Sommeil
+                {% elif entry.category == 'activite' %} 🏃 Activité
+                {% elif entry.category == 'alimentation' %} 🥗 Alimentation
+                {% elif entry.category == 'traitement' %} 💊 Traitement
+                {% elif entry.category == 'vitaux' %} ❤️ Vitaux
+                {% else %} 🩺 Symptôme
+                {% endif %}
+              </span>
+              <span class="entry-meta">
+                <i class="far fa-calendar-alt"></i>
+                {{ entry.created_at|date:"d/m/Y H:i" }}
+              </span>
+            </div>
+
+            <p><strong>Contenu :</strong> {{ entry.content }}</p>
+
+            {% if entry.intensity %}
+              <p>
+                <strong>Intensité :</strong>
+               
+              </p>
+            {% endif %}
+
+            {% if entry.duration %}<p><strong>Durée :</strong> {{ entry.duration }}</p>{% endif %}
+            {% if entry.location %}<p><strong>Localisation :</strong> {{ entry.location }}</p>{% endif %}
+            {% if entry.tags %}<p><strong>Tags :</strong> {{ entry.tags }}</p>{% endif %}
+          </div>
+        {% empty %}
+          <div class="entry" style="border-left-color:#cfd7e3;">
+            <p class="journal-sub" style="margin:0;">Aucune entrée pour le moment.</p>
+          </div>
+        {% endfor %}
+
+        {% if conclusion_lines %}
+          <h2 class="ia-title">Conclusion Générée par l'IA</h2>
+          {% for line in conclusion_lines %}
+            {% if '⚠️' in line or '🥵' in line %}
+              <div class="ia-card ia-danger">{{ line }}</div>
+            {% elif '💊' in line or '🥗' in line or '💪' in line or '😴' in line %}
+              <div class="ia-card ia-info">{{ line }}</div>
+            {% else %}
+              <div class="ia-card">{{ line }}</div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+  {# ================== /CONTENU ================== #}
+
+  {# ================== FOOTER (identique Recommendations) ================== #}
+  <footer class="footer-main">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <!-- … ton footer (colonnes, posts, etc.) … -->
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container clearfix">
+        <div class="copyright-text">
+          <p>&copy; Copyright 2018. All Rights Reserved by
+            <a href="{% url 'home' %}">Medic</a>
+          </p>
+        </div>
+        <ul class="footer-bottom-link">
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'about' %}">About</a></li>
+          <li><a href="{% url 'contact' %}">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <div class="scroll-to-top scroll-to-target" data-target=".header-top">
+    <span class="fas fa-angle-up"></span>
+  </div>
 </div>
+
+{# ================== JS ================== #}
+<script src="{% static 'plugins/jquery.js' %}"></script>
+<script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-select.min.js' %}"></script>
+<script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+<script src="{% static 'plugins/fancybox/jquery.fancybox.min.js' %}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+<script src="{% static 'plugins/validate.js' %}"></script>
+<script src="{% static 'plugins/wow.js' %}"></script>
+<script src="{% static 'plugins/jquery-ui.js' %}"></script>
+<script src="{% static 'plugins/timePicker.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
+
+<script>
+/* Validation légère du formulaire côté client */
+const form = document.getElementById('journalForm');
+if (form) {
+  form.addEventListener('submit', (e) => {
+    const category = document.getElementById('category');
+    const content  = document.getElementById('content');
+    const intensity= document.getElementById('intensity');
+    const duration = document.getElementById('duration');
+
+    // Champ requis
+    if (!category.value) { alert('Veuillez sélectionner une catégorie.'); e.preventDefault(); return; }
+    if (!content.value.trim()) { alert('Veuillez renseigner le contenu.'); e.preventDefault(); return; }
+
+    // Intensité 0-10 (si rempli)
+    if (intensity.value !== '' ) {
+      const val = Number(intensity.value);
+      if (Number.isNaN(val) || val < 0 || val > 10) {
+        alert('L’intensité doit être entre 0 et 10.'); e.preventDefault(); return;
+      }
+    }
+
+    // Durée hh:mm (si rempli)
+    if (duration.value.trim() !== '') {
+      const ok = /^([01]\d|2[0-3]):([0-5]\d)$/.test(duration.value.trim());
+      if (!ok) { alert('Durée invalide. Utilisez le format hh:mm (ex : 01:30).'); e.preventDefault(); return; }
+    }
+  });
+}
+</script>
+
 </body>
 </html>

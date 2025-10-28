@@ -1,0 +1,46 @@
+{% extends "adminpanel/_layout.html" %}
+{% block panel %}
+<h1 class="ap-h1">Diagnostics {% if filter_user %}— {{ filter_user.get_full_name|default:filter_user.username }}{% endif %}</h1>
+
+<form class="ap-toolbar" method="get">
+  <input class="form-control ap-search" type="text" name="q" value="{{ q }}" placeholder="Rechercher (classe, modalité, …)">
+  <input class="form-control" type="date" name="from" value="{{ request.GET.from }}">
+  <input class="form-control" type="date" name="to" value="{{ request.GET.to }}">
+  {% if filter_user %}<input type="hidden" name="user" value="{{ filter_user.id }}">{% endif %}
+  <button class="btn btn-primary">Filtrer</button>
+  <a class="btn btn-default" href="{% url 'adminpanel:diagnostics' %}">Réinitialiser</a>
+</form>
+
+<div class="ap-card">
+  <table class="ap-table">
+    <thead><tr>
+      <th>Date</th><th>User</th><th>Modality</th><th>Résultat</th><th>Confiance</th>
+    </tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.date|date:"Y-m-d H:i" }}</td>
+        <td>
+          {% if r.user %}
+            <a href="{% url 'adminpanel:diagnostics_user' r.user.id %}">{{ r.user.get_full_name|default:r.user.username }}</a>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ r.modality }}</td>
+        <td>{{ r.result }}</td>
+        <td>{% if r.conf %}{{ r.conf|floatformat:1 }}%{% else %}—{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="ap-empty">Aucun résultat.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="ap-pagination" style="margin-top:10px">
+    {% if page_obj.has_previous %}<a class="ap-pill" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page='|urlencode }}">←</a>{% endif %}
+    <span class="ap-pill">Page {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="ap-pill" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page='|urlencode }}">→</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'journal/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard | Medic{% endblock %}
+
+{% block page_css %}
+<style>
+  .dash-wrap { padding: 26px 0; }
+  .stat-card { background:#fff; border-radius:14px; box-shadow:0 6px 14px rgba(0,0,0,.06); padding:18px; }
+  .stat-title { color:#003366; font-weight:700; margin:0; font-size:15px; }
+  .stat-value { font-size:26px; font-weight:800; margin-top:4px; color:#0d1b2a; }
+  .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; background:#eef5ff; color:#003366; }
+  .section-title { color:#003366; font-weight:800; margin:22px 0 10px; }
+  .table thead th { background:#f6f9fc; }
+  .user-chip { display:inline-flex; align-items:center; gap:6px; background:#eef5ff; color:#003366; border-radius:999px; padding:2px 8px; font-size:12px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-wrap">
+  <div class="container">
+
+    <h1 style="color:#003366;font-weight:800;margin-bottom:18px;">
+      <i class="fas fa-gauge"></i> Admin Dashboard
+    </h1>
+
+    {# ===== Bandeau stats ===== #}
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <p class="stat-title">Diagnostics (total)</p>
+          <div class="stat-value">{{ diag_counts.total }}</div>
+          <div><span class="pill">Brain: {{ diag_counts.brain }}</span> <span class="pill">CXR: {{ diag_counts.cxr }}</span></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <p class="stat-title">Recommendations</p>
+          <div class="stat-value">{{ reco_counts }}</div>
+          <div><span class="pill">Derniers: {{ reco_latest|length }}</span></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <p class="stat-title">Medical Infos</p>
+          <div class="stat-value">{{ medinfo_counts }}</div>
+          <div><span class="pill">Derniers: {{ medinfo_latest|length }}</span></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <p class="stat-title">Health Analysis</p>
+          <div class="stat-value">{{ health_counts }}</div>
+          <div><span class="pill">Derniers: {{ health_latest|length }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    {# ===== Diagnostics : derniers en vrac ===== #}
+    <h3 class="section-title"><i class="fas fa-stethoscope"></i> Derniers diagnostics</h3>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Modality</th>
+            <th>Résultat</th>
+            <th>Confiance</th>
+            <th>Date</th>
+            <th>Rapport</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for d in latest_diags %}
+          <tr>
+            <td>
+              {% if d.user %}
+                <span class="user-chip"><i class="fas fa-user"></i> {{ d.user.username }}</span>
+              {% else %}-{% endif %}
+            </td>
+            <td>{{ d.modality|upper }}</td>
+            <td>{{ d.predicted_class }}</td>
+            <td>{% if d.confidence %}{{ d.confidence|floatformat:3 }}{% else %}-{% endif %}</td>
+            <td>{{ d.created_at|date:"d/m/Y H:i" }}</td>
+            <td>
+              {% if d.id %}
+                <a class="btn btn-xs btn-outline-primary"
+                   href="{% url 'ai_models:diagnosis_report_pdf' d.id %}">
+                  <i class="far fa-file-pdf"></i> PDF
+                </a>
+              {% else %}-{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-muted">Aucun diagnostic.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ===== Diagnostics groupés par user ===== #}
+    <h3 class="section-title"><i class="fas fa-users"></i> Diagnostics par utilisateur (users non-staff)</h3>
+    <div class="accordion" id="diagByUser">
+      {% for u, items in diag_by_user %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="h-{{ u.id }}">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-{{ u.id }}">
+            {{ u.username }} <span class="pill" style="margin-left:8px;">{{ items|length }}</span>
+          </button>
+        </h2>
+        <div id="c-{{ u.id }}" class="accordion-collapse collapse" data-bs-parent="#diagByUser">
+          <div class="accordion-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm table-striped m-0">
+                <thead>
+                  <tr>
+                    <th>Modality</th><th>Résultat</th><th>Confiance</th><th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in items %}
+                  <tr>
+                    <td>{{ d.modality|upper }}</td>
+                    <td>{{ d.predicted_class }}</td>
+                    <td>{% if d.confidence %}{{ d.confidence|floatformat:3 }}{% else %}-{% endif %}</td>
+                    <td>{{ d.created_at|date:"d/m/Y H:i" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-muted">Aucun utilisateur normal avec des diagnostics.</div>
+      {% endfor %}
+    </div>
+
+    {# ===== Recommendations ===== #}
+    <h3 class="section-title"><i class="fas fa-lightbulb"></i> Recommendations (derniers)</h3>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead><tr><th>Utilisateur</th><th>Titre</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for r in reco_latest %}
+          <tr>
+            <td>{% if r.user %}<span class="user-chip"><i class="fas fa-user"></i> {{ r.user.username }}</span>{% else %}-{% endif %}</td>
+            <td>{{ r.title|default:r.pk }}</td>
+            <td>{{ r.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-muted">Aucune donnée.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ===== Medical Infos ===== #}
+    <h3 class="section-title"><i class="fas fa-notes-medical"></i> Medical infos (derniers)</h3>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead><tr><th>Utilisateur</th><th>Objet</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for m in medinfo_latest %}
+          <tr>
+            <td>{% if m.user %}<span class="user-chip"><i class="fas fa-user"></i> {{ m.user.username }}</span>{% else %}-{% endif %}</td>
+            <td>{{ m.subject|default:m.pk }}</td>
+            <td>{{ m.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-muted">Aucune donnée.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ===== Health Analysis ===== #}
+    <h3 class="section-title"><i class="fas fa-heartbeat"></i> Health analysis (derniers)</h3>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead><tr><th>Utilisateur</th><th>Type</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for h in health_latest %}
+          <tr>
+            <td>{% if h.user %}<span class="user-chip"><i class="fas fa-user"></i> {{ h.user.username }}</span>{% else %}-{% endif %}</td>
+            <td>{{ h.kind|default:h.pk }}</td>
+            <td>{{ h.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-muted">Aucune donnée.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

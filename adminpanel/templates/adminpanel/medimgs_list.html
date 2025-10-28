@@ -1,0 +1,30 @@
+{% extends "adminpanel/_layout.html" %}
+{% block panel %}
+<h1 class="ap-h1">Images médicales {% if filter_user %}— {{ filter_user.get_full_name|default:filter_user.username }}{% endif %}</h1>
+
+<form class="ap-toolbar" method="get">
+  <input class="form-control ap-search" type="text" name="q" value="{{ q }}" placeholder="Rechercher (modality / type) …">
+  <input class="form-control" type="date" name="from" value="{{ request.GET.from }}">
+  <input class="form-control" type="date" name="to" value="{{ request.GET.to }}">
+  {% if filter_user %}<input type="hidden" name="user" value="{{ filter_user.id }}">{% endif %}
+  <button class="btn btn-primary">Filtrer</button>
+  <a class="btn btn-default" href="{% url 'adminpanel:medimgs' %}">Réinitialiser</a>
+</form>
+
+<div class="ap-card">
+  <table class="ap-table">
+    <thead><tr><th>Date</th><th>User</th><th>Type</th><th>Aperçu</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.date|date:"Y-m-d H:i" }}</td>
+        <td>{% if r.user %}<a href="{% url 'adminpanel:medimgs_user' r.user.id %}">{{ r.user.get_full_name|default:r.user.username }}</a>{% else %}—{% endif %}</td>
+        <td>{{ r.kind }}</td>
+        <td>{% if r.path %}<img src="{{ r.path.url|default:r.path }}" alt="" style="height:44px;border-radius:6px">{% else %}—{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="4" class="ap-empty">Aucun résultat.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  {% include "adminpanel/_pagination.html" %}
+</div>
+{% endblock %}

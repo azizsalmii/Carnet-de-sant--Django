@@ -26,4 +26,6 @@ urlpatterns = [
     path('ai/brain-tumor/report/', brain_report_pdf, name='brain_report_pdf'),
         path('ai/diagnosis/<int:pk>/report/', diagnosis_report_pdf, name='diagnosis_report_pdf'),  # <-- AJOUT
 
+        
+
 ]

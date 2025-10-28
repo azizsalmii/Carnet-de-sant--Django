@@ -1,444 +1,605 @@
-{% extends 'journal/base.html' %}
 {% load static %}
 
-{% block title %}Health Analysis | Intelligent Health Detector{% endblock %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Health Analysis | Intelligent Health Detector</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-{% block content %}
-<style>
-    .health-form-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 60px 0;
-        color: white;
-    }
-    .form-container {
-        background: white;
-        border-radius: 15px;
-        padding: 40px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        color: #333;
-    }
-    .form-group { margin-bottom: 25px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
-    .form-control { width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px; transition: all 0.3s ease; }
-    .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); outline: none; }
-    .info-tooltip { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 15px; margin: 10px 0; border-radius: 4px; font-size: 14px; }
-    .section-title { text-align: center; margin-bottom: 40px; }
-    .section-title h2 { color: #2c3e50; margin-bottom: 15px; }
-    .btn-health {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white; padding: 15px 30px; border: none; border-radius: 8px;
-        font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%;
-    }
-    .btn-health:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3); }
-    .form-step { display: none; }
-    .form-step.active { display: block; }
-    .step-indicator { display: flex; justify-content: center; margin-bottom: 40px; }
-    .step { width: 40px; height: 40px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; margin: 0 10px; font-weight: bold; color: #6c757d; }
-    .step.active { background: #667eea; color: white; }
-    .step-line { flex: 1; height: 3px; background: #e9ecef; margin: 0 5px; align-self: center; }
-    .service-item { text-align: center; padding: 30px 20px; margin: 20px 0; }
-    .service-item .icon-box { margin-bottom: 20px; }
-</style>
+  <!-- Vendor CSS -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Theme -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-<!-- ✅ HERO SECTION -->
-<section class="health-form-section">
-    <div class="container">
-        <div class="section-title text-center">
-            <h1 class="text-white">Intelligent Health Analysis</h1>
-            <p class="text-white">Our AI system analyzes your health data to detect anomalies and provide personalized recommendations</p>
+  {# ====== Header dropdown minimal CSS (identique Recommendations) ====== #}
+  <style>
+    .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
+    .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
+    .hx-menu > li > a { color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+    .hx-dd { position:relative; }
+    .hx-dd-toggle { display:flex; align-items:center; gap:8px; color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+    .hx-caret { font-size:10px; opacity:.85; margin-left:6px; }
+    .hx-dd-menu {
+      position:absolute; top:100%; left:0; min-width:220px; background:#ffffff;
+      border-radius:10px; padding:10px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,.12);
+      border:1px solid rgba(0,0,0,.06); display:none; z-index:50;
+    }
+    .hx-dd:hover .hx-dd-menu, .hx-dd:focus-within .hx-dd-menu { display:block; }
+    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#223; text-decoration:none; white-space:nowrap; }
+    .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
+    .hx-dd-item:hover { background:#f2fbfb; }
+    @media (max-width: 768px) {
+      .hx-nav { flex-wrap:wrap; height:auto; padding:10px 0; }
+      .hx-menu { flex-wrap:wrap; gap:16px; }
+      .hx-dd-menu { position:static; box-shadow:none; border:none; padding:6px 0; margin:4px 0 0; display:none; background:#39b7bd10; }
+      .hx-dd:hover .hx-dd-menu { display:block; }
+      .hx-dd-item { color:#fff; }
+    }
+  </style>
+
+  {# ====== Styles spécifiques de la page (UI revue) ====== #}
+  <style>
+    :root{
+      --hx-primary:#39b7bd;
+      --hx-primary-600:#2aa6ac;
+      --hx-indigo:#667eea;
+      --hx-purple:#764ba2;
+      --hx-muted:#6b7a90;
+      --hx-border:#e8edf3;
+      --hx-card:#ffffff;
+      --hx-shadow:0 14px 36px rgba(0,0,0,.08);
+      --hx-r:14px;
+    }
+
+    /* HERO */
+    .health-form-hero{
+      background: linear-gradient(135deg, var(--hx-indigo) 0%, var(--hx-primary) 100%);
+      padding: 64px 0; color: #fff; text-align:center;
+    }
+    .health-form-hero h1{ font-weight:800; letter-spacing:.2px; margin:0 0 8px 0; }
+    .health-form-hero p{ opacity:.95; margin:0; }
+
+    /* Section form */
+    .section{ padding: 36px 0; }
+    .form-wrap{
+      background:var(--hx-card); border:1px solid var(--hx-border); border-radius:var(--hx-r);
+      padding:28px; box-shadow:var(--hx-shadow);
+    }
+
+    /* Stepper */
+    .stepper{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:22px; }
+    .step-dot{
+      width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      background:#eef2ff; color:#394b7a; font-weight:800; border:2px solid #e1e7ff;
+    }
+    .step-dot.active{ background:var(--hx-indigo); color:#fff; border-color:var(--hx-indigo); }
+    .step-line{ flex:1; height:3px; background:#e1e7ff; max-width:140px; }
+
+    /* Form controls */
+    .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media (max-width: 992px){ .grid-2{ grid-template-columns:1fr; } }
+    .form-group{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+    .form-label{ font-weight:700; color:#22304a; }
+    .form-control{
+      width:100%; border:1.8px solid var(--hx-border); border-radius:10px; padding:12px 14px; font-size:15px;
+      transition:.2s ease; background:#fff;
+    }
+    .form-control:focus{
+      outline:none; border-color:var(--hx-primary);
+      box-shadow:0 0 0 4px rgba(57,183,189,.14);
+    }
+    .info-tip{
+      background:#e6f6fa; border-left:3px solid var(--hx-primary); color:#0f5660;
+      border-radius:8px; padding:10px 12px; font-size:13px;
+    }
+
+    /* Steps show/hide */
+    .form-step{ display:none; }
+    .form-step.active{ display:block; }
+
+    /* Buttons */
+    .btn{ display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:12px;
+          font-weight:800; border:2px solid transparent; cursor:pointer; transition:.15s ease; }
+    .btn-primary{ background:var(--hx-primary); color:#fff; border-color:var(--hx-primary); }
+    .btn-primary:hover{ background:var(--hx-primary-600); border-color:var(--hx-primary-600); }
+    .btn-secondary{ background:#6c757d; color:#fff; border-color:#6c757d; }
+    .btn-block{ width:100%; }
+    .btn-ghost{ background:#fff; color:#2a3b57; border-color:var(--hx-border); }
+    .btn-ghost:hover{ border-color:#cfd7e3; background:#fafcfd; }
+
+    /* FAQ accordéon (compat Bootstrap v3 du template) */
+    .panel-title a{ display:block; padding:12px 0; color:#22304a; font-weight:700; text-decoration:none; }
+    .panel-title a[aria-expanded="true"]{ color:var(--hx-indigo); }
+
+    /* Helpers */
+    .section-title h3 span{ color:var(--hx-primary); }
+  </style>
+</head>
+
+<body>
+<div class="page-wrapper">
+
+  {# ================== HEADER (identique Recommendations) ================== #}
+  <div style="background:#ffffff;border-bottom:1px solid #eee;">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+      <div style="color:#333;font-size:14px;">
+        Opening Hours: Saturday to Tuesday — 8am to 10pm
+      </div>
+
+      <div style="display:flex;align-items:center;gap:18px;">
+        <div style="display:flex;gap:14px;color:#666;">
+          <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-google-plus-g"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-pinterest-p"></i></a>
         </div>
+
+        <div style="display:flex;gap:10px;">
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-user-circle"></i> Profile
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-sign-out-alt"></i> Log Out
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-sm" style="background:#eef7ff;border:1px solid #cfe3ff;color:#0b5ed7;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-right-to-bracket"></i> Log In
+            </a>
+            <a href="{% url 'signup' %}" class="btn btn-sm" style="background:#0b5ed7;border:1px solid #0b5ed7;color:#fff;padding:6px 10px;border-radius:6px;">
+              <i class="fa fa-user-plus"></i> Sign Up
+            </a>
+          {% endif %}
+        </div>
+      </div>
     </div>
-</section>
-        <!-- Analysis Form -->
-        <section class="section bg-gray">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-10 col-md-offset-1">
-                        <div class="form-container">
-                            <!-- Step Indicator -->
-                            <div class="step-indicator">
-                                <div class="step active">1</div>
-                                <div class="step-line"></div>
-                                <div class="step">2</div>
-                                <div class="step-line"></div>
-                                <div class="step">3</div>
-                            </div>
+  </div>
 
-                            <form id="healthForm" method="POST" action="{% url 'analyze_user_data' %}">
-                                {% csrf_token %}
-                                
-                                <!-- Step 1: Basic Information -->
-                                <div class="form-step active" id="step1">
-                                    <h3>Personal Information</h3>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="age">Age</label>
-                                                <input type="number" class="form-control" id="age" name="age" 
-                                                       min="18" max="100" required 
-                                                       placeholder="e.g., 35 years">
-                                                <div class="info-tooltip">
-                                                    <i class="fas fa-info-circle"></i> Your age helps us tailor the analysis to your age group.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="gender">Gender</label>
-                                                <select class="form-control" id="gender" name="gender" required>
-                                                    <option value="">Select your gender</option>
-                                                    <option value="Male">Male</option>
-                                                    <option value="Female">Female</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
+  <nav style="background:#39b7bd;">
+    <div class="container hx-nav">
+      <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+        <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
+        <strong style="font-size:22px;line-height:1;">Health Track</strong>
+      </a>
 
-                                    <div class="form-group">
-                                        <label for="bmi">Body Mass Index (BMI)</label>
-                                        <input type="number" class="form-control" id="bmi" name="bmi" 
-                                               min="15" max="50" step="0.1" required 
-                                               placeholder="e.g., 22.5">
-                                        <div class="info-tooltip">
-                                            <strong>How to calculate your BMI:</strong> Weight (kg) ÷ Height (m)²<br>
-                                            <small>Example: 70kg ÷ (1.75m × 1.75m) = 22.9</small>
-                                        </div>
-                                    </div>
+      <ul class="hx-menu">
+        <li><a href="{% url 'home' %}">Home</a></li>
 
-                                    <button type="button" class="btn-health next-step" data-next="step2">
-                                        Next <i class="fas fa-arrow-right"></i>
-                                    </button>
-                                </div>
+        <li class="hx-dd">
+          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+          </a>
+          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
+            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}">
+              <i class="fa fa-brain"></i> Brain Tumor AI
+            </a>
+            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}">
+              <i class="fa fa-stethoscope"></i> Chest X-Ray AI
+            </a>
+          </div>
+        </li>
 
-                                <!-- Step 2: Sleep and Activity -->
-                                <div class="form-step" id="step2">
-                                    <h3>Sleep and Physical Activity</h3>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="sleep_duration">Daily Sleep Duration</label>
-                                                <input type="number" class="form-control" id="sleep_duration" 
-                                                       name="sleep_duration" min="2" max="12" step="0.1" required 
-                                                       placeholder="e.g., 7.5 hours">
-                                                <div class="info-tooltip">
-                                                    <i class="fas fa-moon"></i> Ideal duration is 7 to 9 hours per night for adults.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="sleep_quality">Sleep Quality (1-10)</label>
-                                                <input type="number" class="form-control" id="sleep_quality" 
-                                                       name="sleep_quality" min="1" max="10" required 
-                                                       placeholder="1 = very poor, 10 = excellent">
-                                            </div>
-                                        </div>
-                                    </div>
+        <li class="hx-dd">
+          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
+          </a>
+          <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
+            <a class="hx-dd-item" href="{% url 'health_data_list' %}">
+              <i class="fas fa-chart-line"></i> My Data
+            </a>
+            <a class="hx-dd-item" href="{% url 'report_list' %}">
+              <i class="fas fa-file-medical"></i> My Reports
+            </a>
+            <a class="hx-dd-item" href="{% url 'journal_page' %}">
+              <i class="fas fa-book"></i> Journal
+            </a>
+          </div>
+        </li>
 
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="steps_daily">Daily Step Count</label>
-                                                <input type="number" class="form-control" id="steps_daily" 
-                                                       name="steps_daily" min="0" max="50000" required 
-                                                       placeholder="e.g., 8500 steps">
-                                                <div class="info-tooltip">
-                                                    <i class="fas fa-walking"></i> Health goal: 7,500 to 10,000 steps per day.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="sedentary_hours">Daily Sitting Hours</label>
-                                                <input type="number" class="form-control" id="sedentary_hours" 
-                                                       name="sedentary_hours" min="0" max="24" required 
-                                                       placeholder="e.g., 8 hours">
-                                            </div>
-                                        </div>
-                                    </div>
+        <li>
+          <a href="{% url 'reco:recommendations' %}" style="display:flex;align-items:center;gap:8px;">
+            <i class="fa fa-lightbulb"></i> Recommendations
+          </a>
+        </li>
 
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <button type="button" class="btn-health prev-step" style="background: #6c757d;">
-                                                <i class="fas fa-arrow-left"></i> Previous
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <button type="button" class="btn-health next-step" data-next="step3">
-                                                Next <i class="fas fa-arrow-right"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Step 3: Vital Signs and Lifestyle -->
-                                <div class="form-step" id="step3">
-                                    <h3>Vital Signs and Lifestyle</h3>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="heart_rate_resting">Resting Heart Rate</label>
-                                                <input type="number" class="form-control" id="heart_rate_resting" 
-                                                       name="heart_rate_resting" min="40" max="120" required 
-                                                       placeholder="e.g., 72 beats per minute">
-                                                <div class="info-tooltip">
-                                                    <i class="fas fa-heartbeat"></i> Normal range: 60-100 bpm. Measure while sitting calmly.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="blood_pressure_systolic">Systolic Blood Pressure</label>
-                                                <input type="number" class="form-control" id="blood_pressure_systolic" 
-                                                       name="blood_pressure_systolic" min="80" max="200" required 
-                                                       placeholder="e.g., 120 mmHg">
-                                                <div class="info-tooltip">
-                                                    <i class="fas fa-tachometer-alt"></i> Normal: less than 120 mmHg.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="stress_level">Stress Level (1-10)</label>
-                                                <input type="number" class="form-control" id="stress_level" 
-                                                       name="stress_level" min="1" max="10" required 
-                                                       placeholder="1 = very calm, 10 = very stressed">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="water_intake_liters">Daily Water Intake</label>
-                                                <input type="number" class="form-control" id="water_intake_liters" 
-                                                       name="water_intake_liters" min="0" max="10" step="0.1" 
-                                                       placeholder="e.g., 2.0 liters" value="2.0">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="fruit_vegetable_servings">Daily Fruit/Vegetable Servings</label>
-                                        <input type="number" class="form-control" id="fruit_vegetable_servings" 
-                                               name="fruit_vegetable_servings" min="0" max="10" 
-                                               placeholder="e.g., 5 servings" value="3">
-                                        <div class="info-tooltip">
-                                            <i class="fas fa-apple-alt"></i> Recommendation: Minimum 5 servings per day for optimal health.
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <button type="button" class="btn-health prev-step" style="background: #6c757d;">
-                                                <i class="fas fa-arrow-left"></i> Previous
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <button type="submit" class="btn-health">
-                                                <i class="fas fa-heartbeat"></i> Analyze My Health
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Information Section -->
-        <section class="service-section section">
-            <div class="container">
-                <div class="section-title text-center">
-                    <h3>How Our
-                        <span>Analysis Works</span>
-                    </h3>
-                    <p>Our system uses artificial intelligence to provide comprehensive and personalized health assessment</p>
-                </div>
-                <div class="row">
-                    <div class="col-md-4 col-sm-6 col-xs-12">
-                        <div class="service-item">
-                            <div class="icon-box">
-                                <i class="fas fa-brain fa-3x" style="color: #667eea;"></i>
-                            </div>
-                            <h4>AI Analysis</h4>
-                            <p>Our algorithm compares your data with thousands of health profiles to detect anomalies</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-sm-6 col-xs-12">
-                        <div class="service-item">
-                            <div class="icon-box">
-                                <i class="fas fa-chart-line fa-3x" style="color: #764ba2;"></i>
-                            </div>
-                            <h4>Health Score</h4>
-                            <p>Get an overall health score and detailed analysis by category</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-sm-6 col-xs-12">
-                        <div class="service-item">
-                            <div class="icon-box">
-                                <i class="fas fa-user-md fa-3x" style="color: #667eea;"></i>
-                            </div>
-                            <h4>Personalized Recommendations</h4>
-                            <p>Receive customized advice to improve your health and wellbeing</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FAQ Section -->
-        <section class="section bg-gray">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-8 col-md-offset-2">
-                        <div class="section-title text-center">
-                            <h3>Frequently Asked
-                                <span>Questions</span>
-                            </h3>
-                        </div>
-                        <div class="accordion-section">
-                            <div class="accordion-holder">
-                                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading" role="tab" id="headingOne">
-                                            <h4 class="panel-title">
-                                                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true">
-                                                    Is my health data secure?
-                                                </a>
-                                            </h4>
-                                        </div>
-                                        <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel">
-                                            <div class="panel-body">
-                                                Yes, we take data security very seriously. All your health information is encrypted and stored securely. We comply with healthcare data protection regulations.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading" role="tab" id="headingTwo">
-                                            <h4 class="panel-title">
-                                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
-                                                    How accurate is the AI analysis?
-                                                </a>
-                                            </h4>
-                                        </div>
-                                        <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel">
-                                            <div class="panel-body">
-                                                Our AI system has been trained on thousands of health profiles and achieves over 90% accuracy in anomaly detection. However, this is a screening tool and not a replacement for professional medical advice.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading" role="tab" id="headingThree">
-                                            <h4 class="panel-title">
-                                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
-                                                    What should I do if anomalies are detected?
-                                                </a>
-                                            </h4>
-                                        </div>
-                                        <div id="collapseThree" class="panel-collapse collapse" role="tabpanel">
-                                            <div class="panel-body">
-                                                If our system detects potential health anomalies, we recommend consulting with a healthcare professional for further evaluation. Our analysis is designed to help you identify areas that may need medical attention.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="footer-main">
-            <div class="footer-bottom">
-                <div class="container clearfix">
-                    <div class="copyright-text">
-                        <p>&copy; 2024 Intelligent Health Detector. All rights reserved.</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
+        <li>
+          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
+            <i class="fa fa-heartbeat"></i> Health Analysis
+          </a>
+        </li>
+      </ul>
     </div>
+  </nav>
+  {# ================== /HEADER ================== #}
 
-    <!-- Scripts -->
-    <script src="{% static 'plugins/jquery.js' %}"></script>
-    <script src="{% static 'plugins/bootstrap.min.js' %}"></script>
-    <script>
-        $(document).ready(function() {
-            // Step navigation
-            $('.next-step').click(function() {
-                var nextStep = $(this).data('next');
-                $('.form-step').removeClass('active');
-                $('#' + nextStep).addClass('active');
-                updateStepIndicator(nextStep);
-            });
+  {# ================== HERO ================== #}
+  <section class="health-form-hero">
+    <div class="container">
+      <h1>Intelligent Health Analysis</h1>
+      <p>Our AI analyzes your inputs to detect anomalies & deliver personalized recommendations</p>
+    </div>
+  </section>
 
-            $('.prev-step').click(function() {
-                var currentStep = $('.form-step.active').attr('id');
-                var prevStep = getPrevStep(currentStep);
-                if (prevStep) {
-                    $('.form-step').removeClass('active');
-                    $('#' + prevStep).addClass('active');
-                    updateStepIndicator(prevStep);
-                }
-            });
+  {# ================== FORMULAIRE ================== #}
+  <section class="section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+          <div class="form-wrap">
 
-            function updateStepIndicator(step) {
-                var stepNumber = step.replace('step', '');
-                $('.step').removeClass('active');
-                $('.step').each(function(index) {
-                    if (index < stepNumber) {
-                        $(this).addClass('active');
-                    }
-                });
-            }
+            <!-- Stepper -->
+            <div class="stepper" aria-label="Progression du formulaire">
+              <div class="step-dot active" data-step="1">1</div>
+              <div class="step-line"></div>
+              <div class="step-dot" data-step="2">2</div>
+              <div class="step-line"></div>
+              <div class="step-dot" data-step="3">3</div>
+            </div>
 
-            function getPrevStep(currentStep) {
-                var steps = ['step1', 'step2', 'step3'];
-                var currentIndex = steps.indexOf(currentStep);
-                return currentIndex > 0 ? steps[currentIndex - 1] : null;
-            }
+            <form id="healthForm" method="POST" action="{% url 'analyze_user_data' %}" novalidate>
+              {% csrf_token %}
 
-            // Real-time validation
-            $('input, select').on('blur', function() {
-                validateField($(this));
-            });
+              <!-- Étape 1 -->
+              <div class="form-step active" id="step1" aria-labelledby="step1-title">
+                <h3 id="step1-title" style="margin-top:0;margin-bottom:14px;">Personal Information</h3>
 
-            function validateField(field) {
-                var value = field.val();
-                var isValid = true;
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label for="age" class="form-label">Age</label>
+                    <input type="number" class="form-control" id="age" name="age"
+                           min="18" max="100" required placeholder="e.g., 35 years" />
+                    <div class="info-tip">
+                      <i class="fas fa-info-circle"></i> Your age helps us tailor the analysis to your age group.
+                    </div>
+                  </div>
 
-                if (field.attr('required') && !value) {
-                    isValid = false;
-                    field.css('border-color', '#dc3545');
-                } else {
-                    field.css('border-color', '#28a745');
-                }
+                  <div class="form-group">
+                    <label for="gender" class="form-label">Gender</label>
+                    <select class="form-control" id="gender" name="gender" required>
+                      <option value="">Select your gender</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                    </select>
+                  </div>
+                </div>
 
-                return isValid;
-            }
+                <div class="form-group">
+                  <label for="bmi" class="form-label">Body Mass Index (BMI)</label>
+                  <input type="number" class="form-control" id="bmi" name="bmi"
+                         min="15" max="50" step="0.1" required placeholder="e.g., 22.5" />
+                  <div class="info-tip">
+                    <strong>How to calculate your BMI:</strong> Weight (kg) ÷ Height (m)²<br>
+                    <small>Example: 70kg ÷ (1.75m × 1.75m) = 22.9</small>
+                  </div>
+                </div>
 
-            // Form submission handling
-            $('#healthForm').on('submit', function(e) {
-                var isValid = true;
-                $('input[required], select[required]').each(function() {
-                    if (!validateField($(this))) {
-                        isValid = false;
-                    }
-                });
-                
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Please fill in all required fields correctly.');
-                }
-            });
-        });
-    </script>
-{% endblock %}
+                <div class="grid-2" style="margin-top:10px;">
+                  <button type="button" class="btn btn-ghost" disabled>
+                    <i class="fas fa-ban"></i> Step 1
+                  </button>
+                  <button type="button" class="btn btn-primary next-step btn-block" data-next="step2">
+                    Next <i class="fas fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Étape 2 -->
+              <div class="form-step" id="step2" aria-labelledby="step2-title">
+                <h3 id="step2-title" style="margin-top:0;margin-bottom:14px;">Sleep and Physical Activity</h3>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label for="sleep_duration" class="form-label">Daily Sleep Duration</label>
+                    <input type="number" class="form-control" id="sleep_duration" name="sleep_duration"
+                           min="2" max="12" step="0.1" required placeholder="e.g., 7.5 hours" />
+                    <div class="info-tip"><i class="fas fa-moon"></i> Ideal duration: 7–9 hours/night for adults.</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sleep_quality" class="form-label">Sleep Quality (1–10)</label>
+                    <input type="number" class="form-control" id="sleep_quality" name="sleep_quality"
+                           min="1" max="10" required placeholder="1 = very poor, 10 = excellent" />
+                  </div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label for="steps_daily" class="form-label">Daily Step Count</label>
+                    <input type="number" class="form-control" id="steps_daily" name="steps_daily"
+                           min="0" max="50000" required placeholder="e.g., 8500 steps" />
+                    <div class="info-tip"><i class="fas fa-walking"></i> Goal: 7,500–10,000 steps/day.</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sedentary_hours" class="form-label">Daily Sitting Hours</label>
+                    <input type="number" class="form-control" id="sedentary_hours" name="sedentary_hours"
+                           min="0" max="24" required placeholder="e.g., 8 hours" />
+                  </div>
+                </div>
+
+                <div class="grid-2" style="margin-top:10px;">
+                  <button type="button" class="btn btn-secondary prev-step">
+                    <i class="fas fa-arrow-left"></i> Previous
+                  </button>
+                  <button type="button" class="btn btn-primary next-step" data-next="step3">
+                    Next <i class="fas fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Étape 3 -->
+              <div class="form-step" id="step3" aria-labelledby="step3-title">
+                <h3 id="step3-title" style="margin-top:0;margin-bottom:14px;">Vital Signs and Lifestyle</h3>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label for="heart_rate_resting" class="form-label">Resting Heart Rate</label>
+                    <input type="number" class="form-control" id="heart_rate_resting" name="heart_rate_resting"
+                           min="40" max="120" required placeholder="e.g., 72 bpm" />
+                    <div class="info-tip"><i class="fas fa-heartbeat"></i> Normal: 60–100 bpm.</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="blood_pressure_systolic" class="form-label">Systolic Blood Pressure</label>
+                    <input type="number" class="form-control" id="blood_pressure_systolic" name="blood_pressure_systolic"
+                           min="80" max="200" required placeholder="e.g., 120 mmHg" />
+                    <div class="info-tip"><i class="fas fa-tachometer-alt"></i> Normal: &lt; 120 mmHg.</div>
+                  </div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label for="stress_level" class="form-label">Stress Level (1–10)</label>
+                    <input type="number" class="form-control" id="stress_level" name="stress_level"
+                           min="1" max="10" required placeholder="1 = very calm, 10 = very stressed" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="water_intake_liters" class="form-label">Daily Water Intake (L)</label>
+                    <input type="number" class="form-control" id="water_intake_liters" name="water_intake_liters"
+                           min="0" max="10" step="0.1" placeholder="e.g., 2.0" value="2.0" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="fruit_vegetable_servings" class="form-label">Daily Fruit/Vegetable Servings</label>
+                  <input type="number" class="form-control" id="fruit_vegetable_servings" name="fruit_vegetable_servings"
+                         min="0" max="10" placeholder="e.g., 5 servings" value="3" />
+                  <div class="info-tip"><i class="fas fa-apple-alt"></i> Recommendation: ≥ 5 servings/day.</div>
+                </div>
+
+                <div class="grid-2" style="margin-top:10px;">
+                  <button type="button" class="btn btn-secondary prev-step">
+                    <i class="fas fa-arrow-left"></i> Previous
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-heartbeat"></i> Analyze My Health
+                  </button>
+                </div>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ================== HOW IT WORKS ================== #}
+  <section class="section">
+    <div class="container">
+      <div class="section-title text-center">
+        <h3>How Our <span>Analysis Works</span></h3>
+        <p>Our system uses AI to deliver a comprehensive and personalized health assessment.</p>
+      </div>
+      <div class="row">
+        <div class="col-md-4 col-sm-6 col-xs-12">
+          <div class="service-item" style="text-align:center;padding:24px 16px;">
+            <div class="icon-box"><i class="fas fa-brain fa-3x" style="color:#667eea;"></i></div>
+            <h4>AI Analysis</h4>
+            <p>We compare your data with thousands of profiles to detect potential anomalies.</p>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 col-xs-12">
+          <div class="service-item" style="text-align:center;padding:24px 16px;">
+            <div class="icon-box"><i class="fas fa-chart-line fa-3x" style="color:#01050d;"></i></div>
+            <h4>Health Score</h4>
+            <p>Get an overall score and detailed insights per category.</p>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 col-xs-12">
+          <div class="service-item" style="text-align:center;padding:24px 16px;">
+            <div class="icon-box"><i class="fas fa-user-md fa-3x" style="color:#667eea;"></i></div>
+            <h4>Personalized Tips</h4>
+            <p>Receive concrete, personalized advice to improve your wellbeing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ================== FAQ ================== #}
+  <section class="section" style="background:#f8fafc;">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+          <div class="section-title text-center">
+            <h3>Frequently Asked <span>Questions</span></h3>
+          </div>
+
+          <div class="accordion-section">
+            <div class="accordion-holder">
+              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+                <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingOne">
+                    <h4 class="panel-title">
+                      <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true">
+                        Is my health data secure?
+                      </a>
+                    </h4>
+                  </div>
+                  <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel">
+                    <div class="panel-body">
+                      Yes. All information is encrypted and stored securely; we adhere to healthcare data protection best practices.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingTwo">
+                    <h4 class="panel-title">
+                      <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                        How accurate is the AI analysis?
+                      </a>
+                    </h4>
+                  </div>
+                  <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel">
+                    <div class="panel-body">
+                      Our models exceed 90% accuracy on internal validation, but results are screening-level and not a substitute for medical advice.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingThree">
+                    <h4 class="panel-title">
+                      <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                        What should I do if anomalies are detected?
+                      </a>
+                    </h4>
+                  </div>
+                  <div id="collapseThree" class="panel-collapse collapse" role="tabpanel">
+                    <div class="panel-body">
+                      If anomalies are flagged, consider consulting a healthcare professional for further evaluation.
+                    </div>
+                  </div>
+                </div>
+
+              </div> <!-- /panel-group -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ================== FOOTER (identique Recommendations) ================== #}
+  <footer class="footer-main">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <!-- … (tes colonnes/footer-top si tu en as) … -->
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container clearfix">
+        <div class="copyright-text">
+          <p>&copy; 2024 Intelligent Health Detector. All rights reserved.</p>
+        </div>
+        <ul class="footer-bottom-link">
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'about' %}">About</a></li>
+          <li><a href="{% url 'contact' %}">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <div class="scroll-to-top scroll-to-target" data-target=".header-top">
+    <span class="fas fa-angle-up"></span>
+  </div>
+</div>
+
+{# ================== JS ================== #}
+<script src="{% static 'plugins/jquery.js' %}"></script>
+<script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-select.min.js' %}"></script>
+<script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+<script src="{% static 'plugins/fancybox/jquery.fancybox.min.js' %}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+<script src="{% static 'plugins/validate.js' %}"></script>
+<script src="{% static 'plugins/wow.js' %}"></script>
+<script src="{% static 'plugins/jquery-ui.js' %}"></script>
+<script src="{% static 'plugins/timePicker.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
+
+<script>
+/* ====== Navigation étapes ====== */
+(function(){
+  function goTo(stepId){
+    document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+    document.getElementById(stepId).classList.add('active');
+    const stepNum = Number(stepId.replace('step',''));
+    document.querySelectorAll('.step-dot').forEach(dot => {
+      const n = Number(dot.dataset.step);
+      dot.classList.toggle('active', n <= stepNum);
+    });
+  }
+
+  // Next / Prev
+  document.querySelectorAll('.next-step').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const next = btn.getAttribute('data-next');
+      if(next) goTo(next);
+    });
+  });
+  document.querySelectorAll('.prev-step').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const current = document.querySelector('.form-step.active').id;
+      const order = ['step1','step2','step3'];
+      const i = order.indexOf(current);
+      if(i>0) goTo(order[i-1]);
+    });
+  });
+
+  // Validation légère
+  function markValidity(el, valid){
+    el.style.borderColor = valid ? '#39b7bd' : '#dc3545';
+    if(valid) el.style.boxShadow = '0 0 0 4px rgba(57,183,189,.14)';
+  }
+
+  function validateField(el){
+    const required = el.hasAttribute('required');
+    let ok = true;
+    if(required && !el.value) ok = false;
+    if(el.id === 'sleep_quality' || el.id === 'stress_level'){
+      const v = Number(el.value);
+      if(isNaN(v) || v < 1 || v > 10) ok = false;
+    }
+    if(el.id === 'sleep_duration'){
+      const v = Number(el.value);
+      if(isNaN(v) || v < 2 || v > 12) ok = false;
+    }
+    markValidity(el, ok);
+    return ok;
+  }
+
+  document.querySelectorAll('#healthForm input, #healthForm select').forEach(el=>{
+    el.addEventListener('blur', ()=>validateField(el));
+  });
+
+  document.getElementById('healthForm').addEventListener('submit', (e)=>{
+    let ok = true;
+    document.querySelectorAll('#healthForm [required]').forEach(el=>{
+      if(!validateField(el)) ok = false;
+    });
+    if(!ok){
+      e.preventDefault();
+      alert('Please fill in all required fields correctly.');
+      const firstInvalid = document.querySelector('#healthForm [style*="dc3545"]');
+      if(firstInvalid) firstInvalid.focus();
+    }
+  });
+})();
+</script>
+</body>
+</html>
