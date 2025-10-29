@@ -25,6 +25,30 @@
     .hx-menu > li > a:hover { opacity:.9; }
     .hx-top-btn { background:#eef7ff; border:1px solid #cfe3ff; color:#0b5ed7; padding:6px 10px; border-radius:6px; text-decoration:none; }
     .hx-top-btn--primary { background:#0b5ed7; border-color:#0b5ed7; color:#fff; }
+    
+    /* Dropdown menu styles */
+    .hx-dd { position:relative; }
+    .hx-dd > a { cursor:pointer; }
+    .hx-dd > a .hx-caret { font-size:12px; opacity:.8; margin-left:6px; }
+    .hx-dd-menu {
+      position:absolute; left:0; top:100%; margin-top:0;
+      min-width:220px; background:#ffffff; color:#333;
+      border-radius:8px; padding:10px 0;
+      box-shadow:0 12px 30px rgba(0,0,0,.12);
+      display:none; z-index: 2000000;
+    }
+    .hx-dd:hover .hx-dd-menu,
+    .hx-dd:focus-within .hx-dd-menu,
+    .hx-dd.open .hx-dd-menu { display:block; }
+    .hx-dd::after {
+      content:""; position:absolute; left:0; right:0; top:100%; height:14px;
+    }
+    .hx-dd-menu a {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 16px; color:#2c3e50; text-decoration:none;
+      white-space:nowrap;
+    }
+    .hx-dd-menu a:hover { background:#f5f8fb; }
   </style>
 </head>
 
@@ -69,10 +93,32 @@
       <ul class="hx-menu" style="flex:1;">
         <li><a href="{% url 'home' %}" style="font-weight:700;">HOME</a></li>
         <li><a href="{% url 'about' %}"><i class="fa fa-info-circle"></i> ABOUT</a></li>
-        <li><a href="{% url 'services' %}"><i class="fa fa-notes-medical"></i> SERVICES</a></li>
-        <li><a href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> MY DATA</a></li>
-        <li><a href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> REPORTS</a></li>
-        <li><a href="{% url 'reco:recommendations' %}"><i class="fa fa-lightbulb"></i> RECOMMENDATIONS</a></li>
+        
+        <!-- Pages dropdown -->
+        <li class="hx-dd">
+          <a><i class="fa fa-file-alt"></i> PAGES <span class="hx-caret"><i class="fa fa-caret-down"></i></span></a>
+          <div class="hx-dd-menu">
+            <a href="{% url 'services' %}"><i class="fa fa-notes-medical"></i> Services</a>
+            <a href="{% url 'team' %}"><i class="fa fa-user-md"></i> Our Team</a>
+            <a href="{% url 'gallery' %}"><i class="fa fa-images"></i> Gallery</a>
+            <a href="{% url 'blog' %}"><i class="fa fa-blog"></i> Blog</a>
+            <a href="{% url 'appointment' %}"><i class="fa fa-calendar-check"></i> Appointment</a>
+          </div>
+        </li>
+        
+        <!-- Health Data dropdown -->
+        <li class="hx-dd">
+          <a><i class="fas fa-heartbeat"></i> HEALTH DATA <span class="hx-caret"><i class="fa fa-caret-down"></i></span></a>
+          <div class="hx-dd-menu">
+            <a href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Health Data</a>
+            <a href="{% url 'health_data_create' %}"><i class="fas fa-plus-circle"></i> Add New Data</a>
+            <a href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
+            <a href="{% url 'generate_report' %}"><i class="fas fa-file-pdf"></i> Generate Report</a>
+            <a href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Health Journal</a>
+          </div>
+        </li>
+        
+        <li><a href="{% url 'reco:recommendations' %}"><i class="fa fa-lightbulb"></i> AI RECO</a></li>
         <li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i> CONTACT</a></li>
       </ul>
     </div>
@@ -195,7 +241,10 @@
               <li><a href="{% url 'home' %}"><i class="fas fa-angle-right"></i> Home</a></li>
               <li><a href="{% url 'about' %}"><i class="fas fa-angle-right"></i> About</a></li>
               <li><a href="{% url 'services' %}"><i class="fas fa-angle-right"></i> Services</a></li>
+              <li><a href="{% url 'team' %}"><i class="fas fa-angle-right"></i> Our Team</a></li>
+              <li><a href="{% url 'blog' %}"><i class="fas fa-angle-right"></i> Blog</a></li>
               <li><a href="{% url 'contact' %}"><i class="fas fa-angle-right"></i> Contact</a></li>
+              <li><a href="{% url 'reco:dashboard' %}"><i class="fas fa-angle-right"></i> Dashboard</a></li>
             </ul>
           </div>
           <div class="col-md-4 col-sm-6">
@@ -232,6 +281,27 @@
       arrows: true,
       autoplay: true,
       autoplaySpeed: 5000
+    });
+    
+    // Dropdown menu helper
+    var HIDE_DELAY = 150;
+    var timers = new WeakMap();
+    
+    document.querySelectorAll('.hx-dd').forEach(function (dd) {
+      dd.addEventListener('mouseenter', function () {
+        clearTimeout(timers.get(dd));
+        dd.classList.add('open');
+      });
+      dd.addEventListener('mouseleave', function () {
+        var t = setTimeout(function(){ dd.classList.remove('open'); }, HIDE_DELAY);
+        timers.set(dd, t);
+      });
+    });
+    
+    document.addEventListener('click', function (e) {
+      document.querySelectorAll('.hx-dd.open').forEach(function (dd) {
+        if (!dd.contains(e.target)) dd.classList.remove('open');
+      });
     });
   });
 </script>
