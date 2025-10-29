@@ -10,24 +10,6 @@ import os
 def health(_request):
     return HttpResponse("ok")
 
-def simple_home(_request):
-    """Simple fallback home page to test if Django is working"""
-    return HttpResponse("""
-        <html>
-        <head><title>Carnet de Santé</title></head>
-        <body>
-            <h1>✅ Django is Running!</h1>
-            <p>Your deployment is successful.</p>
-            <ul>
-                <li><a href="/admin/">Admin Panel</a></li>
-                <li><a href="/healthz">Health Check</a></li>
-                <li><a href="/reco/dashboard/">Recommendations Dashboard</a></li>
-                <li><a href="/users/login/">Login</a></li>
-            </ul>
-        </body>
-        </html>
-    """, content_type="text/html")
-
 urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
@@ -38,8 +20,7 @@ urlpatterns = [
     path('api/', include('reco.api_urls')),            # ✅ API REST pour recommendations (DRF)
 
     # Apps principales
-    path('', simple_home, name='home'),                # Simple fallback for testing
-    path('journal/', include('journal.urls')),         # journal pages
+    path('', include('journal.urls')),                 # site principal (home, about, etc.)
     path('users/', include('users.urls')),             # gestion des utilisateurs
     path('accounts/', include('users.urls')),          # alias pour compatibilité Django
     path('reco/', include(('reco.urls', 'reco'), namespace='reco')),  # ✅ recommandations IA
