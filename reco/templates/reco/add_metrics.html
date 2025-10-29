@@ -166,16 +166,6 @@
 
         <li class="hx-dd">
           <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
-          </a>
-          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
-            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
-            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
-          </div>
-        </li>
-
-        <li class="hx-dd">
-          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
           </a>
           <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
@@ -190,10 +180,6 @@
             <i class="fa fa-lightbulb"></i> Recommendations
           </a>
         </li>
-
-        <li>
-          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
-            <i class="fa fa-heartbeat"></i> Health Analysis
           </a>
         </li>
       </ul>
@@ -209,9 +195,9 @@
         <!-- Title -->
         <div class="hx-hero-title">
           <h1 class="display-6">
-            <i class="fas fa-heartbeat text-danger me-2"></i> Mes Métriques de Santé
+            <i class="fas fa-heartbeat text-danger me-2"></i> My Health Metrics
           </h1>
-          <p class="hx-hero-sub">Suivez votre santé au quotidien pour des recommandations personnalisées</p>
+          <p class="hx-hero-sub">Track your health daily for personalized recommendations</p>
         </div>
 
         <!-- Form Card -->
@@ -223,7 +209,7 @@
             <div class="hx-section">
               <div class="hx-section__head"><i class="fa fa-calendar-alt"></i> Date</div>
               <div class="hx-section__body">
-                <label for="date" class="form-label">Jour de saisie</label>
+                <label for="date" class="form-label">Data entry day</label>
                 <input
                   type="date"
                   class="form-control form-control-lg"
@@ -233,62 +219,62 @@
                   max="{{ today|date:'Y-m-d' }}"
                   required
                 >
-                <div class="form-text mt-1">Sélectionnez la date de vos mesures</div>
+                <div class="form-text mt-1">Select the date of your measurements</div>
               </div>
             </div>
 
             <!-- Activity (Steps) -->
             <div class="hx-section">
-              <div class="hx-section__head"><i class="fa-solid fa-person-walking"></i> Activité</div>
+              <div class="hx-section__head"><i class="fa-solid fa-person-walking"></i> Activity</div>
               <div class="hx-section__body">
-                <label for="steps" class="form-label">Nombre de pas</label>
+                <label for="steps" class="form-label">Number of steps</label>
                 <div class="input-group input-group-lg">
                   <input
                     type="number"
                     class="form-control"
                     id="steps"
                     name="steps"
-                    placeholder="Ex : 8000"
+                    placeholder="Ex: 8000"
                     min="0"
                     max="50000"
                     {% if today_metrics and today_metrics.steps %}value="{{ today_metrics.steps }}"{% endif %}
                   >
-                  <span class="input-group-text">pas</span>
+                  <span class="input-group-text">steps</span>
                 </div>
-                <div class="form-text mt-1">Objectif recommandé : 8000–10000 pas/jour</div>
+                <div class="form-text mt-1">Recommended goal: 8000–10000 steps/day</div>
               </div>
             </div>
 
             <!-- Sleep -->
             <div class="hx-section">
-              <div class="hx-section__head"><i class="fa-solid fa-moon"></i> Sommeil</div>
+              <div class="hx-section__head"><i class="fa-solid fa-moon"></i> Sleep</div>
               <div class="hx-section__body">
-                <label for="sleep_hours" class="form-label">Heures de sommeil</label>
+                <label for="sleep_hours" class="form-label">Hours of sleep</label>
                 <div class="input-group input-group-lg">
                   <input
                     type="number"
                     class="form-control"
                     id="sleep_hours"
                     name="sleep_hours"
-                    placeholder="Ex : 7.5"
+                    placeholder="Ex: 7.5"
                     min="0"
                     max="24"
                     step="0.5"
                     {% if today_metrics and today_metrics.sleep_hours %}value="{{ today_metrics.sleep_hours }}"{% endif %}
                   >
-                  <span class="input-group-text">heures</span>
+                  <span class="input-group-text">hours</span>
                 </div>
-                <div class="form-text mt-1">Recommandé : 7–9 heures pour un adulte</div>
+                <div class="form-text mt-1">Recommended: 7–9 hours for adults</div>
               </div>
             </div>
 
             <!-- Blood Pressure -->
             <div class="hx-section">
-              <div class="hx-section__head"><i class="fa-solid fa-gauge-high"></i> Tension Artérielle</div>
+              <div class="hx-section__head"><i class="fa-solid fa-gauge-high"></i> Blood Pressure</div>
               <div class="hx-section__body">
                 <div class="row g-3">
                   <div class="col-md-6">
-                    <label for="systolic_bp" class="form-label">Systolique</label>
+                    <label for="systolic_bp" class="form-label">Systolic</label>
                     <div class="input-group input-group-lg">
                       <span class="input-group-text">SYS</span>
                       <input
@@ -305,7 +291,7 @@
                     </div>
                   </div>
                   <div class="col-md-6">
-                    <label for="diastolic_bp" class="form-label">Diastolique</label>
+                    <label for="diastolic_bp" class="form-label">Diastolic</label>
                     <div class="input-group input-group-lg">
                       <span class="input-group-text">DIA</span>
                       <input
@@ -322,24 +308,24 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-text mt-1">Valeur normale indicative : &lt; 120/80 mmHg</div>
+                <div class="form-text mt-1">Indicative normal value: &lt; 120/80 mmHg</div>
               </div>
             </div>
 
             <!-- Info -->
             <div class="alert alert-info">
               <i class="fas fa-info-circle me-2"></i>
-              <strong>Conseil :</strong> Entrez au moins 2–3 métriques pour obtenir des recommandations personnalisées.
-              Vous pourrez compléter les autres champs plus tard.
+              <strong>Tip:</strong> Enter at least 2–3 metrics to get personalized recommendations.
+              You can fill in the other fields later.
             </div>
 
             <!-- Actions -->
             <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-3">
               <a href="{% url 'reco:dashboard' %}" class="btn btn-outline-secondary btn-lg">
-                <i class="fas fa-arrow-left me-2"></i> Retour
+                <i class="fas fa-arrow-left me-2"></i> Back
               </a>
               <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save me-2"></i> Enregistrer
+                <i class="fas fa-save me-2"></i> Save
               </button>
             </div>
           </form>
@@ -349,20 +335,20 @@
         {% if today_metrics %}
         <div class="alert alert-success mt-4" style="border-radius:12px;">
           <h5 class="mb-3">
-            <i class="fas fa-check-circle me-2"></i>Métriques existantes pour aujourd'hui
+            <i class="fas fa-check-circle me-2"></i>Existing metrics for today
           </h5>
           <div class="row">
             {% if today_metrics.steps %}
-            <div class="col-6 col-md-3 mb-2"><strong>Pas :</strong> {{ today_metrics.steps|floatformat:0 }}</div>
+            <div class="col-6 col-md-3 mb-2"><strong>Steps:</strong> {{ today_metrics.steps|floatformat:0 }}</div>
             {% endif %}
             {% if today_metrics.sleep_hours %}
-            <div class="col-6 col-md-3 mb-2"><strong>Sommeil :</strong> {{ today_metrics.sleep_hours }}h</div>
+            <div class="col-6 col-md-3 mb-2"><strong>Sleep:</strong> {{ today_metrics.sleep_hours }}h</div>
             {% endif %}
             {% if today_metrics.systolic_bp and today_metrics.diastolic_bp %}
-            <div class="col-12 col-md-6 mb-2"><strong>Tension :</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg</div>
+            <div class="col-12 col-md-6 mb-2"><strong>Blood Pressure:</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg</div>
             {% endif %}
           </div>
-          <small class="text-muted">Modifiez ci-dessus puis cliquez sur “Enregistrer” pour mettre à jour.</small>
+          <small class="text-muted">Edit above then click "Save" to update.</small>
         </div>
         {% endif %}
 
@@ -371,22 +357,22 @@
           <div class="col-md-4 mb-3">
             <div class="hx-tip">
               <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-              <h5>Utilisez un tracker</h5>
-              <p class="small text-muted mb-0">Montre connectée, smartphone ou bracelet fitness pour compter vos pas.</p>
+              <h5>Use a tracker</h5>
+              <p class="small text-muted mb-0">Smartwatch, smartphone or fitness band to count your steps.</p>
             </div>
           </div>
           <div class="col-md-4 mb-3">
             <div class="hx-tip">
               <i class="fas fa-clock fa-3x text-info mb-3"></i>
-              <h5>Routine quotidienne</h5>
-              <p class="small text-muted mb-0">Saisissez vos métriques chaque soir avant de vous coucher.</p>
+              <h5>Daily routine</h5>
+              <p class="small text-muted mb-0">Enter your metrics every evening before bed.</p>
             </div>
           </div>
           <div class="col-md-4 mb-3">
             <div class="hx-tip">
               <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
-              <h5>Suivez vos progrès</h5>
-              <p class="small text-muted mb-0">Visualisez l’évolution sur le tableau de bord.</p>
+              <h5>Track your progress</h5>
+              <p class="small text-muted mb-0">View trends on the dashboard.</p>
             </div>
           </div>
         </div>
@@ -448,16 +434,16 @@ document.getElementById('metricsForm').addEventListener('submit', function(e) {
   const systolic = document.getElementById('systolic_bp').value;
   const diastolic = document.getElementById('diastolic_bp').value;
 
-  // Au moins une métrique
+  // At least one metric
   if (!steps && !sleep && !systolic && !diastolic) {
     e.preventDefault();
-    alert('Veuillez remplir au moins une métrique avant d\'enregistrer.');
+    alert('Please fill in at least one metric before saving.');
     return false;
   }
-  // Si une seule valeur TA est saisie
+  // If only one BP value is entered
   if ((systolic && !diastolic) || (!systolic && diastolic)) {
     e.preventDefault();
-    alert('Veuillez remplir les deux valeurs de tension artérielle (systolique ET diastolique).');
+    alert('Please fill in both blood pressure values (systolic AND diastolic).');
     return false;
   }
   return true;

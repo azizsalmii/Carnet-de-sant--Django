@@ -150,16 +150,6 @@
 
         <li class="hx-dd">
           <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
-          </a>
-          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
-            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
-            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
-          </div>
-        </li>
-
-        <li class="hx-dd">
-          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
           </a>
           <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
@@ -174,10 +164,6 @@
             <i class="fa fa-lightbulb"></i> Recommendations
           </a>
         </li>
-
-        <li>
-          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
-            <i class="fa fa-heartbeat"></i> Health Analysis
           </a>
         </li>
       </ul>
@@ -204,19 +190,19 @@
     <div class="row mb-4">
       <div class="col-12">
         <div class="alert alert-info shadow-sm" style="border-left: 5px solid var(--hx-indigo); border-radius:12px;">
-          <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Bienvenue chez HEALTH TRACK !</h4>
-          <p class="mb-3">Votre dashboard est vide car vous n'avez pas encore ajouté de métriques de santé.</p>
+          <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Welcome to HEALTH TRACK!</h4>
+          <p class="mb-3">Your dashboard is empty because you haven't added any health metrics yet.</p>
           <hr>
-          <p class="mb-3"><strong>Pour commencer :</strong></p>
+          <p class="mb-3"><strong>To get started:</strong></p>
           <ol class="mb-3">
-            <li>Cliquez sur <strong>"Ajouter mes métriques du jour"</strong></li>
-            <li>Remplissez vos données : pas, sommeil, tension artérielle</li>
-            <li>Ajoutez au moins <strong>2-3 jours de données</strong> pour obtenir des statistiques</li>
-            <li>Visitez la page <strong>"Recommandations"</strong> pour des conseils personnalisés</li>
+            <li>Click on <strong>"Add my daily metrics"</strong></li>
+            <li>Fill in your data: steps, sleep, blood pressure</li>
+            <li>Add at least <strong>2-3 days of data</strong> to get statistics</li>
+            <li>Visit the <strong>"Recommendations"</strong> page for personalized advice</li>
           </ol>
           <div class="text-center mt-4">
             <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary btn-lg">
-              <i class="fas fa-plus-circle"></i> Ajouter mes métriques du jour
+              <i class="fas fa-plus-circle"></i> Add my daily metrics
             </a>
           </div>
         </div>
@@ -233,7 +219,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ avg_sleep|floatformat:1|default:"--" }}h</h3>
-            <p>Sommeil Moyen (7j)</p>
+            <p>Average Sleep (7d)</p>
           </div>
         </div>
       </div>
@@ -244,7 +230,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ avg_steps|floatformat:0|default:"--" }}</h3>
-            <p>Pas Moyens (7j)</p>
+            <p>Average Steps (7d)</p>
           </div>
         </div>
       </div>
@@ -255,7 +241,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ latest_bp|default:"--/--" }}</h3>
-            <p>Tension Artérielle</p>
+            <p>Blood Pressure</p>
           </div>
         </div>
       </div>
@@ -266,7 +252,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ recommendations_count }}</h3>
-            <p>Recommandations</p>
+            <p>Recommendations</p>
           </div>
         </div>
       </div>
@@ -278,7 +264,7 @@
       <div class="col-lg-8 mb-4">
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-indigo);">
-            <h5 class="mb-0"><i class="fas fa-moon"></i> Évolution du Sommeil (7 derniers jours)</h5>
+            <h5 class="mb-0"><i class="fas fa-moon"></i> Sleep Trends (Last 7 days)</h5>
           </div>
           <div class="card-body">
             <canvas id="sleepChart" height="80"></canvas>
@@ -287,7 +273,7 @@
 
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-emerald);">
-            <h5 class="mb-0"><i class="fas fa-walking"></i> Évolution des Pas (7 derniers jours)</h5>
+            <h5 class="mb-0"><i class="fas fa-walking"></i> Steps Trends (Last 7 days)</h5>
           </div>
           <div class="card-body">
             <canvas id="stepsChart" height="80"></canvas>
@@ -296,7 +282,7 @@
 
         <div class="card shadow-sm">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-blue);">
-            <h5 class="mb-0"><i class="fas fa-table"></i> Métriques Récentes</h5>
+            <h5 class="mb-0"><i class="fas fa-table"></i> Recent Metrics</h5>
           </div>
           <div class="card-body">
             {% if metrics %}
@@ -341,9 +327,9 @@
             {% else %}
               <div class="text-center py-5">
                 <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <p class="text-muted">Aucune métrique enregistrée pour le moment.</p>
+                <p class="text-muted">No metrics recorded yet.</p>
                 <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary">
-                  <i class="fas fa-plus"></i> Ajouter des métriques
+                  <i class="fas fa-plus"></i> Add metrics
                 </a>
               </div>
             {% endif %}
@@ -356,7 +342,7 @@
         <!-- Recent Recommendations -->
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-purple);">
-            <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Recommandations Récentes</h5>
+            <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Recent Recommendations</h5>
           </div>
           <div class="card-body">
             {% if recent_recommendations %}
@@ -366,7 +352,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <span class="badge"
                         style="background-color:{% if reco.category == 'sleep' %}var(--hx-indigo){% elif reco.category == 'activity' %}var(--hx-emerald){% elif reco.category == 'nutrition' %}var(--hx-orange){% else %}var(--hx-blue){% endif %};">
-                    {% if reco.category == 'sleep' %}🌙 Sommeil{% elif reco.category == 'activity' %}🏃 Activité{% elif reco.category == 'nutrition' %}🥗 Nutrition{% else %}💡 Lifestyle{% endif %}
+                    {% if reco.category == 'sleep' %}🌙 Sleep{% elif reco.category == 'activity' %}🏃 Activity{% elif reco.category == 'nutrition' %}🥗 Nutrition{% else %}💡 Lifestyle{% endif %}
                   </span>
                   <small class="text-muted">{{ reco.created_at|date:"d/m" }}</small>
                 </div>
@@ -374,14 +360,14 @@
               </div>
               {% endfor %}
               <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-primary btn-sm w-100">
-                <i class="fas fa-arrow-right"></i> Voir toutes les recommandations
+                <i class="fas fa-arrow-right"></i> View all recommendations
               </a>
             {% else %}
               <div class="text-center py-4">
                 <i class="fas fa-robot fa-3x text-muted mb-3"></i>
-                <p class="text-muted mb-3">Pas encore de recommandations.</p>
+                <p class="text-muted mb-3">No recommendations yet.</p>
                 <a href="{% url 'reco:recommendations' %}" class="btn btn-primary btn-sm">
-                  <i class="fas fa-magic"></i> Générer des recommandations
+                  <i class="fas fa-magic"></i> Generate recommendations
                 </a>
               </div>
             {% endif %}
@@ -391,21 +377,21 @@
         <!-- Quick Actions -->
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-emerald);">
-            <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions Rapides</h5>
+            <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
           </div>
           <div class="card-body">
             <div class="d-grid gap-2">
               <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus-circle me-2"></i>Ajouter mes métriques du jour
+                <i class="fas fa-plus-circle me-2"></i>Add my daily metrics
               </a>
               <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-success">
-                <i class="fas fa-magic me-2"></i>Voir mes recommandations
+                <i class="fas fa-magic me-2"></i>View my recommendations
               </a>
               <a href="{% url 'reco:ai_progress' %}" class="btn btn-outline-warning">
-                <i class="fas fa-brain me-2"></i>Progression de l'IA
+                <i class="fas fa-brain me-2"></i>AI Learning Progress
               </a>
               <a href="{% url 'reco:profile' %}" class="btn btn-outline-info">
-                <i class="fas fa-user-edit me-2"></i>Modifier mon profil
+                <i class="fas fa-user-edit me-2"></i>Edit my profile
               </a>
             </div>
           </div>
@@ -415,10 +401,10 @@
         <div class="card shadow-gradient">
           <div class="card-body text-center">
             <i class="fas fa-brain fa-3x mb-3"></i>
-            <h5 class="mb-2">Intelligence Artificielle</h5>
-            <p class="mb-2">Modèle RandomForest v1</p>
-            <h3 class="mb-0">93.75% de précision</h3>
-            <small>16 indicateurs analysés</small>
+            <h5 class="mb-2">Artificial Intelligence</h5>
+            <p class="mb-2">RandomForest Model v1</p>
+            <h3 class="mb-0">93.75% accuracy</h3>
+            <small>16 health indicators analyzed</small>
           </div>
         </div>
       </div>
@@ -482,7 +468,7 @@ if (sleepCtx) {
     data: {
       labels: {{ chart_labels|safe }},
       datasets: [{
-        label: 'Heures de sommeil',
+        label: 'Hours of sleep',
         data: {{ sleep_data|safe }},
         borderColor: '#667eea',
         backgroundColor: 'rgba(102, 126, 234, 0.12)',
@@ -517,7 +503,7 @@ if (stepsCtx) {
     data: {
       labels: {{ chart_labels|safe }},
       datasets: [{
-        label: 'Nombre de pas',
+        label: 'Number of steps',
         data: {{ steps_data|safe }},
         backgroundColor: '#50C878',
         borderRadius: 8,
