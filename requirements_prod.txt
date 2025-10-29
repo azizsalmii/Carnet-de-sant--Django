@@ -32,7 +32,7 @@ Pillow==10.4.0
 reportlab==4.1.0
 
 # Data Processing
-xport>=3.3.0
+# xport>=3.3.0  # Disabled due to pandas conflict - only needed for NHANES XPT file import
 openpyxl>=3.1.0
 python-dateutil==2.9.0.post0
 
