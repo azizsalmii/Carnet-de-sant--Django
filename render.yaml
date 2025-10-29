@@ -3,7 +3,7 @@ services:
   - type: web
     name: carnet-de-sante-django
     runtime: python
-    plan: starter
+    plan: free
     buildCommand: "./build.sh"
     startCommand: "gunicorn projetPython.wsgi:application"
     envVars:
@@ -26,4 +26,4 @@ databases:
   - name: carnet-de-sante-db
     databaseName: carnet_de_sante
     user: carnet_user
-    plan: starter
+    plan: free
