@@ -18,15 +18,14 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: projetPython.settings
       - key: DEBUG
-        value: False
+        value: "False"           # values are strings in envVars
       - key: ALLOWED_HOSTS
-        value: .onrender.com
+        value: ".onrender.com"
       - key: WEB_CONCURRENCY
-        value: 4
+        value: "4"
 
-  # PostgreSQL Database
-  - type: postgres
-    name: carnet-sante-db
+databases:
+  - name: carnet-sante-db
     plan: free
     databaseName: carnet_sante
     user: carnet_sante_user
