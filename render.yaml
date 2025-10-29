@@ -5,7 +5,8 @@ services:
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn projetPython.wsgi:application"
+  # Use fewer workers to avoid memory pressure on free instances
+  startCommand: "gunicorn projetPython.wsgi:application --workers=${WEB_CONCURRENCY:-2} --timeout 120 --keep-alive 5"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -22,7 +23,7 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
       - key: WEB_CONCURRENCY
-        value: "4"
+        value: "2"
 
 databases:
   - name: carnet-sante-db
