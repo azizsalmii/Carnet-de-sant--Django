@@ -1,0 +1,240 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Health Track | Your Health Companion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <!-- Slick Carousel -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- Theme Styles -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <style>
+    nav.hx-nav { position: relative !important; z-index: 1000001 !important; overflow: visible !important; background:#39b7bd; }
+    nav.hx-nav .container { position: static !important; overflow: visible !important; }
+    .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; }
+    .hx-menu > li > a { color:#fff; text-transform:uppercase; text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .hx-menu > li > a:hover { opacity:.9; }
+    .hx-top-btn { background:#eef7ff; border:1px solid #cfe3ff; color:#0b5ed7; padding:6px 10px; border-radius:6px; text-decoration:none; }
+    .hx-top-btn--primary { background:#0b5ed7; border-color:#0b5ed7; color:#fff; }
+  </style>
+</head>
+
+<body>
+<div class="page-wrapper">
+
+  <!-- TOP BAR -->
+  <div style="background:#ffffff;border-bottom:1px solid #eee;">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
+      <div style="color:#333;font-size:14px;">Opening Hours: Saturday to Tuesday — 8am to 10pm</div>
+
+      <div style="display:flex;align-items:center;gap:18px;">
+        <!-- Socials -->
+        <div style="display:flex;gap:14px;color:#666;">
+          <a href="#" style="color:#666;"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-twitter"></i></a>
+          <a href="#" style="color:#666;"><i class="fab fa-instagram"></i></a>
+        </div>
+
+        <!-- Auth -->
+        <div style="display:flex;gap:10px;">
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="hx-top-btn"><i class="fa fa-user-circle"></i> Profile</a>
+            <a href="{% url 'logout' %}" class="hx-top-btn hx-top-btn--primary"><i class="fa fa-sign-out-alt"></i> Log Out</a>
+          {% else %}
+            <a href="{% url 'login' %}" class="hx-top-btn"><i class="fa fa-right-to-bracket"></i> Log In</a>
+            <a href="{% url 'signup' %}" class="hx-top-btn hx-top-btn--primary"><i class="fa fa-user-plus"></i> Sign Up</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="hx-nav">
+    <div class="container" style="display:flex;align-items:center;gap:28px;height:64px;">
+      <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
+        <img src="{% static 'images/logo.png' %}" alt="Health Track" style="height:36px;">
+        <strong style="font-size:22px;line-height:1;">Health Track</strong>
+      </a>
+
+      <ul class="hx-menu" style="flex:1;">
+        <li><a href="{% url 'home' %}" style="font-weight:700;">HOME</a></li>
+        <li><a href="{% url 'about' %}"><i class="fa fa-info-circle"></i> ABOUT</a></li>
+        <li><a href="{% url 'services' %}"><i class="fa fa-notes-medical"></i> SERVICES</a></li>
+        <li><a href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> MY DATA</a></li>
+        <li><a href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> REPORTS</a></li>
+        <li><a href="{% url 'reco:recommendations' %}"><i class="fa fa-lightbulb"></i> RECOMMENDATIONS</a></li>
+        <li><a href="{% url 'contact' %}"><i class="fa fa-envelope"></i> CONTACT</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO SLIDER -->
+  <div class="hero-slider">
+    <div class="slider-item slide1" style="background-image: url('{% static 'images/slider/slider-bg-1.jpg' %}'); background-size:cover; min-height:500px;">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 text-center">
+            <div class="content" style="padding:100px 0;">
+              <h2 class="text-white text-bold mb-2" style="font-size:48px;">Welcome to Health Track</h2>
+              <p class="tag-text mb-5" style="font-size:18px;color:#fff;">
+                Your AI-powered health companion for better wellness management
+              </p>
+              {% if user.is_authenticated %}
+                <a href="{% url 'reco:dashboard' %}" class="btn btn-main btn-white">My Dashboard</a>
+              {% else %}
+                <a href="{% url 'signup' %}" class="btn btn-main btn-white mr-3">Sign Up</a>
+                <a href="{% url 'login' %}" class="btn btn-main btn-white-outline">Sign In</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES SECTION -->
+  <section class="feature-section section bg-gray">
+    <div class="container">
+      <div class="section-title text-center">
+        <h3>Our Features <span>& Services</span></h3>
+        <p>Track your health, get AI recommendations, and stay on top of your wellness goals</p>
+      </div>
+      <div class="row">
+        <div class="col-md-4 col-sm-6">
+          <div class="text-center" style="padding:30px;">
+            <i class="fas fa-heartbeat" style="font-size:48px;color:#39b7bd;margin-bottom:20px;"></i>
+            <h4>Health Tracking</h4>
+            <p>Monitor your daily health metrics and visualize your progress over time</p>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <div class="text-center" style="padding:30px;">
+            <i class="fas fa-lightbulb" style="font-size:48px;color:#39b7bd;margin-bottom:20px;"></i>
+            <h4>AI Recommendations</h4>
+            <p>Get personalized health recommendations powered by artificial intelligence</p>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <div class="text-center" style="padding:30px;">
+            <i class="fas fa-file-medical" style="font-size:48px;color:#39b7bd;margin-bottom:20px;"></i>
+            <h4>Health Reports</h4>
+            <p>Generate comprehensive monthly health reports with insights and trends</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA SECTION -->
+  <section class="cta">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="cta-block d-flex justify-content-between">
+            <div class="emmergency item text-center">
+              <i class="fas fa-phone"></i>
+              <h2>Emergency Cases</h2>
+              <a href="tel:1-800-700-6200">1-800-700-6200</a>
+              <p>24/7 emergency support available</p>
+            </div>
+            <div class="top-doctor item text-center">
+              <i class="fas fa-stethoscope"></i>
+              <h2>24 Hour Service</h2>
+              <p>Our health tracking system is always available</p>
+              <a href="{% url 'about' %}" class="btn btn-main">Read more</a>
+            </div>
+            <div class="working-time item text-center">
+              <i class="fas fa-hourglass-start"></i>
+              <h2>Working Hours</h2>
+              <ul class="w-hours">
+                <li>Mon - Fri - <span>8:00 - 17:00</span></li>
+                <li>Sat - Sun - <span>10:00 - 16:00</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer-main">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 col-sm-6">
+            <div class="about-widget">
+              <div class="footer-logo">
+                <figure>
+                  <a href="{% url 'home' %}">
+                    <img src="{% static 'images/logo-2.png' %}" alt="Footer Logo" style="max-height:50px;">
+                  </a>
+                </figure>
+              </div>
+              <p>Your trusted health tracking and AI recommendation platform</p>
+              <ul class="list-inline social-icons">
+                <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                <li><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <h6>Quick Links</h6>
+            <ul class="menu-link">
+              <li><a href="{% url 'home' %}"><i class="fas fa-angle-right"></i> Home</a></li>
+              <li><a href="{% url 'about' %}"><i class="fas fa-angle-right"></i> About</a></li>
+              <li><a href="{% url 'services' %}"><i class="fas fa-angle-right"></i> Services</a></li>
+              <li><a href="{% url 'contact' %}"><i class="fas fa-angle-right"></i> Contact</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <h6>Contact Info</h6>
+            <ul class="location-link">
+              <li><i class="fas fa-envelope"></i> <a href="mailto:support@healthtrack.com">support@healthtrack.com</a></li>
+              <li><i class="fas fa-phone"></i> (88017) +123 4567</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container clearfix">
+        <div class="copyright-text">
+          <p>&copy; 2025 Health Track. All Rights Reserved.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Scripts -->
+<script src="{% static 'plugins/jquery.js' %}"></script>
+<script src="{% static 'plugins/bootstrap.min.js' %}"></script>
+<script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
+
+<script>
+  $(document).ready(function(){
+    $('.hero-slider').slick({
+      infinite: true,
+      arrows: true,
+      autoplay: true,
+      autoplaySpeed: 5000
+    });
+  });
+</script>
+
+</body>
+</html>

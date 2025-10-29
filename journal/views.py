@@ -10,7 +10,8 @@ from .models import JournalEntry, HealthData, MonthlyReport
 from .forms import HealthDataForm, ReportGenerationForm
 # Lazy-import heavy services (scikit-learn/reportlab) inside views to reduce memory on startup
 def home(request):
-    return render(request, 'journal/index.html')
+    # Use safe template without disabled AI route links
+    return render(request, 'journal/index_safe.html')
 
 def about(request):
     return render(request, 'journal/about.html')
