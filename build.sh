@@ -1,23 +1,21 @@
 #!/usr/bin/env bash
-# exit on error
-set -o errexit
+set -o errexit  # exit on first error
 
-# Upgrade pip
-pip install --upgrade pip
+python -m pip install --upgrade pip
 
-# Install main dependencies
+# Core deps
 pip install -r requirements.txt
 
-# Install AI/ML dependencies
-pip install -r requirements_ai.txt
+# Optional AI deps file (install only if present)
+if [ -f requirements_ai.txt ]; then
+  pip install -r requirements_ai.txt
+fi
 
-# Collect static files
-python manage.py collectstatic --no-input
+# Django collect static & migrate
+python manage.py collectstatic --noinput
+python manage.py migrate --noinput
 
-# Run database migrations
-python manage.py migrate
-
-# Create superuser if environment variables are set
-if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_EMAIL" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
-    python manage.py createsuperuser --noinput || true
+# Optional: auto-create superuser if vars are set
+if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] && [ -n "$DJANGO_SUPERUSER_EMAIL" ]; then
+  python manage.py createsuperuser --noinput || true
 fi
