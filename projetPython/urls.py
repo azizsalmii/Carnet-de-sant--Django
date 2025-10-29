@@ -36,7 +36,5 @@ if os.getenv("ENABLE_AI_ROUTES", "0") == "1":
         path('detection/', include('detection.urls')),     # détection d'anomalies (uses pandas/sklearn)
     ]
 
-]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
