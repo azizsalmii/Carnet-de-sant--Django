@@ -8,6 +8,7 @@ from pathlib import Path
 import os
 from decouple import config
 import dj_database_url
+import os
 
 # === BASE DIR ===
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,6 +18,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure--m92yzg)8xi)4&^mfng7**@9^it=5n5&usr=5wj&j=!qhf')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+
+# Render hostname support (avoids 400 or proxy issues)
+RENDER_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_HOSTNAME and RENDER_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_HOSTNAME)
+
+# CSRF trusted origins for Render
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ['*.onrender.com']]
+if RENDER_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOSTNAME}")
 
 # === CUSTOM USER MODEL ===
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -168,6 +179,8 @@ if not DEBUG:
     # Production security settings
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Trust Render's proxy and force HTTPS without loops
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True

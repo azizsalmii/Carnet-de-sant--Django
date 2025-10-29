@@ -5,12 +5,10 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from collections import defaultdict
 from django.http import HttpResponse
-from .services.pdf_generator import PDFGenerator
 
 from .models import JournalEntry, HealthData, MonthlyReport
 from .forms import HealthDataForm, ReportGenerationForm
-from .services.advanced_report_generator import AdvancedReportGenerator
-from .services.report_generator import ReportGenerator
+# Lazy-import heavy services (scikit-learn/reportlab) inside views to reduce memory on startup
 def home(request):
     return render(request, 'journal/index.html')
 
@@ -111,7 +109,8 @@ def generate_monthly_report(request):
                 month = form.cleaned_data['month']
                 include_ai = form.cleaned_data['include_ai_analysis']
                 
-                # Générer le rapport de base avec l'ancien générateur
+                # Générer le rapport de base avec l'ancien générateur (lazy import)
+                from .services.report_generator import ReportGenerator
                 generator = ReportGenerator()
                 health_data_list = generator.get_monthly_data(request.user, month)
                 
@@ -128,6 +127,7 @@ def generate_monthly_report(request):
                 
                 # Si l'analyse IA avancée est demandée, on la génère et on remplace la partie ai_analysis
                 if include_ai:
+                    from .services.advanced_report_generator import AdvancedReportGenerator
                     advanced_generator = AdvancedReportGenerator()
                     advanced_analysis = advanced_generator.generate_advanced_analysis(health_data_list)
                     report_content['ai_analysis'] = advanced_analysis
@@ -190,11 +190,13 @@ def download_report_pdf(request, pk):
     
     try:
         # Récupérer les données santé du mois
-        generator = ReportGenerator()
+    from .services.report_generator import ReportGenerator
+    generator = ReportGenerator()
         health_data_list = generator.get_monthly_data(request.user, report.month)
         
         # Générer le PDF
-        pdf_generator = PDFGenerator()
+    from .services.pdf_generator import PDFGenerator
+    pdf_generator = PDFGenerator()
         pdf_content = pdf_generator.generate_health_report_pdf(report, health_data_list)
         
         # Créer la réponse HTTP
@@ -214,10 +216,12 @@ def view_report_pdf(request, pk):
     report = get_object_or_404(MonthlyReport, pk=pk, user=request.user)
     
     try:
-        generator = ReportGenerator()
+    from .services.report_generator import ReportGenerator
+    generator = ReportGenerator()
         health_data_list = generator.get_monthly_data(request.user, report.month)
         
-        pdf_generator = PDFGenerator()
+    from .services.pdf_generator import PDFGenerator
+    pdf_generator = PDFGenerator()
         pdf_content = pdf_generator.generate_health_report_pdf(report, health_data_list)
         
         response = HttpResponse(pdf_content, content_type='application/pdf')
@@ -228,7 +232,8 @@ def view_report_pdf(request, pk):
         
     except Exception as e:
         # Fallback: PDF simple
-        pdf_generator = PDFGenerator()
+    from .services.pdf_generator import PDFGenerator
+    pdf_generator = PDFGenerator()
         pdf_content = pdf_generator.generate_simple_pdf(report)
         
         response = HttpResponse(pdf_content, content_type='application/pdf')

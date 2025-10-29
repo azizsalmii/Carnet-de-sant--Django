@@ -53,24 +53,30 @@ CONDITIONS = [
     'Pneumothorax', 'Support Devices'
 ]
 
-# Backbone ResNet50 multi-label
-xray_model = models.resnet50(weights=None)
-num_features = xray_model.fc.in_features
-xray_model.fc = torch.nn.Linear(num_features, len(CONDITIONS))
+_xray_model = None
 
-# Charge le checkpoint
-_xckpt = torch.load(XRY_MODEL_PATH, map_location=DEVICE)
-if isinstance(_xckpt, dict):
-    if "model_state_dict" in _xckpt:
-        xray_model.load_state_dict(_xckpt["model_state_dict"], strict=False)
-    elif "state_dict" in _xckpt:
-        xray_model.load_state_dict(_xckpt["state_dict"], strict=False)
-    else:
-        xray_model.load_state_dict(_xckpt, strict=False)
-else:
-    xray_model = _xckpt
+def get_xray_model():
+    """Lazy-load the Chest X-Ray model to reduce startup memory on Render."""
+    global _xray_model
+    if _xray_model is None:
+        model = models.resnet50(weights=None)
+        num_features = model.fc.in_features
+        model.fc = torch.nn.Linear(num_features, len(CONDITIONS))
 
-xray_model = xray_model.to(DEVICE).eval()
+        if os.path.exists(XRY_MODEL_PATH):
+            _xckpt = torch.load(XRY_MODEL_PATH, map_location=DEVICE)
+            if isinstance(_xckpt, dict):
+                if "model_state_dict" in _xckpt:
+                    model.load_state_dict(_xckpt["model_state_dict"], strict=False)
+                elif "state_dict" in _xckpt:
+                    model.load_state_dict(_xckpt["state_dict"], strict=False)
+                else:
+                    model.load_state_dict(_xckpt, strict=False)
+            else:
+                model = _xckpt
+
+        _xray_model = model.to(DEVICE).eval()
+    return _xray_model
 
 
 def preprocess_xray_image(input_data):
@@ -152,8 +158,9 @@ class ChestXRayPredictView(APIView):
         try:
             tensor = preprocess_xray_image(serializer.validated_data["image"])
             t0 = time.time()
+            model = get_xray_model()
             with torch.no_grad():
-                output = xray_model(tensor.to(DEVICE))
+                output = model(tensor.to(DEVICE))
                 # Multi-label → sigmoid
                 probs = torch.sigmoid(output)[0].cpu().numpy()
             latency = (time.time() - t0) * 1000.0
@@ -230,8 +237,21 @@ BRAIN_MODEL_PATH = os.path.join(BASE_DIR, "ai_models", "resnet18_brain_tumor.pth
 BRAIN_CLASSES = ['Glioma', 'Meningioma', 'No_tumor', 'Pituitary']
 
 # charge le modèle complet (même méthode que Flask)
-brain_model = torch.load(BRAIN_MODEL_PATH, map_location=DEVICE, weights_only=False)
-brain_model = brain_model.to(DEVICE).eval()
+_brain_model = None
+
+def get_brain_model():
+    """Lazy-load Brain Tumor model on first use."""
+    global _brain_model
+    if _brain_model is None:
+        if os.path.exists(BRAIN_MODEL_PATH):
+            model = torch.load(BRAIN_MODEL_PATH, map_location=DEVICE, weights_only=False)
+        else:
+            # Fallback: small resnet18 randomly initialized
+            model = models.resnet18(weights=None)
+            num_f = model.fc.in_features
+            model.fc = torch.nn.Linear(num_f, len(BRAIN_CLASSES))
+        _brain_model = model.to(DEVICE).eval()
+    return _brain_model
 
 RESULT_DESCRIPTION = {
     "Glioma": "A glioma is a type of tumor that starts in the brain's glial cells...",
@@ -280,8 +300,9 @@ def brain_tumor_test_page(request):
             x = preprocess_brain_image(abs_path).to(DEVICE)
 
             t0 = time.time()
+            model = get_brain_model()
             with torch.no_grad():
-                out = brain_model(x)                 # logits
+                out = model(x)                 # logits
                 pred_idx = int(out.argmax(1))
             latency = (time.time() - t0) * 1000.0
 

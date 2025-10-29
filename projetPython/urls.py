@@ -4,6 +4,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from reco import views as reco_views
+from django.http import HttpResponse
+
+def health(_request):
+    return HttpResponse("ok")
 
 urlpatterns = [
     # Admin
@@ -22,6 +26,8 @@ urlpatterns = [
     path('detection/', include('detection.urls')),     # détection d'anomalies
     path('reco/', include(('reco.urls', 'reco'), namespace='reco')),  # ✅ recommandations IA
     path('dashboard/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
+    # Health check endpoint
+    path('healthz/', health),
 
 ]
 
