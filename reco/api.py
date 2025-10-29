@@ -4,7 +4,8 @@ Django REST Framework API for HEALTH TRACK recommendations.
 from rest_framework import serializers, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
+from rest_framework.authentication import SessionAuthentication
 
 from .models import DailyMetrics, Recommendation, Profile
 from .services import compute_features_for_user, generate_recommendations_for_user
@@ -112,20 +113,15 @@ class DailyMetricsViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_201_CREATED)
 
 
-class RecommendationViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Read-only ViewSet for recommendations.
-    Users can only view their own recommendations.
-    Ordered by score (descending) and creation time (most recent first).
-    """
+class RecommendationViewSet(viewsets.ModelViewSet):
+    queryset = Recommendation.objects.all()
     serializer_class = RecommendationSerializer
-    # Uses global permission: IsAuthenticatedOrReadOnly
-    
+    authentication_classes = [SessionAuthentication]          # <- session Django
+    permission_classes = [IsAuthenticatedOrReadOnly]          # lecture publique, écriture = login
+
     def get_queryset(self):
-        # If authenticated, show only their recommendations
         if self.request.user.is_authenticated:
             return Recommendation.objects.filter(user=self.request.user)
-        # If not authenticated (browsing), show empty queryset
         return Recommendation.objects.none()
     
     @action(detail=True, methods=['post'])
@@ -147,66 +143,66 @@ class RecommendationViewSet(viewsets.ReadOnlyModelViewSet):
             'viewed_at': recommendation.viewed_at,
         })
     
+    # reco/api.py (remplace entièrement l’action provide_feedback)
     @action(detail=True, methods=['post'])
     def provide_feedback(self, request, pk=None):
         """
-        Provide feedback on a recommendation.
-        
-        POST /api/recommendations/{id}/provide_feedback/
-        Body: {"helpful": true, "acted_upon": false}
-        
-        This feedback is used to:
-        1. Track user satisfaction with recommendations
-        2. Train the ML model to improve future recommendations
-        3. Understand which recommendations users actually follow
+       
         """
         from django.utils import timezone
         import logging
-        
+        from .feedback_learning import get_personalized_confidence  # ✅
+
         logger = logging.getLogger(__name__)
         recommendation = self.get_object()
-        
+
         helpful = request.data.get('helpful')
         acted_upon = request.data.get('acted_upon', False)
-        
+
         if helpful is None:
             return Response(
                 {'error': 'helpful field is required (true/false)'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Save feedback
-        recommendation.helpful = helpful
-        recommendation.acted_upon = acted_upon
+
+        # 1) Sauver le feedback sur CETTE reco
+        recommendation.helpful = bool(helpful)
+        recommendation.acted_upon = bool(acted_upon)
         recommendation.feedback_at = timezone.now()
-        recommendation.save(update_fields=['helpful', 'acted_upon', 'feedback_at'])
-        
-        # Log for ML training pipeline
-        logger.info(
-            f"Feedback recorded: User={request.user.username}, "
-            f"Category={recommendation.category}, "
-            f"Helpful={helpful}, "
-            f"ActedUpon={acted_upon}, "
-            f"ModelVersion={recommendation.model_version}"
-        )
-        
-        # Prepare response message
+        recommendation.viewed = True
+        recommendation.viewed_at = recommendation.viewed_at or timezone.now()
+        recommendation.save(update_fields=['helpful','acted_upon','feedback_at','viewed','viewed_at'])
+
+        # 2) Recalculer la confiance personnalisée pour cette catégorie/user
+        #    et propager sur les autres reco (même user + category)
+        user = request.user
+        category = recommendation.category
+        base_confidence = 0.43  # si tu as un score “ML brut”, mets-le ici
+        new_conf = get_personalized_confidence(user, category, base_confidence=base_confidence)
+
+        # On stocke dans .score (champ float 0-1) — les templates peuvent l’afficher * 100
+        from .models import Recommendation as RecoModel
+        RecoModel.objects.filter(user=user, category=category).update(score=new_conf)
+
+        # 3) Message adapté
         if helpful and acted_upon:
-            message = "🎉 Merci ! Votre retour aide à améliorer l'IA pour tous."
+            message = "🎉 Merci ! Votre retour améliore l’IA et a été pris en compte."
         elif helpful:
             message = "👍 Merci ! Cette recommandation semble utile."
-        elif not helpful:
-            message = "📝 Merci pour votre retour. Nous allons améliorer nos recommandations."
         else:
-            message = "✅ Feedback enregistré."
-        
+            message = "📝 Merci pour votre retour. Nous allons améliorer nos recommandations."
+
         return Response({
             'status': 'feedback_recorded',
-            'helpful': helpful,
-            'acted_upon': acted_upon,
+            'helpful': bool(helpful),
+            'acted_upon': bool(acted_upon),
             'feedback_at': recommendation.feedback_at,
+            'new_confidence': new_conf,           # 0.0–1.0
+            'new_confidence_pct': round(new_conf*100, 1),  # %
+            'category': category,
             'message': message,
-        })
+        }, status=status.HTTP_200_OK)
+
     
     @action(detail=False, methods=['get'])
     def personalized(self, request):

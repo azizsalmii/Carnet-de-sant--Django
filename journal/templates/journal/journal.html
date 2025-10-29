@@ -178,11 +178,9 @@
     <div class="container hx-nav">
       <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
         <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
-        <strong style="font-size:22px;line-height:1;">Health Track</strong>
       </a>
 
       <ul class="hx-menu">
-        <li><a href="{% url 'home' %}">Home</a></li>
 
         <li class="hx-dd">
           <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
@@ -216,6 +214,11 @@
             <i class="fa fa-heartbeat"></i> Health Analysis
           </a>
         </li>
+
+         {# === Emotional Analysis (même style) === #}
+      <li>
+        <a href="{% url 'mental:predict_text' %}"><i class="fa fa-brain"></i> Emotional Analysis</a>
+      </li>
       </ul>
     </div>
   </nav>

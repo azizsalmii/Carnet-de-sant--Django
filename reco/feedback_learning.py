@@ -147,15 +147,20 @@ def get_personalized_confidence(user, category, base_confidence=0.43):
     # Get user engagement score
     engagement_score = calculate_user_engagement_score(user)
     
-    # Combine base ML confidence with learned confidence
-    # NEW LOGIC: Make confidence CUMULATIVE (user requested this!)
-    # Base ML gives 70%+, feedback adds boost up to +20%
+    # CUMULATIVE CONFIDENCE: Base ML + Feedback Learning
+    # User wants: 68% base → 75% after feedback → 82% after more feedback → up to 95%
     
-    # Calculate feedback boost (0% to +20%)
-    feedback_boost = (category_confidence - 0.40) * engagement_score
-    # Ex: If category_confidence = 80%, engagement = 0.5 → boost = (0.80 - 0.40) * 0.5 = +20%
+    # Calculate feedback boost based on category performance
+    # If user likes this category (helpful_rate high), boost goes up
+    # Maximum boost: +25% (from 68% base to 93% max)
+    feedback_multiplier = category_confidence * engagement_score
+    # feedback_multiplier ranges 0.0 to 1.0
     
-    # Apply boost to base confidence
+    # Calculate additive boost (0% to +25%)
+    max_boost = 0.25  # Maximum 25% boost
+    feedback_boost = feedback_multiplier * max_boost
+    
+    # Apply cumulative boost to base confidence
     personalized = base_confidence + feedback_boost
     
     # Ensure reasonable bounds (10% to 95%)
@@ -164,7 +169,8 @@ def get_personalized_confidence(user, category, base_confidence=0.43):
     logger.info(
         f"Personalized confidence for {user.username}/{category}: "
         f"{personalized:.2%} (base: {base_confidence:.2%}, "
-        f"learned: {category_confidence:.2%}, engagement: {engagement_score:.2%})"
+        f"boost: +{feedback_boost * 100:.1f}%, "
+        f"category: {category_confidence:.2%}, engagement: {engagement_score:.2%})"
     )
     
     return personalized

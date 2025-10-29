@@ -13,6 +13,8 @@ from django.core.cache import cache
 from textblob import TextBlob
 import joblib
 from transformers import pipeline
+from sklearn.exceptions import NotFittedError
+
 
 # ===============================
 # 🎯 CONFIGURATION & LOGGING
@@ -1077,44 +1079,62 @@ class MentalHealthAssistant:
         self.challenge_generator = DailyChallengeGenerator()
         self.history_entries = []
         self.max_history = 10
-    
+
     def process_user_input(self, user_text, quiz_responses=None):
         """Traite l'entrée utilisateur et génère une analyse complète"""
-        
+
         # Nettoyage et analyse du texte
         cleaned_text = self.text_processor.clean_text(user_text)
         emotional_context = self.text_processor.extract_emotional_context(user_text)
-        
-        # Détection d'émotion
+
+        # Détection d'émotion (robuste, avec fallback déjà géré dans EmotionDetector)
         emotion = self.emotion_detector.detect_emotion(user_text)
-        
-        # Prédiction ML
-        vectorized = model_manager.models['vectorizer'].transform([cleaned_text])
-        prediction_encoded = model_manager.models['classifier'].predict(vectorized)
-        prediction = model_manager.models['label_encoder'].inverse_transform(prediction_encoded)[0]
-        
+
+        # =========================
+        # Prédiction ML (robuste)
+        # =========================
+        prediction = "unknown"
+        try:
+            vec = model_manager.models.get('vectorizer')
+            clf = model_manager.models.get('classifier')
+            le = model_manager.models.get('label_encoder')
+
+            if vec is None or clf is None or le is None:
+                raise RuntimeError("ML models not loaded")
+
+            X = vec.transform([cleaned_text])  # peut lever NotFittedError
+            y_hat = clf.predict(X)
+            prediction = le.inverse_transform(y_hat)[0]
+        except NotFittedError as e:
+            logger.warning(f"Vectorizer not fitted, fallback prediction used: {e}")
+            # Fallback simple et déterministe : utiliser l'émotion détectée
+            prediction = emotion
+        except Exception as e:
+            logger.warning(f"ML prediction failed, fallback used: {e}")
+            prediction = emotion
+
         # Calcul du score d'humeur
         mood_score, score_percent, sentiment_score = self.analyst.calculate_mood_score(
             emotion, user_text, emotional_context
         )
-        
+
         # Génération du quiz contextuel
         quiz = self.quiz_generator.generate_contextual_quiz(emotion, user_text, emotional_context)
-        
+
         # Génération de la conclusion personnalisée
         conclusion = self.analyst.generate_personalized_conclusion(
             emotion, mood_score, user_text, emotional_context
         )
-        
+
         # Génération des recommandations
         recommendations = self.analyst.generate_recommendations(emotion, mood_score, conclusion)
-        
+
         # Génération du défi quotidien
         daily_challenge = self.challenge_generator.generate_daily_challenge(mood_score, emotion)
-        
+
         # Tags basés sur le contexte émotionnel
         tags = list(emotional_context.keys())[:3]
-        
+
         # Création de l'entrée d'historique (avec id pour CRUD côté client)
         history_entry = {
             'id': uuid.uuid4().hex,
@@ -1131,14 +1151,14 @@ class MentalHealthAssistant:
             "daily_challenge": daily_challenge,
             "tags": ", ".join(tags) if tags else "general"
         }
-        
+
         # Mise à jour de l'historique
         self.history_entries.insert(0, history_entry)
         self.history_entries = self.history_entries[:self.max_history]
-        
-        # Génération du tableau de bord
+
+        # Tableau de bord
         dashboard = PersonalDashboard(self.history_entries)
-        
+
         return {
             'prediction': prediction,
             'emotion': emotion,
@@ -1157,30 +1177,32 @@ class MentalHealthAssistant:
             'weekly_trends': dashboard.get_weekly_trends(),
             'emotion_patterns': dashboard.get_emotion_patterns()
         }
-    
+
     def chat_with_bot(self, user_message):
         """Interagit avec le chatbot thérapeutique"""
         # Détection d'émotion pour le message de chat
         emotion = self.emotion_detector.detect_emotion(user_message)
-        
+
         # Génération de la réponse
         bot_response = self.chatbot.generate_response(user_message, emotion, self.history_entries)
-        
+
         return {
             'user_message': user_message,
             'bot_response': bot_response,
             'emotion': emotion,
             'conversation_summary': self.chatbot.get_conversation_summary()
         }
-    
+
     def get_average_score(self):
         """Calcule le score moyen"""
         if not self.history_entries:
             return 0
         return round(sum(entry['mood_score'] for entry in self.history_entries) / len(self.history_entries), 2)
 
-# Instance globale
+
+# Instance globale (laisse cette ligne en bas du fichier)
 mental_health_app = MentalHealthAssistant()
+
 
 # ===============================
 # 🎯 VIEWS PRINCIPALES

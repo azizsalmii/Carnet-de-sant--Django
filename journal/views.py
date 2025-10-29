@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from django.http import HttpResponse
 from .services.pdf_generator import PDFGenerator
+# journal/views.py (imports)
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.shortcuts import render
 
 from .models import JournalEntry, HealthData, MonthlyReport
 from .forms import HealthDataForm, ReportGenerationForm
@@ -309,3 +312,6 @@ def mood_journal(request):
         'errors': errors,
         'conclusion_lines': conclusion_lines
     })
+def journal_page(request):
+    """Affiche la page principale du journal"""
+    return render(request, "journal/journal.html")

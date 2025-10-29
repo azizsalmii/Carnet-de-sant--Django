@@ -1,21 +1,25 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import JournalEntry, HealthData, MonthlyReport, MedicalImage,MoodEntry
+from .models import JournalEntry, HealthData, MonthlyReport, MedicalImage
 
-# Admin pour JournalEntry
+
+# === JournalEntry ===
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
-    list_display = ['user', 'category', 'content_preview', 'intensity', 'created_at',"emotion", "intensity"]
-    list_filter = ['category', 'emotion''created_at', 'user']
-    search_fields = ['user__username', 'content','text','tags']
+    list_display = ['user', 'emotion', 'content_preview', 'intensity', 'created_at']
+    list_filter = ['emotion', 'created_at', 'user']
+    search_fields = ['user__username', 'text', 'tags', 'objectives', 'recommendations']
     list_per_page = 20
     date_hierarchy = 'created_at'
-    
+
     def content_preview(self, obj):
-        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+        """Aperçu du texte du journal"""
+        text = getattr(obj, 'text', '') or ''
+        return (text[:50] + '...') if len(text) > 50 else text
     content_preview.short_description = 'Contenu'
 
-# Admin pour HealthData
+
+# === HealthData ===
 @admin.register(HealthData)
 class HealthDataAdmin(admin.ModelAdmin):
     list_display = ['user', 'date', 'sleep_duration', 'sleep_quality', 'steps_count', 'pain_level', 'health_score_indicator']
@@ -24,15 +28,16 @@ class HealthDataAdmin(admin.ModelAdmin):
     list_editable = ['sleep_duration', 'sleep_quality', 'steps_count']
     list_per_page = 20
     date_hierarchy = 'date'
-    
+
     def health_score_indicator(self, obj):
         """Indicateur visuel du score de santé"""
         if obj.sleep_duration and obj.sleep_quality and obj.steps_count:
-            score = (obj.sleep_duration / 8 * 25 + 
-                    obj.sleep_quality / 5 * 25 + 
-                    min(obj.steps_count / 10000 * 25, 25) +
-                    (10 - (obj.pain_level or 0)) / 10 * 25)
-            
+            score = (
+                obj.sleep_duration / 8 * 25 +
+                obj.sleep_quality / 5 * 25 +
+                min(obj.steps_count / 10000 * 25, 25) +
+                (10 - (obj.pain_level or 0)) / 10 * 25
+            )
             color = 'green' if score >= 70 else 'orange' if score >= 50 else 'red'
             return format_html(
                 '<div style="background:{}; color:white; padding:2px 6px; border-radius:3px; text-align:center;">{:.0f}</div>',
@@ -40,34 +45,18 @@ class HealthDataAdmin(admin.ModelAdmin):
             )
         return '-'
     health_score_indicator.short_description = 'Score'
-    
+
     fieldsets = (
-        ('Informations de base', {
-            'fields': ('user', 'date')
-        }),
-        ('Symptômes', {
-            'fields': ('symptoms', 'pain_level'),
-            'classes': ('collapse',)
-        }),
-        ('Sommeil', {
-            'fields': ('sleep_duration', 'sleep_quality'),
-            'classes': ('collapse',)
-        }),
-        ('Activité physique', {
-            'fields': ('steps_count', 'exercise_duration', 'activity_type'),
-            'classes': ('collapse',)
-        }),
-        ('Traitements', {
-            'fields': ('medications', 'medication_adherence'),
-            'classes': ('collapse',)
-        }),
-        ('Signes vitaux', {
-            'fields': ('blood_pressure_systolic', 'blood_pressure_diastolic', 'heart_rate', 'weight'),
-            'classes': ('collapse',)
-        }),
+        ('Informations de base', {'fields': ('user', 'date')}),
+        ('Symptômes', {'fields': ('symptoms', 'pain_level'), 'classes': ('collapse',)}),
+        ('Sommeil', {'fields': ('sleep_duration', 'sleep_quality'), 'classes': ('collapse',)}),
+        ('Activité physique', {'fields': ('steps_count', 'exercise_duration', 'activity_type'), 'classes': ('collapse',)}),
+        ('Traitements', {'fields': ('medications', 'medication_adherence'), 'classes': ('collapse',)}),
+        ('Signes vitaux', {'fields': ('blood_pressure_systolic', 'blood_pressure_diastolic', 'heart_rate', 'weight'), 'classes': ('collapse',)}),
     )
 
-# Admin pour MonthlyReport
+
+# === MonthlyReport ===
 @admin.register(MonthlyReport)
 class MonthlyReportAdmin(admin.ModelAdmin):
     list_display = ['user', 'month', 'health_score_display', 'is_finalized', 'generated_at']
@@ -77,7 +66,7 @@ class MonthlyReportAdmin(admin.ModelAdmin):
     list_editable = ['is_finalized']
     list_per_page = 20
     date_hierarchy = 'month'
-    
+
     def health_score_display(self, obj):
         if obj.health_score:
             color = 'green' if obj.health_score >= 70 else 'orange' if obj.health_score >= 50 else 'red'
@@ -87,26 +76,16 @@ class MonthlyReportAdmin(admin.ModelAdmin):
             )
         return '-'
     health_score_display.short_description = 'Score Santé'
-    
+
     fieldsets = (
-        ('Informations de base', {
-            'fields': ('user', 'month', 'is_finalized')
-        }),
-        ('Analyse IA', {
-            'fields': ('health_score', 'risk_factors', 'recommendations'),
-            'classes': ('collapse',)
-        }),
-        ('Contenu du rapport', {
-            'fields': ('report_content',),
-            'classes': ('collapse',)
-        }),
-        ('Métadonnées', {
-            'fields': ('generated_at',),
-            'classes': ('collapse',)
-        }),
+        ('Informations de base', {'fields': ('user', 'month', 'is_finalized')}),
+        ('Analyse IA', {'fields': ('health_score', 'risk_factors', 'recommendations'), 'classes': ('collapse',)}),
+        ('Contenu du rapport', {'fields': ('report_content',), 'classes': ('collapse',)}),
+        ('Métadonnées', {'fields': ('generated_at',), 'classes': ('collapse',)}),
     )
 
-# Admin pour MedicalImage
+
+# === MedicalImage ===
 @admin.register(MedicalImage)
 class MedicalImageAdmin(admin.ModelAdmin):
     list_display = ['user', 'title', 'uploaded_at', 'confidence_score_display']
@@ -115,7 +94,7 @@ class MedicalImageAdmin(admin.ModelAdmin):
     readonly_fields = ['uploaded_at']
     list_per_page = 20
     date_hierarchy = 'uploaded_at'
-    
+
     def confidence_score_display(self, obj):
         if obj.confidence_score:
             color = 'green' if obj.confidence_score >= 0.8 else 'orange' if obj.confidence_score >= 0.6 else 'red'
@@ -126,7 +105,8 @@ class MedicalImageAdmin(admin.ModelAdmin):
         return '-'
     confidence_score_display.short_description = 'Confiance IA'
 
-# Actions personnalisées
+
+# === Actions personnalisées pour MonthlyReport ===
 def mark_reports_finalized(modeladmin, request, queryset):
     updated = queryset.update(is_finalized=True)
     modeladmin.message_user(request, f"{updated} rapports marqués comme finalisés.")

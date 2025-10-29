@@ -124,12 +124,10 @@
       <!-- Logo -->
       <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
         <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
-        <strong style="font-size:22px;line-height:1;">Health Track</strong>
       </a>
 
       <!-- Menu -->
       <ul class="hx-menu" style="flex:1;">
-        <li><a href="{% url 'home' %}" style="font-weight:700;">HOME</a></li>
 
         <!-- Diagnostics dropdown -->
         <li class="hx-dd">
@@ -158,6 +156,13 @@
         <li>
           <a href="{% url 'health_analysis' %}"><i class="fa fa-heartbeat"></i> HEALTH ANALYSIS</a>
         </li>
+
+
+ {# === Emotional Analysis (même style) === #}
+      <li>
+        <a href="{% url 'mental:predict_text' %}"><i class="fa fa-brain"></i> Emotional Analysis</a>
+      </li>
+        
           {# === Direct link: Recommendations (reco namespace) === #}
     
       </ul>

@@ -1,6 +1,6 @@
 {% load static %}
 
-{# ================== TOP BAR (white strip) ================== #}
+{# ================== TOP BAR ================== #}
 <div style="background:#ffffff;border-bottom:1px solid #eee;">
   <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
     <div style="color:#333;font-size:14px;">
@@ -38,12 +38,17 @@
   </div>
 </div>
 
-{# ================== NAV (turquoise bar) ================== #}
-{# minimal CSS for dropdowns (inchangé) #}
+{# ================== NAV ================== #}
 <style>
   .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
   .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
-  .hx-menu > li > a { color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
+  .hx-menu > li > a {
+    color:#fff; text-transform:uppercase; font-weight:700;
+    text-decoration:none; transition:.3s;
+    display:flex; align-items:center; gap:8px;
+  }
+  .hx-menu > li > a:hover { opacity:.8; }
+
   .hx-dd { position:relative; }
   .hx-dd-toggle { display:flex; align-items:center; gap:8px; color:#fff; text-transform:uppercase; font-weight:700; text-decoration:none; }
   .hx-caret { font-size:10px; opacity:.85; margin-left:6px; }
@@ -58,6 +63,7 @@
                 color:#223; text-decoration:none; white-space:nowrap; }
   .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
   .hx-dd-item:hover { background:#f2fbfb; }
+
   @media (max-width: 768px) {
     .hx-nav { flex-wrap:wrap; height:auto; padding:10px 0; }
     .hx-menu { flex-wrap:wrap; gap:16px; }
@@ -72,58 +78,34 @@
     {# Logo #}
     <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
       <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
-      <strong style="font-size:22px;line-height:1;">Health Track</strong>
     </a>
 
     {# Menu #}
     <ul class="hx-menu">
-      <li><a href="{% url 'home' %}">Home</a></li>
 
-      {# === Diagnostics dropdown (Brain + Chest) === #}
       <li class="hx-dd">
-        <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
-          <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
-        </a>
-        <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
-          <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}">
-            <i class="fa fa-brain"></i> Brain Tumor AI
-          </a>
-          <a class="hx-dd-item" href="{% url 'chest_xray_page' %}">
-            <i class="fa fa-stethoscope"></i> Chest X-Ray AI
-          </a>
+        <a href="#" class="hx-dd-toggle"><i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span></a>
+        <div class="hx-dd-menu">
+          <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
+          <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
         </div>
       </li>
 
-      {# === Medical Infos dropdown (Data + Reports + Journal) === #}
       <li class="hx-dd">
-        <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
-          <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
-        </a>
-        <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
-          <a class="hx-dd-item" href="{% url 'health_data_list' %}">
-            <i class="fas fa-chart-line"></i> My Data
-          </a>
-          <a class="hx-dd-item" href="{% url 'report_list' %}">
-            <i class="fas fa-file-medical"></i> My Reports
-          </a>
-          <a class="hx-dd-item" href="{% url 'journal_page' %}">
-            <i class="fas fa-book"></i> Journal
-          </a>
+        <a href="#" class="hx-dd-toggle"><i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span></a>
+        <div class="hx-dd-menu">
+          <a class="hx-dd-item" href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Data</a>
+          <a class="hx-dd-item" href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
+          <a class="hx-dd-item" href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Journal</a>
         </div>
       </li>
 
-      {# === Direct link: Recommendations (reco namespace) === #}
-      <li>
-        <a href="{% url 'reco:recommendations' %}" style="display:flex;align-items:center;gap:8px;">
-          <i class="fa fa-lightbulb"></i> Recommendations
-        </a>
-      </li>
+      <li><a href="{% url 'reco:recommendations' %}"><i class="fa fa-lightbulb"></i> Recommendations</a></li>
+      <li><a href="{% url 'health_analysis' %}"><i class="fa fa-heartbeat"></i> Health Analysis</a></li>
 
-      {# === Direct link: Health Analysis form === #}
+      {# === Emotional Analysis (même style) === #}
       <li>
-        <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
-          <i class="fa fa-heartbeat"></i> Health Analysis
-        </a>
+        <a href="{% url 'mental:predict_text' %}"><i class="fa fa-brain"></i> Emotional Analysis</a>
       </li>
     </ul>
   </div>

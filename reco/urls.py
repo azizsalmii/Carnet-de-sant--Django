@@ -4,6 +4,8 @@ from . import views
 app_name = 'reco'
 
 urlpatterns = [
+    path("metrics/add/", views.add_metrics, name="add_metrics"),   # /reco/metrics/add/
+    path("add-metrics/", views.add_metrics),
     path('', views.home, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('recommendations/', views.recommendations_view, name='recommendations'),

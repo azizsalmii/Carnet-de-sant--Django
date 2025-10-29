@@ -4,18 +4,23 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Dashboard - AI Health Recommendations | Medic</title>
+  <title>My Recommendations - AI Health | Medic</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  <!-- Vendor CSS -->
+  <!-- Slick Carousel -->
   <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
   <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+
+  <!-- FancyBox -->
   <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <!-- Theme -->
+
+  <!-- Theme Styles -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-  {# ===== Header dropdown minimal CSS (identique à la page Recommendations) ===== #}
+  {# ====== minimal CSS pour les dropdowns du header (inchangés) ====== #}
   <style>
     .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
     .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
@@ -28,8 +33,10 @@
       border-radius:10px; padding:10px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,.12);
       border:1px solid rgba(0,0,0,.06); display:none; z-index:50;
     }
-    .hx-dd:hover .hx-dd-menu, .hx-dd:focus-within .hx-dd-menu { display:block; }
-    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#223; text-decoration:none; white-space:nowrap; }
+    .hx-dd:hover .hx-dd-menu,
+    .hx-dd:focus-within .hx-dd-menu { display:block; }
+    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+                  color:#223; text-decoration:none; white-space:nowrap; }
     .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
     .hx-dd-item:hover { background:#f2fbfb; }
     @media (max-width: 768px) {
@@ -41,61 +48,72 @@
     }
   </style>
 
-  {# ===== Styles d’amélioration pour le Dashboard ===== #}
+  {# ====== Styles d’amélioration pour CETTE PAGE UNIQUEMENT ====== #}
   <style>
     :root{
       --hx-primary:#39b7bd;
       --hx-primary-600:#2aa6ac;
-      --hx-indigo:#667eea;
-      --hx-purple:#764ba2;
-      --hx-emerald:#50C878;
-      --hx-orange:#F39C12;
-      --hx-red:#E74C3C;
-      --hx-blue:#4A90E2;
-      --hx-card:#ffffff;
-      --hx-muted:#6b7a90;
+      --hx-primary-50:#e9f7f8;
       --hx-dark:#22304a;
+      --hx-muted:#6b7a90;
+      --hx-card:#ffffff;
       --hx-shadow:0 10px 30px rgba(0,0,0,.08);
       --hx-r:14px;
     }
 
-    .page-section{ padding-top:28px; padding-bottom:28px; }
+    .page-section{padding:48px 0;}
 
-    /* Metric cards */
-    .metric-card{
-      background:var(--hx-card); border-radius:14px; box-shadow:var(--hx-shadow);
-      padding:16px; display:flex; align-items:center; gap:14px; border:1px solid #eef2f5; height:100%;
+    /* Barre de titre / actions */
+    .hx-toolbar{
+      background:linear-gradient(135deg,var(--hx-primary),var(--hx-primary-600));
+      color:#fff; border-radius:var(--hx-r); padding:18px 20px; box-shadow:var(--hx-shadow);
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin-bottom:22px;
     }
-    .metric-icon{
-      width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px;
+    .hx-toolbar h1{ margin:0; font-weight:800; letter-spacing:.2px; display:flex; gap:10px; align-items:center; }
+    .hx-toolbar .btn{ border-radius:10px; font-weight:700; }
+    .btn-hx-white{ background:#fff; color:var(--hx-primary); border:1px solid #fff; }
+    .btn-hx-white:hover{ background:transparent; color:#fff; border-color:#fff; }
+    .btn-hx-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.65); }
+    .btn-hx-ghost:hover{ border-color:#fff; }
+
+    /* Cartes KPI */
+    .metric-card{background:#fff;border-radius:12px;padding:18px;box-shadow:var(--hx-shadow);display:flex;align-items:center;gap:16px}
+    .metric-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff}
+    .metric-value{font-size:28px;font-weight:800;line-height:1}
+    .metric-label{font-size:12px;text-transform:uppercase;color:#6c757d;letter-spacing:.04em}
+
+    /* Reco cards */
+    .recommendation-card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;border-left:4px solid transparent;box-shadow:var(--hx-shadow)}
+    .high-priority{border-left-color:#dc3545}
+    .medium-priority{border-left-color:#fd7e14}
+    .low-priority{border-left-color:#0d6efd}
+    .recommendation-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .recommendation-category{font-weight:800;color:#0d6efd;background:#eef6ff;padding:6px 10px;border-radius:999px;font-size:12px}
+    .confidence-badge{font-size:12px;background:#f5f7fb;border:1px solid #e6e9f2;padding:6px 10px;border-radius:999px}
+    .recommendation-text{font-size:15px;margin:8px 0;color:var(--hx-dark)}
+    .recommendation-explanation{font-size:13px;color:#51607a;background:#f8fafc;border:1px dashed #e4e8f1;padding:10px 12px;border-radius:8px}
+
+    /* Boutons d’action reco */
+    .feedback-buttons .btn{border-radius:10px;font-weight:700}
+    .badge-ml{background:var(--hx-primary-50); color:var(--hx-primary-600); padding:.25rem .6rem; border-radius:999px; border:1px solid #d7eef0; font-weight:700;}
+
+    /* Loading */
+    .spinner-container{display:flex;justify-content:center;align-items:center}
+    .spinner-ml{width:38px;height:38px;border:4px solid #e9ecef;border-top-color:var(--hx-primary);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Alertes info bas de page */
+    .alert-info-custom{
+      border:1px solid #ccebed; background:#f4fbfc; color:#0b5562; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.05);
     }
-    .metric-content h3{ margin:0; font-weight:800; }
-    .metric-content p{ margin:0; color:var(--hx-muted); font-size:12px; text-transform:uppercase; letter-spacing:.03em; }
 
-    /* Cards */
-    .card{ border-radius:14px; border:1px solid #eef2f5; }
-    .card-header{ border-top-left-radius:14px !important; border-top-right-radius:14px !important; }
-    .shadow-gradient{
-      background: linear-gradient(135deg, var(--hx-indigo) 0%, var(--hx-purple) 100%);
-      color:#fff; border-radius:15px; box-shadow:var(--hx-shadow); border:0;
-    }
+    /* Petit effet d’apparition */
+    .fade-in{ animation:fadeIn .22s ease; }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
-    /* Recommendation mini bloc */
-    .recommendation-mini{ background:#f8f9fa; border-radius:12px; border:1px solid #e9edf2; }
-
-    /* Table */
-    .table thead th{ border-bottom:2px solid #e4ebf2; font-weight:800; color:#33415c; }
-    .table-hover tbody tr:hover{ background:#fafcfd; }
-
-    /* Buttons */
-    .btn-lg{ border-radius:10px; font-weight:800; }
-    .btn-primary{ background:var(--hx-primary); border-color:var(--hx-primary); }
-    .btn-primary:hover{ background:var(--hx-primary-600); border-color:var(--hx-primary-600); }
-    .btn-outline-success, .btn-outline-warning, .btn-outline-info{ border-width:2px; }
-
-    /* Chart canvas spacing on mobile */
-    @media (max-width: 576px){
-      canvas{ max-height:260px; }
+    @media (max-width:768px){
+      .hx-toolbar{ padding:14px; }
     }
   </style>
 </head>
@@ -103,10 +121,12 @@
 <body>
 <div class="page-wrapper">
 
-  {# ================== HEADER (identique Recommendations) ================== #}
+  {# ================== HEADER (TOP BAR + NAV) — inchangé ================== #}
   <div style="background:#ffffff;border-bottom:1px solid #eee;">
     <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
-      <div style="color:#333;font-size:14px;">Opening Hours: Saturday to Tuesday — 8am to 10pm</div>
+      <div style="color:#333;font-size:14px;">
+        Opening Hours: Saturday to Tuesday — 8am to 10pm
+      </div>
 
       <div style="display:flex;align-items:center;gap:18px;">
         <div style="display:flex;gap:14px;color:#666;">
@@ -142,30 +162,24 @@
     <div class="container hx-nav">
       <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
         <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
-        <strong style="font-size:22px;line-height:1;">Health Track</strong>
       </a>
 
       <ul class="hx-menu">
-        <li><a href="{% url 'home' %}">Home</a></li>
-
-        <li class="hx-dd">
-          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
-          </a>
-          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
-            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
-            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
-          </div>
-        </li>
 
         <li class="hx-dd">
           <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
           </a>
           <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
-            <a class="hx-dd-item" href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Data</a>
-            <a class="hx-dd-item" href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
-            <a class="hx-dd-item" href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Journal</a>
+            <a class="hx-dd-item" href="{% url 'health_data_list' %}">
+              <i class="fas fa-chart-line"></i> My Data
+            </a>
+            <a class="hx-dd-item" href="{% url 'report_list' %}">
+              <i class="fas fa-file-medical"></i> My Reports
+            </a>
+            <a class="hx-dd-item" href="{% url 'journal_page' %}">
+              <i class="fas fa-book"></i> Journal
+            </a>
           </div>
         </li>
 
@@ -174,10 +188,13 @@
             <i class="fa fa-lightbulb"></i> Recommendations
           </a>
         </li>
+          <li><a href="{% url 'reco:recommendations' %}"><i class="fa fa-lightbulb"></i> Recommendations</a></li>
+      <li><a href="{% url 'health_analysis' %}"><i class="fa fa-heartbeat"></i> Health Analysis</a></li>
 
-        <li>
-          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
-            <i class="fa fa-heartbeat"></i> Health Analysis
+      {# === Emotional Analysis (même style) === #}
+      <li>
+        <a href="{% url 'mental:predict_text' %}"><i class="fa fa-brain"></i> Emotional Analysis</a>
+      </li>
           </a>
         </li>
       </ul>
@@ -204,19 +221,19 @@
     <div class="row mb-4">
       <div class="col-12">
         <div class="alert alert-info shadow-sm" style="border-left: 5px solid var(--hx-indigo); border-radius:12px;">
-          <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Bienvenue chez HEALTH TRACK !</h4>
-          <p class="mb-3">Votre dashboard est vide car vous n'avez pas encore ajouté de métriques de santé.</p>
+          <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Welcome to HEALTH TRACK!</h4>
+          <p class="mb-3">Your dashboard is empty because you haven't added any health metrics yet.</p>
           <hr>
-          <p class="mb-3"><strong>Pour commencer :</strong></p>
+          <p class="mb-3"><strong>To get started:</strong></p>
           <ol class="mb-3">
-            <li>Cliquez sur <strong>"Ajouter mes métriques du jour"</strong></li>
-            <li>Remplissez vos données : pas, sommeil, tension artérielle</li>
-            <li>Ajoutez au moins <strong>2-3 jours de données</strong> pour obtenir des statistiques</li>
-            <li>Visitez la page <strong>"Recommandations"</strong> pour des conseils personnalisés</li>
+            <li>Click on <strong>"Add my daily metrics"</strong></li>
+            <li>Fill in your data: steps, sleep, blood pressure</li>
+            <li>Add at least <strong>2-3 days of data</strong> to get statistics</li>
+            <li>Visit the <strong>"Recommendations"</strong> page for personalized advice</li>
           </ol>
           <div class="text-center mt-4">
             <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary btn-lg">
-              <i class="fas fa-plus-circle"></i> Ajouter mes métriques du jour
+              <i class="fas fa-plus-circle"></i> Add my daily metrics
             </a>
           </div>
         </div>
@@ -233,7 +250,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ avg_sleep|floatformat:1|default:"--" }}h</h3>
-            <p>Sommeil Moyen (7j)</p>
+            <p>Average Sleep (7d)</p>
           </div>
         </div>
       </div>
@@ -244,7 +261,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ avg_steps|floatformat:0|default:"--" }}</h3>
-            <p>Pas Moyens (7j)</p>
+            <p>Average Steps (7d)</p>
           </div>
         </div>
       </div>
@@ -255,7 +272,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ latest_bp|default:"--/--" }}</h3>
-            <p>Tension Artérielle</p>
+            <p>Blood Pressure</p>
           </div>
         </div>
       </div>
@@ -266,7 +283,7 @@
           </div>
           <div class="metric-content">
             <h3>{{ recommendations_count }}</h3>
-            <p>Recommandations</p>
+            <p>Recommendations</p>
           </div>
         </div>
       </div>
@@ -278,7 +295,7 @@
       <div class="col-lg-8 mb-4">
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-indigo);">
-            <h5 class="mb-0"><i class="fas fa-moon"></i> Évolution du Sommeil (7 derniers jours)</h5>
+            <h5 class="mb-0"><i class="fas fa-moon"></i> Sleep Trends (Last 7 days)</h5>
           </div>
           <div class="card-body">
             <canvas id="sleepChart" height="80"></canvas>
@@ -287,7 +304,7 @@
 
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-emerald);">
-            <h5 class="mb-0"><i class="fas fa-walking"></i> Évolution des Pas (7 derniers jours)</h5>
+            <h5 class="mb-0"><i class="fas fa-walking"></i> Steps Trends (Last 7 days)</h5>
           </div>
           <div class="card-body">
             <canvas id="stepsChart" height="80"></canvas>
@@ -296,7 +313,7 @@
 
         <div class="card shadow-sm">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-blue);">
-            <h5 class="mb-0"><i class="fas fa-table"></i> Métriques Récentes</h5>
+            <h5 class="mb-0"><i class="fas fa-table"></i> Recent Metrics</h5>
           </div>
           <div class="card-body">
             {% if metrics %}
@@ -341,9 +358,9 @@
             {% else %}
               <div class="text-center py-5">
                 <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <p class="text-muted">Aucune métrique enregistrée pour le moment.</p>
+                <p class="text-muted">No metrics recorded yet.</p>
                 <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary">
-                  <i class="fas fa-plus"></i> Ajouter des métriques
+                  <i class="fas fa-plus"></i> Add metrics
                 </a>
               </div>
             {% endif %}
@@ -356,7 +373,7 @@
         <!-- Recent Recommendations -->
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-purple);">
-            <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Recommandations Récentes</h5>
+            <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Recent Recommendations</h5>
           </div>
           <div class="card-body">
             {% if recent_recommendations %}
@@ -366,7 +383,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <span class="badge"
                         style="background-color:{% if reco.category == 'sleep' %}var(--hx-indigo){% elif reco.category == 'activity' %}var(--hx-emerald){% elif reco.category == 'nutrition' %}var(--hx-orange){% else %}var(--hx-blue){% endif %};">
-                    {% if reco.category == 'sleep' %}🌙 Sommeil{% elif reco.category == 'activity' %}🏃 Activité{% elif reco.category == 'nutrition' %}🥗 Nutrition{% else %}💡 Lifestyle{% endif %}
+                    {% if reco.category == 'sleep' %}🌙 Sleep{% elif reco.category == 'activity' %}🏃 Activity{% elif reco.category == 'nutrition' %}🥗 Nutrition{% else %}💡 Lifestyle{% endif %}
                   </span>
                   <small class="text-muted">{{ reco.created_at|date:"d/m" }}</small>
                 </div>
@@ -374,14 +391,14 @@
               </div>
               {% endfor %}
               <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-primary btn-sm w-100">
-                <i class="fas fa-arrow-right"></i> Voir toutes les recommandations
+                <i class="fas fa-arrow-right"></i> View all recommendations
               </a>
             {% else %}
               <div class="text-center py-4">
                 <i class="fas fa-robot fa-3x text-muted mb-3"></i>
-                <p class="text-muted mb-3">Pas encore de recommandations.</p>
+                <p class="text-muted mb-3">No recommendations yet.</p>
                 <a href="{% url 'reco:recommendations' %}" class="btn btn-primary btn-sm">
-                  <i class="fas fa-magic"></i> Générer des recommandations
+                  <i class="fas fa-magic"></i> Generate recommendations
                 </a>
               </div>
             {% endif %}
@@ -391,22 +408,20 @@
         <!-- Quick Actions -->
         <div class="card shadow-sm mb-4">
           <div class="card-header" style="background-color:#f8f9fa;border-bottom:2px solid var(--hx-emerald);">
-            <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions Rapides</h5>
+            <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
           </div>
           <div class="card-body">
             <div class="d-grid gap-2">
               <a href="{% url 'reco:add_metrics' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus-circle me-2"></i>Ajouter mes métriques du jour
+                <i class="fas fa-plus-circle me-2"></i>Add my daily metrics
               </a>
               <a href="{% url 'reco:recommendations' %}" class="btn btn-outline-success">
-                <i class="fas fa-magic me-2"></i>Voir mes recommandations
+                <i class="fas fa-magic me-2"></i>View my recommendations
               </a>
               <a href="{% url 'reco:ai_progress' %}" class="btn btn-outline-warning">
-                <i class="fas fa-brain me-2"></i>Progression de l'IA
+                <i class="fas fa-brain me-2"></i>AI Learning Progress
               </a>
-              <a href="{% url 'reco:profile' %}" class="btn btn-outline-info">
-                <i class="fas fa-user-edit me-2"></i>Modifier mon profil
-              </a>
+              
             </div>
           </div>
         </div>
@@ -415,10 +430,10 @@
         <div class="card shadow-gradient">
           <div class="card-body text-center">
             <i class="fas fa-brain fa-3x mb-3"></i>
-            <h5 class="mb-2">Intelligence Artificielle</h5>
-            <p class="mb-2">Modèle RandomForest v1</p>
-            <h3 class="mb-0">93.75% de précision</h3>
-            <small>16 indicateurs analysés</small>
+            <h5 class="mb-2">Artificial Intelligence</h5>
+            <p class="mb-2">RandomForest Model v1</p>
+            <h3 class="mb-0">93.75% accuracy</h3>
+            <small>16 health indicators analyzed</small>
           </div>
         </div>
       </div>
@@ -482,7 +497,7 @@ if (sleepCtx) {
     data: {
       labels: {{ chart_labels|safe }},
       datasets: [{
-        label: 'Heures de sommeil',
+        label: 'Hours of sleep',
         data: {{ sleep_data|safe }},
         borderColor: '#667eea',
         backgroundColor: 'rgba(102, 126, 234, 0.12)',
@@ -517,7 +532,7 @@ if (stepsCtx) {
     data: {
       labels: {{ chart_labels|safe }},
       datasets: [{
-        label: 'Nombre de pas',
+        label: 'Number of steps',
         data: {{ steps_data|safe }},
         backgroundColor: '#50C878',
         borderRadius: 8,

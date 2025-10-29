@@ -2,7 +2,18 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-# Ancien modèle générique - nous le laissons pour la compatibilité
+# === Liste des émotions disponibles ===
+EMOTIONS = [
+    ('happy', '😊 Heureux'),
+    ('sad', '😢 Triste'),
+    ('angry', '😡 En colère'),
+    ('neutral', '😐 Neutre'),
+    ('anxious', '😟 Anxieux'),
+    ('relaxed', '😌 Détendu'),
+    ('stressed', '😰 Stressé'),
+]
+
+# --- Ancien modèle générique (journal / humeur) ---
 class JournalEntry(models.Model):
     CATEGORY_CHOICES = [
         ("symptome", "Symptôme"),
@@ -32,10 +43,9 @@ class JournalEntry(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.category} - {self.user.username} - {self.created_at.date()}"
+        return f"{self.user.username} - {self.created_at.date()}"
 
-# --- Nouveaux modèles structurés pour le rapport santé ---
-
+# --- Données de santé quotidiennes ---
 class HealthData(models.Model):
     """Modèle unifié pour les données de santé"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_data")
@@ -82,6 +92,7 @@ class HealthData(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.date}"
 
+# --- Rapports mensuels santé ---
 class MonthlyReport(models.Model):
     """Rapport santé mensuel généré automatiquement"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="monthly_reports")
@@ -104,6 +115,7 @@ class MonthlyReport(models.Model):
     def __str__(self):
         return f"Rapport {self.month.strftime('%B %Y')} - {self.user.username}"
 
+# --- Images médicales ---
 class MedicalImage(models.Model):
     """Stockage des images médicales avec analyse IA"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="medical_images")
@@ -115,3 +127,6 @@ class MedicalImage(models.Model):
 
     def __str__(self):
         return f"Image: {self.title} ({self.user.username})"
+
+# --- Compatibilité rétro (anciens imports) ---
+MoodEntry = JournalEntry

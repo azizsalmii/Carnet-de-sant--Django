@@ -30,9 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party
-    'rest_framework',
-
+   
     # Local apps
     'users',
     'journal',
@@ -41,8 +39,6 @@ INSTALLED_APPS = [
     'reco',  # AI-powered health recommendations
     "adminpanel",
     'rest_framework',
-    'users',
-    'journal',
     'MentalHealth',
 ]
 

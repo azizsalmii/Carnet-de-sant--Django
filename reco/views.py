@@ -1,14 +1,21 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate, logout, get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from datetime import date
 from django.contrib import messages
-from .models import Profile, DailyMetrics, Recommendation
-from .ml_service import get_personalization_service
-from datetime import timedelta
-from django.utils import timezone
-from django.db.models import Avg
+from django.shortcuts import render, redirect
+from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from .models import Recommendation, DailyMetrics, Profile
+from .feedback_learning import get_feedback_insights  # ✅
 
+try:
+    from .ml_service import get_personalization_service
+except Exception:
+    get_personalization_service = None
+from .models import DailyMetrics
+from .services import (
+    compute_features_for_user,
+    generate_recommendations_for_user,
+)
 User = get_user_model()
 
 
@@ -84,65 +91,54 @@ def dashboard(request):
     return render(request, 'reco/dashboard.html', context)
 
 
+# reco/views.py
 @login_required
 def recommendations_view(request):
-    """Recommendations view with ML-powered recommendations and feedback learning"""
+    """
+    Page HTML qui affiche les recommandations triées par score (confiance personnalisée)
+    et montre des insights d’apprentissage.
+    """
     user = request.user
-    
-    # Get personalized recommendations
-    recommendations = Recommendation.objects.filter(user=user).order_by('-score', '-created_at')
-    
-    # Get ML service
-    ml_service = get_personalization_service()
-    
-    # Get feedback learning insights
-    from .feedback_learning import get_feedback_insights, get_personalized_confidence
-    feedback_insights = get_feedback_insights(user)
-    
-    # Add ML confidence and explanation to each recommendation
-    recommendations_data = []
-    total_confidence = 0
-    
-    for reco in recommendations:
-        # Get base ML confidence (already in 0.0-1.0 range)
-        _, base_confidence, explanation = ml_service.predict_helpfulness(user, reco.category)
-        
-        # Apply feedback learning (base_confidence already 0.0-1.0)
-        personalized_confidence = get_personalized_confidence(
-            user=user,
-            category=reco.category,
-            base_confidence=base_confidence
-        ) * 100  # Convert to percentage for display
-        
-        recommendations_data.append({
-            'id': reco.id,
-            'category': reco.category,
-            'text': reco.text,
-            'ml_confidence': personalized_confidence,  # Use personalized confidence
-            'base_confidence': base_confidence,  # Keep base for comparison
-            'explanation': explanation,
-            'source': reco.source,
-            'model_version': reco.model_version,
-            'created_at': reco.created_at,
-            'helpful': reco.helpful,
-            'viewed': reco.viewed,
-            'acted_upon': reco.acted_upon,
+
+    # Recos de l’utilisateur, triées par confiance personnalisée puis date
+    recos = (
+        Recommendation.objects
+        .filter(user=user)
+        .order_by('-score', '-created_at')
+    )
+
+    # Construire les données pour le template
+    data = []
+    total_conf = 0.0
+    for r in recos:
+        conf_pct = (r.score or 0.0) * 100.0
+        data.append({
+            'id': r.id,
+            'category': r.category,
+            'text': r.text,
+            'ml_confidence': conf_pct,          # % pour affichage
+            'explanation': r.rationale or '',   # on garde si présent
+            'source': r.source,
+            'model_version': r.model_version or 'feedback-learning',
+            'created_at': r.created_at,
+            'helpful': r.helpful,
+            'viewed': r.viewed,
+            'acted_upon': r.acted_upon,
         })
-        
-        total_confidence += personalized_confidence
-    
-    # Calculate average confidence (personalized)
-    avg_confidence = total_confidence / len(recommendations_data) if recommendations_data else 0
-    
+        total_conf += conf_pct
+
+    avg_confidence = total_conf / len(data) if data else 0.0
+    feedback_insights = get_feedback_insights(user)  # ✅
+
     context = {
-        'recommendations': recommendations_data,
-        'model_version': ml_service.model_version or 'rule-only',
-        'avg_confidence': avg_confidence,
-        'feedback_insights': feedback_insights,  # Add feedback insights
-        'total_count': len(recommendations_data),
+        'recommendations': data,
+        'model_version': 'feedback-learning',  # indicatif UI
+        'avg_confidence': round(avg_confidence, 1),
+        'feedback_insights': feedback_insights,
+        'total_count': len(data),
     }
-    
     return render(request, 'reco/recommendations.html', context)
+
 
 
 @login_required
@@ -360,61 +356,215 @@ def ai_progress_view(request):
 
 @login_required
 def add_metrics(request):
-    """User-friendly view to add daily health metrics"""
-    if request.method == 'POST':
+    """
+    Création/édition des métriques du jour pour l'utilisateur connecté.
+    Après sauvegarde, calcule les features et génère des recommandations.
+    """
+    today = date.today()
+    user = request.user
+
+    # Charger les métriques existantes pour pré-remplir le formulaire
+    today_metrics = DailyMetrics.objects.filter(user=user, date=today).first()
+
+    if request.method == "POST":
+        # Récupérer/normaliser les valeurs
+        steps = request.POST.get("steps") or None
+        sleep_hours = request.POST.get("sleep_hours") or None
+        systolic_bp = request.POST.get("systolic_bp") or None
+        diastolic_bp = request.POST.get("diastolic_bp") or None
+        date_str = request.POST.get("date") or today.isoformat()
+
         try:
-            date_str = request.POST.get('date')
-            steps = request.POST.get('steps')
-            sleep_hours = request.POST.get('sleep_hours')
-            systolic_bp = request.POST.get('systolic_bp')
-            diastolic_bp = request.POST.get('diastolic_bp')
-            
-            # Validate date
-            from datetime import datetime
-            metric_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
-            
-            # Check if metrics already exist for this date
-            existing_metric = DailyMetrics.objects.filter(user=request.user, date=metric_date).first()
-            
-            if existing_metric:
-                # Update existing
-                if steps:
-                    existing_metric.steps = int(steps)
-                if sleep_hours:
-                    existing_metric.sleep_hours = float(sleep_hours)
-                if systolic_bp:
-                    existing_metric.systolic_bp = int(systolic_bp)
-                if diastolic_bp:
-                    existing_metric.diastolic_bp = int(diastolic_bp)
-                existing_metric.save()
-                messages.success(request, f'Métriques mises à jour pour le {metric_date.strftime("%d/%m/%Y")} !')
-            else:
-                # Create new
-                DailyMetrics.objects.create(
-                    user=request.user,
-                    date=metric_date,
-                    steps=int(steps) if steps else None,
-                    sleep_hours=float(sleep_hours) if sleep_hours else None,
-                    systolic_bp=int(systolic_bp) if systolic_bp else None,
-                    diastolic_bp=int(diastolic_bp) if diastolic_bp else None,
-                )
-                messages.success(request, f'Métriques ajoutées pour le {metric_date.strftime("%d/%m/%Y")} !')
-            
-            # Redirect to dashboard
-            return redirect('dashboard')
-            
+            y, m, d = map(int, date_str.split("-"))
+            entry_date = date(y, m, d)
+        except Exception:
+            entry_date = today
+
+        # Enregistrer dans une transaction (upsert du jour)
+        with transaction.atomic():
+            metrics, _created = DailyMetrics.objects.update_or_create(
+                user=user,
+                date=entry_date,
+                defaults={
+                    "steps": int(steps) if steps else None,
+                    "sleep_hours": float(sleep_hours) if sleep_hours else None,
+                    "systolic_bp": int(systolic_bp) if systolic_bp else None,
+                    "diastolic_bp": int(diastolic_bp) if diastolic_bp else None,
+                },
+            )
+
+        # Lancer la génération de recos
+        try:
+            features = compute_features_for_user(user.id)
+            generated_count = generate_recommendations_for_user(user.id, features)
+            messages.success(
+                request,
+                f"Métriques enregistrées. {generated_count} recommandation(s) générée(s).",
+            )
         except Exception as e:
-            messages.error(request, f'Erreur lors de l\'enregistrement : {str(e)}')
-    
-    # Get today's date for default
-    today = timezone.now().date()
-    
-    # Check if metrics already exist for today
-    today_metrics = DailyMetrics.objects.filter(user=request.user, date=today).first()
-    
+            # On n'échoue pas l'enregistrement si la génération échoue
+            messages.warning(
+                request,
+                "Métriques enregistrées, mais la génération de recommandations a échoué."
+            )
+
+        return redirect("reco:recommendations")
+
+    # GET : afficher le formulaire
     context = {
-        'today': today,
-        'today_metrics': today_metrics,
+        "today": today,
+        "today_metrics": today_metrics,
     }
+    return render(request, "reco/add_metrics.html", context)
+
+
+# === API Endpoints ===
+
+@login_required
+def api_provide_feedback(request, reco_id):
+    """
+    API endpoint to provide feedback on a recommendation.
+    POST /api/recommendations/<id>/provide_feedback/
+    """
+    import json
+    from django.http import JsonResponse
+    from django.views.decorators.csrf import csrf_exempt
+    import logging
     
-    return render(request, 'reco/add_metrics.html', context)
+    logger = logging.getLogger(__name__)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        # Get the recommendation
+        reco = Recommendation.objects.get(id=reco_id, user=request.user)
+        
+        # Parse JSON body
+        data = json.loads(request.body)
+        helpful = data.get('helpful')
+        acted_upon = data.get('acted_upon', False)
+        
+        logger.info(f"Feedback received for reco {reco_id}: helpful={helpful}, acted_upon={acted_upon}")
+        
+        if helpful is None:
+            return JsonResponse({'error': 'helpful field is required'}, status=400)
+        
+        # Save feedback - use simple save() without update_fields
+        reco.helpful = helpful
+        reco.acted_upon = acted_upon
+        reco.feedback_at = timezone.now()
+        reco.save()  # Save ALL fields to ensure it works
+        
+        # Reload from DB to confirm
+        reco.refresh_from_db()
+        
+        logger.info(f"Feedback SAVED for reco {reco_id}: helpful={reco.helpful}, acted_upon={reco.acted_upon}, feedback_at={reco.feedback_at}")
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Feedback saved successfully',
+            'helpful': reco.helpful,
+            'acted_upon': reco.acted_upon,
+            'feedback_at': reco.feedback_at.isoformat() if reco.feedback_at else None,
+        })
+        
+    except Recommendation.DoesNotExist:
+        return JsonResponse({'error': 'Recommendation not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def api_run_recommendations(request):
+    """
+    API endpoint to generate new recommendations based on latest metrics and feedback.
+    POST /api/metrics/run_recommendations/
+    
+    This endpoint:
+    1. Gets latest user metrics
+    2. Computes features for AI model
+    3. Generates recommendations using rules + ML
+    4. Applies feedback learning to boost relevant categories
+    5. Returns personalized recommendations
+    """
+    import json
+    import logging
+    from django.http import JsonResponse
+    from .services import generate_recommendations_for_user, compute_features_for_user
+    
+    logger = logging.getLogger(__name__)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        user = request.user
+        logger.info(f"Generating recommendations for user: {user.username}")
+        
+        # Check if user has recent metrics
+        recent_metrics = DailyMetrics.objects.filter(
+            user=user,
+            date__gte=timezone.now().date() - timedelta(days=7)
+        ).count()
+        
+        if recent_metrics == 0:
+            return JsonResponse({
+                'status': 'warning',
+                'message': 'Aucune métrique récente trouvée. Ajoutez vos métriques de santé.',
+                'recommendations_count': 0
+            }, status=200)
+        
+        # Step 1: Compute features from latest metrics
+        features = compute_features_for_user(user.id)
+        
+        if not features:
+            return JsonResponse({
+                'status': 'warning',
+                'message': 'Impossible de calculer les features. Vérifiez vos métriques.',
+                'recommendations_count': 0
+            }, status=200)
+        
+        # Step 2: Generate recommendations (rules + ML + feedback learning)
+        # Returns the count of recommendations created
+        recommendations_count = generate_recommendations_for_user(user.id, features)
+        
+        # Step 3: Get stats
+        total_recos = Recommendation.objects.filter(user=user).count()
+        avg_confidence = Recommendation.objects.filter(user=user).aggregate(
+            avg_conf=Avg('score')  # 'score' field stores ML confidence (0.0-1.0)
+        )['avg_conf'] or 0
+        
+        # Get feedback stats
+        feedback_given = Recommendation.objects.filter(
+            user=user,
+            helpful__isnull=False
+        ).count()
+        
+        helpful_count = Recommendation.objects.filter(
+            user=user,
+            helpful=True
+        ).count()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'{recommendations_count} nouvelles recommandations générées avec succès!',
+            'recommendations_count': recommendations_count,
+            'total_recommendations': total_recos,
+            'avg_confidence': round(avg_confidence * 100, 2),  # Convert to percentage
+            'feedback_stats': {
+                'total_feedback': feedback_given,
+                'helpful_count': helpful_count,
+                'helpful_rate': round((helpful_count / feedback_given * 100) if feedback_given > 0 else 0, 1)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating recommendations: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erreur lors de la génération: {str(e)}',
+            'recommendations_count': 0
+        }, status=500)

@@ -4,18 +4,23 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Add Health Metrics | Medic</title>
+  <title>My Recommendations - AI Health | Medic</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-  <!-- Vendor CSS -->
+  <!-- Slick Carousel -->
   <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
   <link rel="stylesheet" href="{% static 'plugins/slick/slick-theme.css' %}">
+
+  <!-- FancyBox -->
   <link rel="stylesheet" href="{% static 'plugins/fancybox/jquery.fancybox.min.css' %}">
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <!-- Theme -->
+
+  <!-- Theme Styles -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-  {# ===== Header dropdown minimal CSS (identique à la dernière page) ===== #}
+  {# ====== minimal CSS pour les dropdowns du header (inchangés) ====== #}
   <style>
     .hx-nav { display:flex; align-items:center; gap:28px; height:64px; }
     .hx-menu { display:flex; align-items:center; gap:28px; margin:0; padding:0; list-style:none; flex:1; }
@@ -30,7 +35,8 @@
     }
     .hx-dd:hover .hx-dd-menu,
     .hx-dd:focus-within .hx-dd-menu { display:block; }
-    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#223; text-decoration:none; white-space:nowrap; }
+    .hx-dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+                  color:#223; text-decoration:none; white-space:nowrap; }
     .hx-dd-item i { width:18px; text-align:center; color:#39b7bd; }
     .hx-dd-item:hover { background:#f2fbfb; }
     @media (max-width: 768px) {
@@ -42,7 +48,7 @@
     }
   </style>
 
-  {# ===== Styles d’amélioration pour CE formulaire ===== #}
+  {# ====== Styles d’amélioration pour CETTE PAGE UNIQUEMENT ====== #}
   <style>
     :root{
       --hx-primary:#39b7bd;
@@ -55,63 +61,59 @@
       --hx-r:14px;
     }
 
-    .page-section{ padding:48px 0; }
+    .page-section{padding:48px 0;}
 
-    /* Titre / intro */
-    .hx-hero-title{
-      display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; margin-bottom:26px;
+    /* Barre de titre / actions */
+    .hx-toolbar{
+      background:linear-gradient(135deg,var(--hx-primary),var(--hx-primary-600));
+      color:#fff; border-radius:var(--hx-r); padding:18px 20px; box-shadow:var(--hx-shadow);
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin-bottom:22px;
     }
-    .hx-hero-title h1{ font-weight:800; letter-spacing:.2px; }
-    .hx-hero-sub{ color:var(--hx-muted); }
+    .hx-toolbar h1{ margin:0; font-weight:800; letter-spacing:.2px; display:flex; gap:10px; align-items:center; }
+    .hx-toolbar .btn{ border-radius:10px; font-weight:700; }
+    .btn-hx-white{ background:#fff; color:var(--hx-primary); border:1px solid #fff; }
+    .btn-hx-white:hover{ background:transparent; color:#fff; border-color:#fff; }
+    .btn-hx-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.65); }
+    .btn-hx-ghost:hover{ border-color:#fff; }
 
-    /* Carte formulaire */
-    .hx-card{
-      background:var(--hx-card); border-radius:var(--hx-r); box-shadow:var(--hx-shadow);
-      padding:24px; border:1px solid #eef2f5;
+    /* Cartes KPI */
+    .metric-card{background:#fff;border-radius:12px;padding:18px;box-shadow:var(--hx-shadow);display:flex;align-items:center;gap:16px}
+    .metric-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff}
+    .metric-value{font-size:28px;font-weight:800;line-height:1}
+    .metric-label{font-size:12px;text-transform:uppercase;color:#6c757d;letter-spacing:.04em}
+
+    /* Reco cards */
+    .recommendation-card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;border-left:4px solid transparent;box-shadow:var(--hx-shadow)}
+    .high-priority{border-left-color:#dc3545}
+    .medium-priority{border-left-color:#fd7e14}
+    .low-priority{border-left-color:#0d6efd}
+    .recommendation-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .recommendation-category{font-weight:800;color:#0d6efd;background:#eef6ff;padding:6px 10px;border-radius:999px;font-size:12px}
+    .confidence-badge{font-size:12px;background:#f5f7fb;border:1px solid #e6e9f2;padding:6px 10px;border-radius:999px}
+    .recommendation-text{font-size:15px;margin:8px 0;color:var(--hx-dark)}
+    .recommendation-explanation{font-size:13px;color:#51607a;background:#f8fafc;border:1px dashed #e4e8f1;padding:10px 12px;border-radius:8px}
+
+    /* Boutons d’action reco */
+    .feedback-buttons .btn{border-radius:10px;font-weight:700}
+    .badge-ml{background:var(--hx-primary-50); color:var(--hx-primary-600); padding:.25rem .6rem; border-radius:999px; border:1px solid #d7eef0; font-weight:700;}
+
+    /* Loading */
+    .spinner-container{display:flex;justify-content:center;align-items:center}
+    .spinner-ml{width:38px;height:38px;border:4px solid #e9ecef;border-top-color:var(--hx-primary);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Alertes info bas de page */
+    .alert-info-custom{
+      border:1px solid #ccebed; background:#f4fbfc; color:#0b5562; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.05);
     }
 
-    /* Groupes de section avec en-tête */
-    .hx-section{
-      border:1px solid #edf3f5; border-radius:12px; margin-bottom:18px; overflow:hidden;
-      background:#fff;
-    }
-    .hx-section__head{
-      background:linear-gradient(135deg, var(--hx-primary), var(--hx-primary-600));
-      color:#fff; padding:12px 14px; display:flex; align-items:center; gap:10px; font-weight:800;
-    }
-    .hx-section__body{ padding:16px; }
+    /* Petit effet d’apparition */
+    .fade-in{ animation:fadeIn .22s ease; }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
-    /* Champs */
-    .form-label{ font-weight:700; color:var(--hx-dark); }
-    .form-control, .input-group-text, .form-select{
-      border-radius:10px; border:1px solid #dfe7ee;
-    }
-    .form-control:focus{
-      border-color:var(--hx-primary); box-shadow:0 0 0 .18rem rgba(57,183,189,.18);
-    }
-    .input-group-text{ background:#f8fafb; font-weight:700; color:#4a5a70; }
-    .form-text{ color:#6c7a92; }
-
-    /* Boutons */
-    .btn-lg{ border-radius:10px; font-weight:800; }
-    .btn-primary{
-      background:var(--hx-primary); border-color:var(--hx-primary);
-    }
-    .btn-primary:hover{ background:var(--hx-primary-600); border-color:var(--hx-primary-600); }
-    .btn-outline-secondary{ border-width:2px; }
-
-    /* Tips blocs */
-    .hx-tip{
-      text-align:center; padding:22px; background:#f7fbfc; border:1px solid #e6eef0; border-radius:12px;
-      transition:transform .25s ease, box-shadow .25s ease;
-      height:100%;
-    }
-    .hx-tip:hover{ transform:translateY(-4px); box-shadow:var(--hx-shadow); }
-
-    /* Alert info */
-    .alert-info{
-      border:1px solid #cdebee; background:#f0fbfc; color:#0b5562;
-      border-radius:12px;
+    @media (max-width:768px){
+      .hx-toolbar{ padding:14px; }
     }
   </style>
 </head>
@@ -119,10 +121,12 @@
 <body>
 <div class="page-wrapper">
 
-  {# ================== HEADER (identique) ================== #}
+  {# ================== HEADER (TOP BAR + NAV) — inchangé ================== #}
   <div style="background:#ffffff;border-bottom:1px solid #eee;">
     <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:48px;">
-      <div style="color:#333;font-size:14px;">Opening Hours: Saturday to Tuesday — 8am to 10pm</div>
+      <div style="color:#333;font-size:14px;">
+        Opening Hours: Saturday to Tuesday — 8am to 10pm
+      </div>
 
       <div style="display:flex;align-items:center;gap:18px;">
         <div style="display:flex;gap:14px;color:#666;">
@@ -158,30 +162,24 @@
     <div class="container hx-nav">
       <a href="{% url 'home' %}" style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;">
         <img src="{% static 'images/logo.png' %}" alt="Medic.AI" style="height:36px;">
-        <strong style="font-size:22px;line-height:1;">Health Track</strong>
       </a>
 
       <ul class="hx-menu">
-        <li><a href="{% url 'home' %}">Home</a></li>
-
-        <li class="hx-dd">
-          <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-microscope"></i> Diagnostics <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
-          </a>
-          <div class="hx-dd-menu" role="menu" aria-label="Diagnostics">
-            <a class="hx-dd-item" href="{% url 'brain_tumor_page' %}"><i class="fa fa-brain"></i> Brain Tumor AI</a>
-            <a class="hx-dd-item" href="{% url 'chest_xray_page' %}"><i class="fa fa-stethoscope"></i> Chest X-Ray AI</a>
-          </div>
-        </li>
 
         <li class="hx-dd">
           <a href="#" class="hx-dd-toggle" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-notes-medical"></i> Medical Infos <span class="hx-caret"><i class="fa fa-caret-down"></i></span>
           </a>
           <div class="hx-dd-menu" role="menu" aria-label="Medical Infos">
-            <a class="hx-dd-item" href="{% url 'health_data_list' %}"><i class="fas fa-chart-line"></i> My Data</a>
-            <a class="hx-dd-item" href="{% url 'report_list' %}"><i class="fas fa-file-medical"></i> My Reports</a>
-            <a class="hx-dd-item" href="{% url 'journal_page' %}"><i class="fas fa-book"></i> Journal</a>
+            <a class="hx-dd-item" href="{% url 'health_data_list' %}">
+              <i class="fas fa-chart-line"></i> My Data
+            </a>
+            <a class="hx-dd-item" href="{% url 'report_list' %}">
+              <i class="fas fa-file-medical"></i> My Reports
+            </a>
+            <a class="hx-dd-item" href="{% url 'journal_page' %}">
+              <i class="fas fa-book"></i> Journal
+            </a>
           </div>
         </li>
 
@@ -190,10 +188,13 @@
             <i class="fa fa-lightbulb"></i> Recommendations
           </a>
         </li>
+          <li><a href="{% url 'reco:recommendations' %}"><i class="fa fa-lightbulb"></i> Recommendations</a></li>
+      <li><a href="{% url 'health_analysis' %}"><i class="fa fa-heartbeat"></i> Health Analysis</a></li>
 
-        <li>
-          <a href="{% url 'health_analysis' %}" style="display:flex;align-items:center;gap:8px;">
-            <i class="fa fa-heartbeat"></i> Health Analysis
+      {# === Emotional Analysis (même style) === #}
+      <li>
+        <a href="{% url 'mental:predict_text' %}"><i class="fa fa-brain"></i> Emotional Analysis</a>
+      </li>
           </a>
         </li>
       </ul>
@@ -209,9 +210,9 @@
         <!-- Title -->
         <div class="hx-hero-title">
           <h1 class="display-6">
-            <i class="fas fa-heartbeat text-danger me-2"></i> Mes Métriques de Santé
+            <i class="fas fa-heartbeat text-danger me-2"></i> My Health Metrics
           </h1>
-          <p class="hx-hero-sub">Suivez votre santé au quotidien pour des recommandations personnalisées</p>
+          <p class="hx-hero-sub">Track your health daily for personalized recommendations</p>
         </div>
 
         <!-- Form Card -->
@@ -223,7 +224,7 @@
             <div class="hx-section">
               <div class="hx-section__head"><i class="fa fa-calendar-alt"></i> Date</div>
               <div class="hx-section__body">
-                <label for="date" class="form-label">Jour de saisie</label>
+                <label for="date" class="form-label">Data entry day</label>
                 <input
                   type="date"
                   class="form-control form-control-lg"
@@ -233,62 +234,62 @@
                   max="{{ today|date:'Y-m-d' }}"
                   required
                 >
-                <div class="form-text mt-1">Sélectionnez la date de vos mesures</div>
+                <div class="form-text mt-1">Select the date of your measurements</div>
               </div>
             </div>
 
             <!-- Activity (Steps) -->
             <div class="hx-section">
-              <div class="hx-section__head"><i class="fa-solid fa-person-walking"></i> Activité</div>
+              <div class="hx-section__head"><i class="fa-solid fa-person-walking"></i> Activity</div>
               <div class="hx-section__body">
-                <label for="steps" class="form-label">Nombre de pas</label>
+                <label for="steps" class="form-label">Number of steps</label>
                 <div class="input-group input-group-lg">
                   <input
                     type="number"
                     class="form-control"
                     id="steps"
                     name="steps"
-                    placeholder="Ex : 8000"
+                    placeholder="Ex: 8000"
                     min="0"
                     max="50000"
                     {% if today_metrics and today_metrics.steps %}value="{{ today_metrics.steps }}"{% endif %}
                   >
-                  <span class="input-group-text">pas</span>
+                  <span class="input-group-text">steps</span>
                 </div>
-                <div class="form-text mt-1">Objectif recommandé : 8000–10000 pas/jour</div>
+                <div class="form-text mt-1">Recommended goal: 8000–10000 steps/day</div>
               </div>
             </div>
 
             <!-- Sleep -->
             <div class="hx-section">
-              <div class="hx-section__head"><i class="fa-solid fa-moon"></i> Sommeil</div>
+              <div class="hx-section__head"><i class="fa-solid fa-moon"></i> Sleep</div>
               <div class="hx-section__body">
-                <label for="sleep_hours" class="form-label">Heures de sommeil</label>
+                <label for="sleep_hours" class="form-label">Hours of sleep</label>
                 <div class="input-group input-group-lg">
                   <input
                     type="number"
                     class="form-control"
                     id="sleep_hours"
                     name="sleep_hours"
-                    placeholder="Ex : 7.5"
+                    placeholder="Ex: 7.5"
                     min="0"
                     max="24"
                     step="0.5"
                     {% if today_metrics and today_metrics.sleep_hours %}value="{{ today_metrics.sleep_hours }}"{% endif %}
                   >
-                  <span class="input-group-text">heures</span>
+                  <span class="input-group-text">hours</span>
                 </div>
-                <div class="form-text mt-1">Recommandé : 7–9 heures pour un adulte</div>
+                <div class="form-text mt-1">Recommended: 7–9 hours for adults</div>
               </div>
             </div>
 
             <!-- Blood Pressure -->
             <div class="hx-section">
-              <div class="hx-section__head"><i class="fa-solid fa-gauge-high"></i> Tension Artérielle</div>
+              <div class="hx-section__head"><i class="fa-solid fa-gauge-high"></i> Blood Pressure</div>
               <div class="hx-section__body">
                 <div class="row g-3">
                   <div class="col-md-6">
-                    <label for="systolic_bp" class="form-label">Systolique</label>
+                    <label for="systolic_bp" class="form-label">Systolic</label>
                     <div class="input-group input-group-lg">
                       <span class="input-group-text">SYS</span>
                       <input
@@ -305,7 +306,7 @@
                     </div>
                   </div>
                   <div class="col-md-6">
-                    <label for="diastolic_bp" class="form-label">Diastolique</label>
+                    <label for="diastolic_bp" class="form-label">Diastolic</label>
                     <div class="input-group input-group-lg">
                       <span class="input-group-text">DIA</span>
                       <input
@@ -322,24 +323,24 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-text mt-1">Valeur normale indicative : &lt; 120/80 mmHg</div>
+                <div class="form-text mt-1">Indicative normal value: &lt; 120/80 mmHg</div>
               </div>
             </div>
 
             <!-- Info -->
             <div class="alert alert-info">
               <i class="fas fa-info-circle me-2"></i>
-              <strong>Conseil :</strong> Entrez au moins 2–3 métriques pour obtenir des recommandations personnalisées.
-              Vous pourrez compléter les autres champs plus tard.
+              <strong>Tip:</strong> Enter at least 2–3 metrics to get personalized recommendations.
+              You can fill in the other fields later.
             </div>
 
             <!-- Actions -->
             <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-3">
               <a href="{% url 'reco:dashboard' %}" class="btn btn-outline-secondary btn-lg">
-                <i class="fas fa-arrow-left me-2"></i> Retour
+                <i class="fas fa-arrow-left me-2"></i> Back
               </a>
               <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save me-2"></i> Enregistrer
+                <i class="fas fa-save me-2"></i> Save
               </button>
             </div>
           </form>
@@ -349,20 +350,20 @@
         {% if today_metrics %}
         <div class="alert alert-success mt-4" style="border-radius:12px;">
           <h5 class="mb-3">
-            <i class="fas fa-check-circle me-2"></i>Métriques existantes pour aujourd'hui
+            <i class="fas fa-check-circle me-2"></i>Existing metrics for today
           </h5>
           <div class="row">
             {% if today_metrics.steps %}
-            <div class="col-6 col-md-3 mb-2"><strong>Pas :</strong> {{ today_metrics.steps|floatformat:0 }}</div>
+            <div class="col-6 col-md-3 mb-2"><strong>Steps:</strong> {{ today_metrics.steps|floatformat:0 }}</div>
             {% endif %}
             {% if today_metrics.sleep_hours %}
-            <div class="col-6 col-md-3 mb-2"><strong>Sommeil :</strong> {{ today_metrics.sleep_hours }}h</div>
+            <div class="col-6 col-md-3 mb-2"><strong>Sleep:</strong> {{ today_metrics.sleep_hours }}h</div>
             {% endif %}
             {% if today_metrics.systolic_bp and today_metrics.diastolic_bp %}
-            <div class="col-12 col-md-6 mb-2"><strong>Tension :</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg</div>
+            <div class="col-12 col-md-6 mb-2"><strong>Blood Pressure:</strong> {{ today_metrics.systolic_bp|floatformat:0 }}/{{ today_metrics.diastolic_bp|floatformat:0 }} mmHg</div>
             {% endif %}
           </div>
-          <small class="text-muted">Modifiez ci-dessus puis cliquez sur “Enregistrer” pour mettre à jour.</small>
+          <small class="text-muted">Edit above then click "Save" to update.</small>
         </div>
         {% endif %}
 
@@ -371,22 +372,22 @@
           <div class="col-md-4 mb-3">
             <div class="hx-tip">
               <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-              <h5>Utilisez un tracker</h5>
-              <p class="small text-muted mb-0">Montre connectée, smartphone ou bracelet fitness pour compter vos pas.</p>
+              <h5>Use a tracker</h5>
+              <p class="small text-muted mb-0">Smartwatch, smartphone or fitness band to count your steps.</p>
             </div>
           </div>
           <div class="col-md-4 mb-3">
             <div class="hx-tip">
               <i class="fas fa-clock fa-3x text-info mb-3"></i>
-              <h5>Routine quotidienne</h5>
-              <p class="small text-muted mb-0">Saisissez vos métriques chaque soir avant de vous coucher.</p>
+              <h5>Daily routine</h5>
+              <p class="small text-muted mb-0">Enter your metrics every evening before bed.</p>
             </div>
           </div>
           <div class="col-md-4 mb-3">
             <div class="hx-tip">
               <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
-              <h5>Suivez vos progrès</h5>
-              <p class="small text-muted mb-0">Visualisez l’évolution sur le tableau de bord.</p>
+              <h5>Track your progress</h5>
+              <p class="small text-muted mb-0">View trends on the dashboard.</p>
             </div>
           </div>
         </div>
@@ -448,16 +449,16 @@ document.getElementById('metricsForm').addEventListener('submit', function(e) {
   const systolic = document.getElementById('systolic_bp').value;
   const diastolic = document.getElementById('diastolic_bp').value;
 
-  // Au moins une métrique
+  // At least one metric
   if (!steps && !sleep && !systolic && !diastolic) {
     e.preventDefault();
-    alert('Veuillez remplir au moins une métrique avant d\'enregistrer.');
+    alert('Please fill in at least one metric before saving.');
     return false;
   }
-  // Si une seule valeur TA est saisie
+  // If only one BP value is entered
   if ((systolic && !diastolic) || (!systolic && diastolic)) {
     e.preventDefault();
-    alert('Veuillez remplir les deux valeurs de tension artérielle (systolique ET diastolique).');
+    alert('Please fill in both blood pressure values (systolic AND diastolic).');
     return false;
   }
   return true;
