@@ -25,7 +25,7 @@ services:
         value: 4
 
   # PostgreSQL Database
-  - type: pgsql
+  - type: postgres
     name: carnet-sante-db
     plan: free
     databaseName: carnet_sante
