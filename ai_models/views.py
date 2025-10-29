@@ -38,11 +38,13 @@ from django.shortcuts import get_object_or_404  # <-- en haut avec les imports
 # =========================================================
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Get the base directory (project root)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # =========================================================
 # Chest X-Ray model + utils
 # =========================================================
-XRY_MODEL_PATH = r"C:\Users\IYED\Desktop\Carnet-de-sant--Django-main\ai_models\best_model.pth"
+XRY_MODEL_PATH = os.path.join(BASE_DIR, "ai_models", "best_model.pth")
 
 CONDITIONS = [
     'Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
@@ -224,7 +226,7 @@ def chest_xray_test_page(request):
 # =========================================================
 # Brain Tumor model + utils
 # =========================================================
-BRAIN_MODEL_PATH = r"C:\Users\IYED\Desktop\Carnet-de-sant--Django-main\ai_models\resnet18_brain_tumor.pth"
+BRAIN_MODEL_PATH = os.path.join(BASE_DIR, "ai_models", "resnet18_brain_tumor.pth")
 BRAIN_CLASSES = ['Glioma', 'Meningioma', 'No_tumor', 'Pituitary']
 
 # charge le modèle complet (même méthode que Flask)

@@ -3,17 +3,23 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from reco import views as reco_views
 
 urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
+
+    # API routes (must be before other includes to avoid conflicts)
+    path('api/recommendations/<int:reco_id>/provide_feedback/', reco_views.api_provide_feedback, name='api_provide_feedback'),
+    path('api/metrics/run_recommendations/', reco_views.api_run_recommendations, name='api_run_recommendations'),
+    path('api/', include('reco.api_urls')),            # ✅ API REST pour recommendations (DRF)
 
     # Apps principales
     path('', include('journal.urls')),                 # site principal (home, about, etc.)
     path('users/', include('users.urls')),             # gestion des utilisateurs
     path('accounts/', include('users.urls')),          # alias pour compatibilité Django
     path('ai/', include('ai_models.urls')),            # pages IA (chest-xray, brain-tumor)
-    path('detection/', include('detection.urls')),     # détection d’anomalies
+    path('detection/', include('detection.urls')),     # détection d'anomalies
     path('reco/', include(('reco.urls', 'reco'), namespace='reco')),  # ✅ recommandations IA
     path('dashboard/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
 

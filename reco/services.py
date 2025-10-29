@@ -88,10 +88,31 @@ def generate_recommendations_for_user(user_id, features):
     except User.DoesNotExist:
         return 0
     
-    # Delete existing recommendations for this user (to get fresh recommendations)
-    deleted_count = Recommendation.objects.filter(user=user).delete()[0]
+    # Get old recommendations BEFORE deleting (for learning from past feedback)
+    old_recommendations = list(Recommendation.objects.filter(user=user))
+    old_texts = set(r.text for r in old_recommendations)
+    
+    # Find which categories the user liked (helpful=True or acted_upon=True)
+    liked_categories = [
+        r.category for r in old_recommendations 
+        if r.helpful is True or r.acted_upon is True
+    ]
+    liked_categories = list(set(liked_categories))  # Remove duplicates
+    
+    # Delete ONLY recommendations WITHOUT feedback (keep the learning history!)
+    # This preserves user feedback for the AI progress dashboard
+    recommendations_without_feedback = Recommendation.objects.filter(
+        user=user,
+        feedback_at__isnull=True  # Only delete if no feedback given
+    )
+    deleted_count = recommendations_without_feedback.delete()[0]
     if deleted_count > 0:
-        logger.info(f"Deleted {deleted_count} old recommendations for {user.username}")
+        logger.info(f"Deleted {deleted_count} old recommendations WITHOUT feedback for {user.username}")
+    
+    # Count kept recommendations with feedback
+    kept_count = Recommendation.objects.filter(user=user, feedback_at__isnull=False).count()
+    if kept_count > 0:
+        logger.info(f"Kept {kept_count} recommendations WITH feedback for learning")
     
     # Get ML personalization service
     ml_service = get_personalization_service()
@@ -126,25 +147,16 @@ def generate_recommendations_for_user(user_id, features):
     # Get user's past feedback to learn preferences
     feedback_insights = get_feedback_insights(user)
     
-    # Get texts of past recommendations to avoid repetition
-    past_recommendations = Recommendation.objects.filter(user=user)
-    past_texts = set(past_recommendations.values_list('text', flat=True))
-    
-    # Find which categories the user likes (helpful=True or acted_upon=True)
-    liked_categories = past_recommendations.filter(
-        Q(helpful=True) | Q(acted_upon=True)
-    ).values_list('category', flat=True).distinct()
-    
     logger.info(
         f"Generating personalized recommendations for {user.username}: "
-        f"Past: {past_recommendations.count()}, "
-        f"Liked categories: {list(liked_categories)}, "
+        f"Past recommendations: {len(old_recommendations)}, "
+        f"Liked categories: {liked_categories}, "
         f"Learning status: {feedback_insights['learning_status']}"
     )
     
     for reco in candidate_recommendations:
         # Skip if we already gave this exact recommendation
-        if reco.text in past_texts:
+        if reco.text in old_texts:
             logger.info(f"Skipping duplicate: {reco.text[:50]}...")
             continue
         
@@ -183,15 +195,6 @@ def generate_recommendations_for_user(user_id, features):
     
     # Sort by ML confidence (highest first)
     personalized_recommendations.sort(key=lambda r: r.score, reverse=True)
-    
-    # Archive old recommendations before creating new ones
-    if personalized_recommendations:
-        # Mark old recommendations as archived by deleting them
-        # (In production, you might want to keep them for analytics)
-        old_count = past_recommendations.count()
-        if old_count > 0:
-            logger.info(f"Archiving {old_count} old recommendations")
-            past_recommendations.delete()
     
     # Bulk create recommendations
     if personalized_recommendations:
