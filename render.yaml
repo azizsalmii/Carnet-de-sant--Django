@@ -5,8 +5,8 @@ services:
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-    # Use single worker to avoid OOM on free instances
-    startCommand: "gunicorn projetPython.wsgi:application --workers=1 --timeout=120 --max-requests=200 --max-requests-jitter=20"
+    # Use single worker to avoid OOM on free instances (explicitly set to 1, ignore WEB_CONCURRENCY)
+    startCommand: "gunicorn projetPython.wsgi:application --workers 1 --timeout 120 --max-requests 200 --max-requests-jitter 20 --bind 0.0.0.0:10000"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
