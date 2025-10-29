@@ -190,13 +190,13 @@ def download_report_pdf(request, pk):
     
     try:
         # Récupérer les données santé du mois
-    from .services.report_generator import ReportGenerator
-    generator = ReportGenerator()
+        from .services.report_generator import ReportGenerator
+        generator = ReportGenerator()
         health_data_list = generator.get_monthly_data(request.user, report.month)
         
         # Générer le PDF
-    from .services.pdf_generator import PDFGenerator
-    pdf_generator = PDFGenerator()
+        from .services.pdf_generator import PDFGenerator
+        pdf_generator = PDFGenerator()
         pdf_content = pdf_generator.generate_health_report_pdf(report, health_data_list)
         
         # Créer la réponse HTTP
@@ -216,12 +216,12 @@ def view_report_pdf(request, pk):
     report = get_object_or_404(MonthlyReport, pk=pk, user=request.user)
     
     try:
-    from .services.report_generator import ReportGenerator
-    generator = ReportGenerator()
+        from .services.report_generator import ReportGenerator
+        generator = ReportGenerator()
         health_data_list = generator.get_monthly_data(request.user, report.month)
         
-    from .services.pdf_generator import PDFGenerator
-    pdf_generator = PDFGenerator()
+        from .services.pdf_generator import PDFGenerator
+        pdf_generator = PDFGenerator()
         pdf_content = pdf_generator.generate_health_report_pdf(report, health_data_list)
         
         response = HttpResponse(pdf_content, content_type='application/pdf')
@@ -232,8 +232,8 @@ def view_report_pdf(request, pk):
         
     except Exception as e:
         # Fallback: PDF simple
-    from .services.pdf_generator import PDFGenerator
-    pdf_generator = PDFGenerator()
+        from .services.pdf_generator import PDFGenerator
+        pdf_generator = PDFGenerator()
         pdf_content = pdf_generator.generate_simple_pdf(report)
         
         response = HttpResponse(pdf_content, content_type='application/pdf')
