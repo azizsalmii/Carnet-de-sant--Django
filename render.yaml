@@ -10,7 +10,9 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.0"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: carnet-de-sante-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: DJANGO_SETTINGS_MODULE
@@ -19,3 +21,9 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         sync: false
+
+databases:
+  - name: carnet-de-sante-db
+    databaseName: carnet_de_sante
+    user: carnet_user
+    plan: free
