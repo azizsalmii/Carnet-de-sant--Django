@@ -10,10 +10,18 @@ This service loads the trained ML model and uses it to:
 import logging
 from pathlib import Path
 import joblib
-import numpy as np
 from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
+
+# Optional numpy import - gracefully handle if not installed (production minimal requirements)
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("numpy not available - ML features will be disabled")
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +39,11 @@ class PersonalizationService:
     
     def _load_model(self):
         """Load the trained ML model."""
+        # Skip model loading if numpy is not available (minimal production requirements)
+        if not NUMPY_AVAILABLE:
+            logger.info("⚠️ Skipping ML model load - numpy not installed (minimal production mode)")
+            return
+            
         try:
             # Priorité au modèle calibré si disponible
             calibrated_file = self.model_path / "model_calibrated.joblib"

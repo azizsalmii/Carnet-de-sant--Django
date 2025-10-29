@@ -1,0 +1,33 @@
+# Minimal requirements for Render free tier (no heavy ML dependencies)
+# This avoids OOM crashes on 512MB instances
+
+# Core Django
+asgiref==3.10.0
+Django==5.2.7
+sqlparse==0.5.3
+tzdata==2025.2
+
+# Django REST Framework & CORS
+djangorestframework>=3.14.0
+django-cors-headers>=4.3.0
+
+# Production Server & Database
+gunicorn>=21.2.0
+psycopg2-binary>=2.9.9
+dj-database-url>=2.1.0
+python-decouple>=3.8
+
+# Static Files
+whitenoise>=6.6.0
+Pillow==10.4.0
+
+# PDF Generation
+reportlab>=4.1.0
+
+# Date/Time Utilities
+python-dateutil==2.9.0.post0
+pytz==2025.2
+six==1.17.0
+
+# Lightweight dependencies only
+joblib==1.5.2
