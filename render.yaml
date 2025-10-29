@@ -1,0 +1,34 @@
+services:
+  # Web Service
+  - type: web
+    name: carnet-de-sante-django
+    runtime: python
+    plan: starter  # Free tier
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn projetPython.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: carnet-de-sante-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: projetPython.settings
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        sync: false  # Will be set manually
+    autoDeploy: true
+
+  # PostgreSQL Database
+  - type: pserv
+    name: carnet-de-sante-db
+    runtime: postgres
+    plan: starter  # Free tier
+    ipAllowList: []  # Allow all IPs
+    databases:
+      - name: carnet_de_sante
+        user: carnet_user

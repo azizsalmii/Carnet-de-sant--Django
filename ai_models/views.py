@@ -3,6 +3,9 @@
 # Imports
 # =========================================================
 import io, base64, time, os, json
+from functools import lru_cache
+from pathlib import Path
+
 from PIL import Image
 import torch
 from torchvision import models, transforms
@@ -10,40 +13,45 @@ from torchvision import models, transforms
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated  # <-- AJOUT
+from rest_framework.permissions import IsAuthenticated
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.files.storage import default_storage
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required        # <-- AJOUT
+from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 
-# ReportLab (⚠️ alias pour éviter conflit avec PIL.Image)
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
+# ReportLab
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle
+)
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Table, TableStyle            # <-- AJOUT
-
+from reportlab.lib import colors
 
 from .serializers import ChestXRayInputSerializer
 from .assistant import get_bot_reply
-
-from .models import Diagnosis   # <-- ajout
-from django.core.files.base import ContentFile  # pour attacher le fichier si besoin
-from django.shortcuts import get_object_or_404  # <-- en haut avec les imports
+from .models import Diagnosis
 
 # =========================================================
 # Device
 # =========================================================
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# =========================================================
+# Chemins de modèles (fallback si settings n'a pas AI_*_CKPT)
+# =========================================================
+_DEFAULT_BASE = Path(getattr(settings, "BASE_DIR", Path(__file__).resolve().parents[2]))
+_DEFAULT_MODELS_DIR = _DEFAULT_BASE / "ai_models"
+
+AI_CXR_CKPT = Path(getattr(settings, "AI_CXR_CKPT", _DEFAULT_MODELS_DIR / "best_model.pth"))
+AI_BRAIN_CKPT = Path(getattr(settings, "AI_BRAIN_CKPT", _DEFAULT_MODELS_DIR / "resnet18_brain_tumor.pth"))
 
 # =========================================================
 # Chest X-Ray model + utils
 # =========================================================
-XRY_MODEL_PATH = r"C:\Users\IYED\Desktop\Carnet-de-sant--Django-main\ai_models\best_model.pth"
-
 CONDITIONS = [
     'Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
     'Enlarged Cardiomediastinum', 'Fracture', 'Lung Lesion', 'Lung Opacity',
@@ -51,24 +59,32 @@ CONDITIONS = [
     'Pneumothorax', 'Support Devices'
 ]
 
-# Backbone ResNet50 multi-label
-xray_model = models.resnet50(weights=None)
-num_features = xray_model.fc.in_features
-xray_model.fc = torch.nn.Linear(num_features, len(CONDITIONS))
+@lru_cache(maxsize=1)
+def get_xray_model():
+    """
+    Construit ResNet50 multi-label et charge les poids au premier appel.
+    """
+    ckpt_path = Path(AI_CXR_CKPT)
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Chest X-Ray checkpoint not found: {ckpt_path}")
 
-# Charge le checkpoint
-_xckpt = torch.load(XRY_MODEL_PATH, map_location=DEVICE)
-if isinstance(_xckpt, dict):
-    if "model_state_dict" in _xckpt:
-        xray_model.load_state_dict(_xckpt["model_state_dict"], strict=False)
-    elif "state_dict" in _xckpt:
-        xray_model.load_state_dict(_xckpt["state_dict"], strict=False)
+    model = models.resnet50(weights=None)
+    num_features = model.fc.in_features
+    model.fc = torch.nn.Linear(num_features, len(CONDITIONS))
+
+    state = torch.load(ckpt_path, map_location=DEVICE)
+    if isinstance(state, dict):
+        if "model_state_dict" in state:
+            model.load_state_dict(state["model_state_dict"], strict=False)
+        elif "state_dict" in state:
+            model.load_state_dict(state["state_dict"], strict=False)
+        else:
+            model.load_state_dict(state, strict=False)
     else:
-        xray_model.load_state_dict(_xckpt, strict=False)
-else:
-    xray_model = _xckpt
+        # Le checkpoint contient déjà un modèle sérialisé
+        model = state
 
-xray_model = xray_model.to(DEVICE).eval()
+    return model.to(DEVICE).eval()
 
 
 def preprocess_xray_image(input_data):
@@ -98,7 +114,7 @@ def preprocess_xray_image(input_data):
 
 
 # =========================================================
-# Utilitaire: sauvegarder un diagnostic en base (AJOUT)
+# Utilitaire: sauvegarder un diagnostic en base (optionnel)
 # =========================================================
 def _save_diagnosis(
     *, request, modality, predicted_class, probabilities, latency_ms,
@@ -106,14 +122,13 @@ def _save_diagnosis(
 ):
     """
     Crée un objet Diagnosis pour l'utilisateur connecté.
-    - modality: Diagnosis.Modality.CXR ou Diagnosis.Modality.BRAIN
+    - modality: "cxr" ou "brain"
     - probabilities: dict {classe: proba}
     - image_abs_path: chemin ABSOLU du fichier uploadé (si dispo)
     """
     if not getattr(request, "user", None) or not request.user.is_authenticated:
-        return None  # sécurité (les vues sont déjà protégées)
+        return None
 
-    # confiance = proba de la classe prédite si dispo
     conf = None
     try:
         conf = float(probabilities.get(predicted_class))
@@ -130,7 +145,6 @@ def _save_diagnosis(
         summary=summary or "",
     )
 
-    # Attacher le fichier d'origine si présent
     if image_abs_path and os.path.exists(image_abs_path):
         with open(image_abs_path, "rb") as f:
             filename = os.path.basename(image_abs_path)
@@ -141,8 +155,8 @@ def _save_diagnosis(
 
 
 class ChestXRayPredictView(APIView):
-    """POST /api/ai/chest-xray/"""
-    permission_classes = [IsAuthenticated]  # <-- AJOUT : API protégée
+    """POST /ai/api/chest-xray/ (protégée JWT ou session)"""
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = ChestXRayInputSerializer(data=request.data)
@@ -151,8 +165,8 @@ class ChestXRayPredictView(APIView):
             tensor = preprocess_xray_image(serializer.validated_data["image"])
             t0 = time.time()
             with torch.no_grad():
-                output = xray_model(tensor.to(DEVICE))
-                # Multi-label → sigmoid
+                model = get_xray_model()
+                output = model(tensor.to(DEVICE))
                 probs = torch.sigmoid(output)[0].cpu().numpy()
             latency = (time.time() - t0) * 1000.0
             predictions = {CONDITIONS[i]: float(probs[i]) for i in range(len(CONDITIONS))}
@@ -166,9 +180,9 @@ class ChestXRayPredictView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@login_required(login_url='login')
+@login_required  # utilise settings.LOGIN_URL
 def chest_xray_test_page(request):
-    """Interface simple HTML Chest X-Ray (upload, prédiction, session, sauvegarde Diagnosis)."""
+    """Interface HTML Chest X-Ray (upload, prédiction, sauvegarde Diagnosis)."""
     result, image_url = None, None
 
     if request.method == "POST" and request.FILES.get("image"):
@@ -182,7 +196,8 @@ def chest_xray_test_page(request):
             tensor = preprocess_xray_image(abs_path)
             t0 = time.time()
             with torch.no_grad():
-                output = xray_model(tensor.to(DEVICE))
+                model = get_xray_model()
+                output = model(tensor.to(DEVICE))
                 probs_t = torch.sigmoid(output)[0].cpu().numpy()
 
             latency = (time.time() - t0) * 1000.0
@@ -200,17 +215,17 @@ def chest_xray_test_page(request):
             request.session["xray_last_result"] = result
             request.session["xray_last_image"] = image_url
 
-            # SAUVEGARDE EN BASE
+            # Sauvegarde DB
             try:
                 Diagnosis.objects.create(
                     user=request.user,
                     modality="cxr",
                     predicted_class=top_condition,
-                    confidence=float(top_prob),              # 0..1
+                    confidence=float(top_prob),
                     latency_ms=round(latency, 2),
                     summary="Chest X-Ray assistant result (non medical advice).",
                     probabilities=predictions,
-                    image=save_path                           # chemin relatif
+                    image=save_path   # chemin relatif (ImageField)
                 )
             except Exception as db_err:
                 print("[Diagnosis save xray] error:", db_err)
@@ -224,12 +239,20 @@ def chest_xray_test_page(request):
 # =========================================================
 # Brain Tumor model + utils
 # =========================================================
-BRAIN_MODEL_PATH = r"C:\Users\IYED\Desktop\Carnet-de-sant--Django-main\ai_models\resnet18_brain_tumor.pth"
 BRAIN_CLASSES = ['Glioma', 'Meningioma', 'No_tumor', 'Pituitary']
 
-# charge le modèle complet (même méthode que Flask)
-brain_model = torch.load(BRAIN_MODEL_PATH, map_location=DEVICE, weights_only=False)
-brain_model = brain_model.to(DEVICE).eval()
+@lru_cache(maxsize=1)
+def get_brain_model():
+    """
+    Charge le modèle brain tumor (premier appel uniquement).
+    """
+    ckpt_path = Path(AI_BRAIN_CKPT)
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Brain model checkpoint not found: {ckpt_path}")
+
+    model = torch.load(ckpt_path, map_location=DEVICE, weights_only=False)
+    return model.to(DEVICE).eval()
+
 
 RESULT_DESCRIPTION = {
     "Glioma": "A glioma is a type of tumor that starts in the brain's glial cells...",
@@ -246,7 +269,6 @@ DISCLAIMER = (
     "Always consult a healthcare professional."
 )
 
-
 def preprocess_brain_image(path):
     img = Image.open(path).convert("RGB")
     tfs = transforms.Compose([
@@ -258,7 +280,7 @@ def preprocess_brain_image(path):
     return tfs(img).unsqueeze(0)
 
 
-@login_required(login_url='login')
+@login_required
 def brain_tumor_test_page(request):
     """
     Upload MRI → prédiction.
@@ -269,23 +291,20 @@ def brain_tumor_test_page(request):
 
     if request.method == "POST" and request.FILES.get("image"):
         file = request.FILES["image"]
-        # Enregistrer l'image sous /media/diagnoses/...
         save_path = default_storage.save(f"diagnoses/{file.name}", file)
         abs_path = os.path.join(settings.MEDIA_ROOT, save_path)
         image_url = settings.MEDIA_URL + save_path
 
         try:
             x = preprocess_brain_image(abs_path).to(DEVICE)
-
             t0 = time.time()
             with torch.no_grad():
-                out = brain_model(x)                 # logits
+                model = get_brain_model()
+                out = model(x)  # logits
                 pred_idx = int(out.argmax(1))
             latency = (time.time() - t0) * 1000.0
 
             pred_label = BRAIN_CLASSES[pred_idx]
-
-            # Probabilités softmax
             probs = torch.softmax(out, dim=1)[0].cpu().tolist()
             prob_map = {BRAIN_CLASSES[i]: float(probs[i]) for i in range(len(BRAIN_CLASSES))}
             top_prob = max(probs)
@@ -305,17 +324,17 @@ def brain_tumor_test_page(request):
             request.session.modified = True
             request.session.save()
 
-            # SAUVEGARDE EN BASE
+            # Sauvegarde DB
             try:
                 Diagnosis.objects.create(
                     user=request.user,
                     modality="brain",
                     predicted_class=pred_label,
-                    confidence=float(top_prob),          # 0..1
+                    confidence=float(top_prob),
                     latency_ms=round(latency, 2),
                     summary=result["description"],
-                    probabilities=prob_map, 
-                    image=save_path                      # chemin relatif (géré par ImageField)
+                    probabilities=prob_map,
+                    image=save_path
                 )
             except Exception as db_err:
                 print("[Diagnosis save brain] error:", db_err)
@@ -332,11 +351,10 @@ def brain_tumor_test_page(request):
         {"result": result, "image_url": image_url, "mode": "brain"}
     )
 
-
 # =========================================================
 # Chatbot API (Brain)
 # =========================================================
-@login_required(login_url='login')            # <-- AJOUT : API JSON protégée
+@login_required
 @require_POST
 def brain_assistant_api(request):
     """
@@ -356,19 +374,14 @@ def brain_assistant_api(request):
     reply = get_bot_reply(user_msg, predicted)
     return JsonResponse({"ok": True, "reply": reply})
 
-
 # =========================================================
 # Export PDF (Brain)
 # =========================================================
-@login_required(login_url='login')            # <-- AJOUT : PDF protégé
+@login_required
 def brain_report_pdf(request):
     """Génère un rapport PDF du dernier diagnostic (mémorisé en session)."""
     result = request.session.get("brain_last_result")
     image_url = request.session.get("brain_last_image")
-
-    # Debug
-    print("[brain_report_pdf] has result?", bool(result), "| has image?", bool(image_url))
-    print("[brain_report_pdf] session keys:", list(request.session.keys()))
 
     if not result or "predicted_class" not in result:
         return HttpResponse("Aucun diagnostic disponible pour exporter le PDF.", status=400)
@@ -393,7 +406,7 @@ def brain_report_pdf(request):
     # Image (si disponible) → convertir URL /media/... en chemin disque
     if image_url:
         if image_url.startswith(settings.MEDIA_URL):
-            rel = image_url[len(settings.MEDIA_URL):]   # "xxx.jpg" ou "uploads/xxx.jpg"
+            rel = image_url[len(settings.MEDIA_URL):]
             image_path = os.path.join(settings.MEDIA_ROOT, rel)
         else:
             image_path = os.path.join(settings.BASE_DIR, image_url)
@@ -401,8 +414,6 @@ def brain_report_pdf(request):
         if os.path.exists(image_path):
             story.append(RLImage(image_path, width=400, height=300))
             story.append(Spacer(1, 20))
-        else:
-            print("[brain_report_pdf] image file not found:", image_path)
 
     story.append(Paragraph("Généré automatiquement par le module IA Médicale – Carnet de Santé Global.", styles["Italic"]))
 
@@ -415,8 +426,10 @@ def brain_report_pdf(request):
     resp.write(pdf_bytes)
     return resp
 
-
-@login_required(login_url='login')            # <-- AJOUT : API JSON protégée
+# =========================================================
+# Chatbot API (X-Ray)
+# =========================================================
+@login_required
 @require_POST
 def xray_assistant_api(request):
     """
@@ -435,11 +448,14 @@ def xray_assistant_api(request):
     reply = get_bot_reply(user_msg, predicted, domain="xray")
     return JsonResponse({"ok": True, "reply": reply})
 
-@login_required(login_url='login')
+# =========================================================
+# PDF par diagnostic (DB)
+# =========================================================
+@login_required
 def diagnosis_report_pdf(request, pk):
     """
     Génère un PDF pour un diagnostic précis (par ID).
-    Tolérant si le champ raw_probabilities n'existe pas ou est vide.
+    Tolérant si le champ probabilities/raw_probabilities varie.
     """
     diag = get_object_or_404(Diagnosis, pk=pk, user=request.user)
 
@@ -469,9 +485,8 @@ def diagnosis_report_pdf(request, pk):
         story.append(Paragraph(f"<b>Résumé :</b> {diag.summary}", styles["Normal"]))
         story.append(Spacer(1, 12))
 
-    # Probabilités (si disponibles)
-    probs = getattr(diag, "raw_probabilities", None)
-    # Si certaines anciennes lignes stockent une string JSON
+    # Probabilités (tolérant)
+    probs = getattr(diag, "probabilities", None) or getattr(diag, "raw_probabilities", None)
     if isinstance(probs, str):
         try:
             probs = json.loads(probs)
@@ -500,7 +515,6 @@ def diagnosis_report_pdf(request, pk):
     # Image si dispo
     if diag.image:
         try:
-            # diag.image.path est dispo pour FileField/ImageField
             if os.path.exists(diag.image.path):
                 story.append(Paragraph("<b>Image analysée</b>", styles["Heading3"]))
                 story.append(Spacer(1, 6))
@@ -524,4 +538,3 @@ def diagnosis_report_pdf(request, pk):
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     resp.write(pdf_bytes)
     return resp
-
