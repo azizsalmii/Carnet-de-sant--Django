@@ -17,6 +17,9 @@ urlpatterns = [
     path('reco/', include(('reco.urls', 'reco'), namespace='reco')),  # ✅ recommandations IA
     path('dashboard/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
 
+
+path("mental/", include(("MentalHealth.urls", "mental"), namespace="mental"))
+
 ]
 
 if settings.DEBUG:

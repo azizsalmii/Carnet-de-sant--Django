@@ -16,7 +16,7 @@ def home(request):
 
 def about(request):
     return render(request, 'journal/about.html')
-    
+
 def appointment(request):
     return render(request, 'journal/appointment.html')
 
@@ -241,19 +241,22 @@ def generate_intelligent_conclusion(entries):
 
     stats = defaultdict(lambda: {'count':0, 'total_intensity':0, 'total_duration':timedelta(0)})
     for entry in entries:
-        cat = entry.get_category_display()
-        stats[cat]['count'] += 1
-        if entry.intensity:
-            stats[cat]['total_intensity'] += float(entry.intensity)
-        if entry.duration:
-            stats[cat]['total_duration'] += entry.duration
+        emo = entry.get_emotion_display() if entry.emotion else "Non analysé"
+        if emo not in stats:
+            stats[emo] = {'count': 0, 'total_intensity': 0}
+        stats[emo]['count'] += 1
+        stats[emo]['total_intensity'] += entry.intensity or 0
 
     lines = []
-    for cat, data in stats.items():
-        avg_intensity = round(data['total_intensity']/data['count'],1) if data['count']>0 else 0
-        hours = data['total_duration'].seconds // 3600
-        minutes = (data['total_duration'].seconds % 3600) // 60
-        lines.append(f"- {data['count']} entrée(s) pour {cat} (intensité moyenne: {avg_intensity}/10), durée totale: {hours}h{minutes}min")
+    for emo, data in stats.items():
+        avg_intensity = round(data['total_intensity'] / data['count'], 1)
+        lines.append(f"- {data['count']} entrée(s) pour {emo} (intensité moyenne: {avg_intensity}/10)")
+        if emo.lower() in ["triste", "stresse", "colere", "anxieux"] and avg_intensity >= 7:
+            lines.append(f"⚠️ Attention: tes ressentis {emo} sont intenses. Pense à te détendre ou consulter un professionnel.")
+        elif emo.lower() in ["joyeux", "calme"] and avg_intensity >= 7:
+            lines.append("😊 Super ! Tu te sens bien, continue comme ça !")
+        elif emo.lower() == "fatigue" and avg_intensity >= 5:
+            lines.append("😴 Tu sembles fatigué, veille à bien te reposer.")
 
         if cat.lower() == "symptôme" and avg_intensity >= 7:
             lines.append(f"⚠️ Attention: tes symptômes sont assez intenses (moyenne {avg_intensity}/10). Consulte un médecin si cela persiste.")
@@ -268,47 +271,40 @@ def generate_intelligent_conclusion(entries):
 
     return lines
 
-def journal_page(request):
+# Vue principale pour MoodEntry
+@csrf_exempt  # pour tester sans token CSRF (à enlever en prod)
+def mood_journal(request):
     if not request.user.is_authenticated:
         return redirect('login_page')
 
     errors = {}
-
     if request.method == 'POST':
-        category = request.POST.get('category')
-        content = request.POST.get('content')
+        emotion = request.POST.get('emotion')
+        text = request.POST.get('text')
         intensity = request.POST.get('intensity') or None
-        duration_str = request.POST.get('duration')
-        location = request.POST.get('location')
-        tags = request.POST.get('tags')
 
-        if not content:
-            errors['content'] = ["Le contenu est obligatoire"]
-
-        duration = None
-        if duration_str:
+        if not emotion:
+            errors['emotion'] = ["L'émotion est obligatoire."]
+        if intensity:
             try:
-                hours, minutes = map(int, duration_str.split(":"))
-                duration = timedelta(hours=hours, minutes=minutes)
-            except:
-                errors['duration'] = ["Format de durée invalide, utiliser hh:mm"]
+                intensity = int(intensity)
+                if not 1 <= intensity <= 10:
+                    errors['intensity'] = ["L'intensité doit être entre 1 et 10."]
+            except ValueError:
+                errors['intensity'] = ["L'intensité doit être un nombre entier."]
 
         if not errors:
-            JournalEntry.objects.create(
-                user=request.user,
-                category=category,
-                content=content,
-                intensity=intensity,
-                duration=duration,
-                location=location,
-                tags=tags
-            )
-            return redirect('journal_page')
+            MoodEntry.objects.create(user=request.user, emotion=emotion, text=text, intensity=intensity)
+            return redirect('mood_journal')
 
-    entries = JournalEntry.objects.filter(user=request.user).order_by('-created_at')
-    conclusion_lines = generate_intelligent_conclusion(entries)
+    entries = MoodEntry.objects.filter(user=request.user)
+    conclusion_lines = generate_mood_conclusion(entries)
 
-    return render(request, 'journal/journal.html', {
+    # Calcul du score global
+    total_score = sum([e.mood_score or 0 for e in entries])
+    global_score = round(total_score / len(entries), 1) if entries else 0
+
+    return render(request, 'journal/mood_journal.html', {
         'entries': entries,
         'errors': errors,
         'conclusion_lines': conclusion_lines

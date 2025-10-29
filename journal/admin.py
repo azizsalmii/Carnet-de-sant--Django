@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import JournalEntry, HealthData, MonthlyReport, MedicalImage
+from .models import JournalEntry, HealthData, MonthlyReport, MedicalImage,MoodEntry
 
 # Admin pour JournalEntry
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
-    list_display = ['user', 'category', 'content_preview', 'intensity', 'created_at']
-    list_filter = ['category', 'created_at', 'user']
-    search_fields = ['user__username', 'content', 'tags']
+    list_display = ['user', 'category', 'content_preview', 'intensity', 'created_at',"emotion", "intensity"]
+    list_filter = ['category', 'emotion''created_at', 'user']
+    search_fields = ['user__username', 'content','text','tags']
     list_per_page = 20
     date_hierarchy = 'created_at'
     

@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'detection',
     'reco',  # AI-powered health recommendations
     "adminpanel",
+    'rest_framework',
+    'users',
+    'journal',
+    'MentalHealth',
 ]
 
 
@@ -88,8 +92,10 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = 'projetPython.wsgi.application'
 
-# === DATABASE ===
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -106,8 +112,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# === INTERNATIONALIZATION ===
+# Internationalization
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True

@@ -16,15 +16,20 @@ class JournalEntry(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="journal_entries"
+        related_name="mood_entries"
     )
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    content = models.TextField()
-    intensity = models.IntegerField(null=True, blank=True)  # 1 à 10
-    duration = models.DurationField(null=True, blank=True)  # ex: 1h30
-    location = models.CharField(max_length=100, null=True, blank=True)  # ex: "tête", "dos"
-    tags = models.CharField(max_length=200, null=True, blank=True)
+    text = models.TextField(verbose_name="Description du ressenti", blank=True)
+    emotion = models.CharField(max_length=30, choices=EMOTIONS, blank=True, null=True)
+    intensity = models.PositiveSmallIntegerField(null=True, blank=True, help_text="1 à 10")
+    mood_score = models.FloatField(null=True, blank=True, help_text="Score calculé automatiquement")
+    sentiment_score = models.FloatField(null=True, blank=True, help_text="Analyse sentiment du texte")
+    tags = models.CharField(max_length=200, blank=True)
+    objectives = models.TextField(blank=True, help_text="Objectifs suggérés par l'IA")
+    recommendations = models.TextField(blank=True, help_text="Recommandations pour améliorer l'humeur")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.category} - {self.user.username} - {self.created_at.date()}"
