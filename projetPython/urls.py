@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from reco import views as reco_views
 from django.http import HttpResponse
+import os
 
 def health(_request):
     return HttpResponse("ok")
@@ -22,12 +23,18 @@ urlpatterns = [
     path('', include('journal.urls')),                 # site principal (home, about, etc.)
     path('users/', include('users.urls')),             # gestion des utilisateurs
     path('accounts/', include('users.urls')),          # alias pour compatibilité Django
-    path('ai/', include('ai_models.urls')),            # pages IA (chest-xray, brain-tumor)
     path('detection/', include('detection.urls')),     # détection d'anomalies
     path('reco/', include(('reco.urls', 'reco'), namespace='reco')),  # ✅ recommandations IA
     path('dashboard/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
     # Health check endpoint
     path('healthz/', health),
+]
+
+# Gate AI routes behind env flag to avoid OOM on free tier
+if os.getenv("ENABLE_AI_ROUTES", "0") == "1":
+    urlpatterns += [
+        path('ai/', include('ai_models.urls')),            # pages IA (chest-xray, brain-tumor)
+    ]
 
 ]
 
