@@ -181,7 +181,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     # Trust Render's proxy and force HTTPS without loops
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = True
+    # SECURE_SSL_REDIRECT = True  # Disabled to avoid redirect loops with Render proxy
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True

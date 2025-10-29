@@ -5,8 +5,8 @@ services:
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-  # Use fewer workers to avoid memory pressure on free instances
-  startCommand: "gunicorn projetPython.wsgi:application --workers=${WEB_CONCURRENCY:-2} --timeout 120 --keep-alive 5"
+    # Use fewer workers to avoid memory pressure on free instances
+    startCommand: "gunicorn projetPython.wsgi:application --workers=${WEB_CONCURRENCY:-2} --timeout 120 --keep-alive 5"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
