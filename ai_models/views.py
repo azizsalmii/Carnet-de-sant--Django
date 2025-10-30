@@ -10,6 +10,11 @@ from PIL import Image
 import torch
 from torchvision import models, transforms
 
+# =========================================================
+# Render environment detection
+# =========================================================
+IS_RENDER = os.environ.get("RENDER", "false").lower() == "true"
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -63,7 +68,18 @@ CONDITIONS = [
 def get_xray_model():
     """
     Construit ResNet50 multi-label et charge les poids au premier appel.
+    Sur Render, retourne un modèle dummy pour éviter de charger les gros fichiers.
     """
+    if IS_RENDER:
+        print("⚠️ Render env detected — using dummy X-Ray model (skipping heavy checkpoint load).")
+        import torch.nn as nn
+        class DummyXRayModel(nn.Module):
+            def forward(self, x):
+                # Retourne des zéros de la forme attendue (batch_size, num_classes)
+                return torch.zeros((x.size(0), len(CONDITIONS)))
+        return DummyXRayModel().to(DEVICE).eval()
+    
+    # En local ou sur serveur avec GPU, charger le vrai modèle
     ckpt_path = Path(AI_CXR_CKPT)
     if not ckpt_path.exists():
         raise FileNotFoundError(f"Chest X-Ray checkpoint not found: {ckpt_path}")
@@ -245,7 +261,18 @@ BRAIN_CLASSES = ['Glioma', 'Meningioma', 'No_tumor', 'Pituitary']
 def get_brain_model():
     """
     Charge le modèle brain tumor (premier appel uniquement).
+    Sur Render, retourne un modèle dummy pour éviter de charger les gros fichiers.
     """
+    if IS_RENDER:
+        print("⚠️ Render env detected — using dummy Brain Tumor model (skipping heavy checkpoint load).")
+        import torch.nn as nn
+        class DummyBrainModel(nn.Module):
+            def forward(self, x):
+                # Retourne des zéros de la forme attendue (batch_size, num_classes)
+                return torch.zeros((x.size(0), len(BRAIN_CLASSES)))
+        return DummyBrainModel().to(DEVICE).eval()
+    
+    # En local ou sur serveur avec GPU, charger le vrai modèle
     ckpt_path = Path(AI_BRAIN_CKPT)
     if not ckpt_path.exists():
         raise FileNotFoundError(f"Brain model checkpoint not found: {ckpt_path}")

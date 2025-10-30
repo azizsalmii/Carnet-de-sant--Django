@@ -5,10 +5,14 @@ services:
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn projetPython.wsgi:application"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 projetPython.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: RENDER
+        value: "true"
+      - key: ENABLE_HF_MODELS
+        value: "0"
       - key: DATABASE_URL
         fromDatabase:
           name: carnet-de-sante-db

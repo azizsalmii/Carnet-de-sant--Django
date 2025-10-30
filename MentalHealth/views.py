@@ -21,6 +21,9 @@ from sklearn.exceptions import NotFittedError
 # ===============================
 logger = logging.getLogger(__name__)
 
+# Enable Hugging Face pipelines only when explicitly allowed (heavy to load on low-memory hosts)
+ENABLE_HF_MODELS = os.getenv("ENABLE_HF_MODELS", "1").lower() in {"1", "true", "yes", "on"}
+
 # Configuration des modèles
 MODEL_CONFIG = {
     'emotion_model': "mrm8488/t5-base-finetuned-emotion",
@@ -45,8 +48,9 @@ class ModelManager:
         if self._initialized:
             return
             
-        self.models = {}
-        self.load_all_models()
+    self.models = {}
+    self.fallback_mode = False
+    self.load_all_models()
         self._initialized = True
     
     def load_all_models(self):
@@ -55,8 +59,13 @@ class ModelManager:
             # 1. Modèles ML traditionnels
             self.load_ml_models()
             
-            # 2. Modèles Hugging Face
-            self.load_huggingface_models()
+            # 2. Modèles Hugging Face (optionnels)
+            if ENABLE_HF_MODELS:
+                self.load_huggingface_models()
+            else:
+                logger.info("Skipping Hugging Face model loading because ENABLE_HF_MODELS is disabled")
+                self.models['emotion_pipeline'] = None
+                self.models['generator'] = None
             
             logger.info("✅ Tous les modèles chargés avec succès")
             
