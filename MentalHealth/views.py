@@ -48,9 +48,9 @@ class ModelManager:
         if self._initialized:
             return
             
-    self.models = {}
-    self.fallback_mode = False
-    self.load_all_models()
+        self.models = {}
+        self.fallback_mode = False
+        self.load_all_models()
         self._initialized = True
     
     def load_all_models(self):
