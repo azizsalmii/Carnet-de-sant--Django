@@ -121,8 +121,15 @@ class ModelManager:
         self.fallback_mode = True
         logger.info("🔄 Mode fallback activé")
 
-# Initialisation du manager de modèles
-model_manager = ModelManager()
+# Lazy initialization - only load models when first accessed
+_model_manager_instance = None
+
+def get_model_manager():
+    """Get or create model manager instance (lazy loading)"""
+    global _model_manager_instance
+    if _model_manager_instance is None:
+        _model_manager_instance = ModelManager()
+    return _model_manager_instance
 
 # ===============================
 # 🤖 CHATBOT THÉRAPEUTIQUE INTELLIGENT
@@ -803,6 +810,7 @@ class EmotionDetector:
             return "neutral"
         
         # Utilisation du modèle HF
+        model_manager = get_model_manager()
         if model_manager.models.get('emotion_pipeline'):
             try:
                 result = model_manager.models['emotion_pipeline'](
@@ -1104,6 +1112,7 @@ class MentalHealthAssistant:
         # =========================
         prediction = "unknown"
         try:
+            model_manager = get_model_manager()
             vec = model_manager.models.get('vectorizer')
             clf = model_manager.models.get('classifier')
             le = model_manager.models.get('label_encoder')
