@@ -11,9 +11,11 @@ import torch
 from torchvision import models, transforms
 
 # =========================================================
-# Render environment detection
+# Production environment detection
 # =========================================================
 IS_RENDER = os.environ.get("RENDER", "false").lower() == "true"
+IS_PYTHONANYWHERE = "PYTHONANYWHERE_DOMAIN" in os.environ or "PYTHONANYWHERE_SITE" in os.environ
+IS_PRODUCTION = IS_RENDER or IS_PYTHONANYWHERE
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -68,10 +70,10 @@ CONDITIONS = [
 def get_xray_model():
     """
     Construit ResNet50 multi-label et charge les poids au premier appel.
-    Sur Render, retourne un modèle dummy pour éviter de charger les gros fichiers.
+    Sur Render/PythonAnywhere, retourne un modèle dummy pour éviter de charger les gros fichiers.
     """
-    if IS_RENDER:
-        print("⚠️ Render env detected — using dummy X-Ray model (skipping heavy checkpoint load).")
+    if IS_PRODUCTION:
+        print("⚠️ Production env detected — using dummy X-Ray model (skipping heavy checkpoint load).")
         import torch.nn as nn
         class DummyXRayModel(nn.Module):
             def forward(self, x):
@@ -261,10 +263,10 @@ BRAIN_CLASSES = ['Glioma', 'Meningioma', 'No_tumor', 'Pituitary']
 def get_brain_model():
     """
     Charge le modèle brain tumor (premier appel uniquement).
-    Sur Render, retourne un modèle dummy pour éviter de charger les gros fichiers.
+    Sur Render/PythonAnywhere, retourne un modèle dummy pour éviter de charger les gros fichiers.
     """
-    if IS_RENDER:
-        print("⚠️ Render env detected — using dummy Brain Tumor model (skipping heavy checkpoint load).")
+    if IS_PRODUCTION:
+        print("⚠️ Production env detected — using dummy Brain Tumor model (skipping heavy checkpoint load).")
         import torch.nn as nn
         class DummyBrainModel(nn.Module):
             def forward(self, x):

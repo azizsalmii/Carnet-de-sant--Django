@@ -18,12 +18,22 @@ AI_BRAIN_CKPT = AI_MODELS_DIR / "resnet18_brain_tumor.pth"
 
 # === SECURITY ===
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--m92yzg)8xi)4&^mfng7**@9^it=5n5&usr=5wj&j=!qhf')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+
+# Environment detection
+IS_PYTHONANYWHERE = 'PYTHONANYWHERE_DOMAIN' in os.environ or 'PYTHONANYWHERE_SITE' in os.environ
+IS_RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
+IS_PRODUCTION = IS_PYTHONANYWHERE or IS_RENDER
+
+DEBUG = os.environ.get('DEBUG', 'True') == 'True' if not IS_PRODUCTION else False
 
 # Production hosts
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
-if not DEBUG:
-    ALLOWED_HOSTS.append('.onrender.com')  # Allow Render domains
+if IS_RENDER:
+    ALLOWED_HOSTS.append('.onrender.com')
+if IS_PYTHONANYWHERE:
+    ALLOWED_HOSTS.extend(['.pythonanywhere.com', os.environ.get('PYTHONANYWHERE_DOMAIN', '')])
+    if os.environ.get('PYTHONANYWHERE_DOMAIN'):
+        ALLOWED_HOSTS.append(os.environ['PYTHONANYWHERE_DOMAIN'])
 
 # === CUSTOM USER MODEL ===
 AUTH_USER_MODEL = 'users.CustomUser'
