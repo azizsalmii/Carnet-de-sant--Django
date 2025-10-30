@@ -22,6 +22,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--m92yzg)8xi)4&^mfng7*
 # Environment detection
 IS_PYTHONANYWHERE = 'PYTHONANYWHERE_DOMAIN' in os.environ or 'PYTHONANYWHERE_SITE' in os.environ
 IS_RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
+IS_NGROK = os.environ.get('NGROK', 'false').lower() == 'true'
 IS_PRODUCTION = IS_PYTHONANYWHERE or IS_RENDER
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True' if not IS_PRODUCTION else False
@@ -34,6 +35,9 @@ if IS_PYTHONANYWHERE:
     ALLOWED_HOSTS.extend(['.pythonanywhere.com', os.environ.get('PYTHONANYWHERE_DOMAIN', '')])
     if os.environ.get('PYTHONANYWHERE_DOMAIN'):
         ALLOWED_HOSTS.append(os.environ['PYTHONANYWHERE_DOMAIN'])
+if IS_NGROK:
+    # Allow all hosts for ngrok (dynamic URLs)
+    ALLOWED_HOSTS = ['*']
 
 # === CUSTOM USER MODEL ===
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -163,8 +167,21 @@ LOGIN_REDIRECT_URL = '/reco/dashboard/'    # Après login
 LOGOUT_REDIRECT_URL = '/'                  # Après logout
 
 # === SECURITY ===
+# CSRF trusted origins for production deployments
+CSRF_TRUSTED_ORIGINS = []
+if IS_RENDER:
+    CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
+if IS_PYTHONANYWHERE:
+    CSRF_TRUSTED_ORIGINS.append('https://*.pythonanywhere.com')
+if IS_NGROK:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'https://*.ngrok-free.app',
+        'https://*.ngrok.io',
+        'https://*.ngrok.app',
+    ])
+
 # Production security settings
-if not DEBUG:
+if not DEBUG and not IS_NGROK:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     # Temporarily disable SSL redirect to test
@@ -176,7 +193,7 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
 else:
-    # Development
+    # Development or ngrok
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
