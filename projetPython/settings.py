@@ -11,7 +11,7 @@ import dj_database_url
 # === BASE DIR ===
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# === AI MODEL PATHS (portables, sans chemins Windows en dur) ===
+# === AI MODEL PATHS ===
 AI_MODELS_DIR = BASE_DIR / "ai_models"
 AI_CXR_CKPT = AI_MODELS_DIR / "best_model.pth"
 AI_BRAIN_CKPT = AI_MODELS_DIR / "resnet18_brain_tumor.pth"
@@ -19,7 +19,7 @@ AI_BRAIN_CKPT = AI_MODELS_DIR / "resnet18_brain_tumor.pth"
 # === SECURITY ===
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--m92yzg)8xi)4&^mfng7**@9^it=5n5&usr=5wj&j=!qhf')
 
-# Environment detection
+# === ENVIRONMENT DETECTION ===
 IS_PYTHONANYWHERE = 'PYTHONANYWHERE_DOMAIN' in os.environ or 'PYTHONANYWHERE_SITE' in os.environ
 IS_RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
 IS_NGROK = os.environ.get('NGROK', 'false').lower() == 'true'
@@ -27,17 +27,33 @@ IS_PRODUCTION = IS_PYTHONANYWHERE or IS_RENDER
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True' if not IS_PRODUCTION else False
 
-# Production hosts
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
-if IS_RENDER:
-    ALLOWED_HOSTS.append('.onrender.com')
-if IS_PYTHONANYWHERE:
-    ALLOWED_HOSTS.extend(['.pythonanywhere.com', os.environ.get('PYTHONANYWHERE_DOMAIN', '')])
-    if os.environ.get('PYTHONANYWHERE_DOMAIN'):
-        ALLOWED_HOSTS.append(os.environ['PYTHONANYWHERE_DOMAIN'])
-if IS_NGROK:
-    # Allow all hosts for ngrok (dynamic URLs)
-    ALLOWED_HOSTS = ['*']
+# === HOSTS ===
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '.ngrok-free.dev',
+    '.ngrok-free.app',
+    '.onrender.com',
+    '.pythonanywhere.com',
+]
+
+# === CSRF TRUSTED ORIGINS (Unified and Correct) ===
+CSRF_TRUSTED_ORIGINS = [
+    # Your current ngrok domain (update when ngrok changes)
+    'https://precollegiate-luann-unexpedited.ngrok-free.dev',
+
+    # General trusted domains
+    'https://*.ngrok-free.dev',
+    'https://*.ngrok-free.app',
+    'https://*.onrender.com',
+    'https://*.pythonanywhere.com',
+
+    # Local development
+    'https://127.0.0.1',
+    'http://127.0.0.1',
+    'https://localhost',
+    'http://localhost',
+]
 
 # === CUSTOM USER MODEL ===
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -58,7 +74,7 @@ INSTALLED_APPS = [
     'ai_models',
     'detection',
     'reco',  # AI-powered health recommendations
-    "adminpanel",
+    'adminpanel',
     'rest_framework',
     'MentalHealth',
 ]
@@ -73,7 +89,7 @@ REST_FRAMEWORK = {
 # === MIDDLEWARE ===
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,10 +123,8 @@ TEMPLATES = [
 ]
 
 # === DATABASE ===
-# Use PostgreSQL in production, SQLite in development
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    # Production: PostgreSQL from Render
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -119,7 +133,6 @@ if DATABASE_URL:
         )
     }
 else:
-    # Development: SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -137,63 +150,40 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # === INTERNATIONALIZATION ===
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Africa/Tunis'   # <- adapté à ton contexte
+TIME_ZONE = 'Africa/Tunis'
 USE_I18N = True
 USE_TZ = True
 
 # === STATIC & MEDIA FILES ===
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'detection' / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'detection' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise configuration for production
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # === AUTH REDIRECTS ===
-LOGIN_URL = '/reco/login/'                 # Page de login
-LOGIN_REDIRECT_URL = '/reco/dashboard/'    # Après login
-LOGOUT_REDIRECT_URL = '/'                  # Après logout
+LOGIN_URL = '/reco/login/'
+LOGIN_REDIRECT_URL = '/reco/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
 
-# === SECURITY ===
-# CSRF trusted origins for production deployments
-CSRF_TRUSTED_ORIGINS = []
-if IS_RENDER:
-    CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
-if IS_PYTHONANYWHERE:
-    CSRF_TRUSTED_ORIGINS.append('https://*.pythonanywhere.com')
-if IS_NGROK:
-    CSRF_TRUSTED_ORIGINS.extend([
-        'https://*.ngrok-free.app',
-        'https://*.ngrok.io',
-        'https://*.ngrok.app',
-    ])
-
-# Production security settings
-if not DEBUG and not IS_NGROK:
+# === SECURITY SETTINGS ===
+if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Temporarily disable SSL redirect to test
-    SECURE_SSL_REDIRECT = False  # Changed from True
-    SECURE_HSTS_SECONDS = 0  # Disabled for testing
+    SECURE_SSL_REDIRECT = False  # Keep False while using ngrok
+    SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
 else:
-    # Development or ngrok
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
